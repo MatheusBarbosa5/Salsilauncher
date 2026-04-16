@@ -11,6 +11,7 @@
 
 ## Fluxo
 
+```mermaid
 flowchart LR
     A[Criar branch a partir da dev] --> B[Desenvolver]
     B --> C[Abrir Pull Request para dev]
