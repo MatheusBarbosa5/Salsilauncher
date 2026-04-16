@@ -11,32 +11,59 @@
 
 ## Fluxo
 
-1. Criar branch a partir da dev
-2. Desenvolver
-3. Abrir Pull Request para dev
-4. Revisão e merge
+flowchart LR
+    A[Criar branch a partir da dev] --> B[Desenvolver]
+    B --> C[Abrir Pull Request para dev]
+    C --> D[Revisão]
+    D --> E[Merge na dev]
 
 ---
 
-## Commits
-### Sigam este padrão para commits no projeto:
+## Padrão de Commits
 
-Título: *tipo*: *tarefa ou nome do item*
-Descrição (Opcional): *detalhes breves ou observações*
+Para manter organização e rastreabilidade no projeto, todos os commits devem seguir o padrão abaixo:
 
+### Estrutura
 
-### Tipos:
-| Tipo     | Uso                 |
-| -------- | ------------------- |
-| feat     | nova funcionalidade |
-| fix      | correção            |
-| refactor | melhoria de código  |
-| style    | formatação          |
-| docs     | documentação        |
-| chore    | tarefas internas    |
+**Título (obrigatório):**
+
+```
+tipo: descrição curta da alteração
+```
+
+**Descrição (opcional):**
+
+* Detalhes adicionais sobre a implementação
+
+---
+
+### Tipos de commit
+
+| Tipo     | Uso                        |
+| -------- | -------------------------- |
+| feat     | Nova funcionalidade        |
+| fix      | Correção de bug            |
+| refactor | Melhoria interna de código |
+| style    | Formatação/estilo          |
+| docs     | Documentação               |
+| chore    | Tarefas técnicas gerais    |
+
+---
 
 ### Exemplos
 
-* feat: criar modelo Game
-* fix: corrigir busca
-* refactor: melhorar estrutura do main.py
+```
+feat: criar modelo Game
+```
+
+```
+fix: corrigir busca de jogos
+```
+
+```
+refactor: reorganizar estrutura do main.py
+```
+
+---
+
+###
