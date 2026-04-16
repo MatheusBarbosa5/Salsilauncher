@@ -17,6 +17,7 @@ flowchart LR
     B --> C[Abrir Pull Request para dev]
     C --> D[Revisão]
     D --> E[Merge na dev]
+```
 
 ---
 
