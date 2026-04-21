@@ -1,4 +1,4 @@
-import React, { useState } from "react"; // Adicionado useState
+import React, { useState } from "react";
 import "./App.css";
 import {
   Search,
@@ -70,7 +70,6 @@ function App() {
           <h2 className="sidebar-title">SALSILAUNCHER</h2>
         </div>
 
-        {/* Tabs de Navegação */}
         <div className="nav-tabs">
           <div
             className={`tab ${activeTab === "home" ? "active" : ""}`}
@@ -101,7 +100,6 @@ function App() {
             </div>
           ) : (
             <div className="menu-group animate-in">
-              {/* Accordion de Favoritos */}
               <div className="accordion">
                 <div
                   className="collection-item"
@@ -143,7 +141,6 @@ function App() {
           )}
         </div>
 
-        {/* Rodapé da Sidebar (Opcional - Estilo Epic) */}
         <div className="sidebar-footer">
           <div className="menu-item">
             <Settings size={18} /> <span>Configurações</span>
@@ -164,7 +161,7 @@ function App() {
               <div className="user-avatar">
                 <User size={18} color="white" />
               </div>
-              <span>Kaio Damasceno</span>
+              <span>Usuário</span> {/* Alterado aqui para ficar genérico */}
             </div>
             <button className="icon-btn">
               <Settings size={20} />
