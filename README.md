@@ -10,12 +10,12 @@ Para facilitar o setup inicial, criámos scripts de automação que instalam tod
 
 ### **Windows**
 1. Garanta que seu PC tenha o [Node.js](https://nodejs.org/) instalado.
-2. Vá até a pasta raiz do projeto e dá um duplo clique no ficheiro:  
+2. Vá até a pasta raíz do projeto e dê um duplo clique no ficheiro:  
    `instalar_dependencias.bat`
 3. Aguarde até aparecer a mensagem de **SUCESSO** em verde.
 
-### **Linux / macOS**
-1. Abra o terminal na pasta raiz do projeto.
+### **Linux**
+1. Abra o terminal na pasta raíz do projeto.
 2. Dê permissão de execução: `chmod +x instalar_dependencias.sh`
 3. Execute o script: `./instalar_dependencias.sh`
 
@@ -23,7 +23,7 @@ Para facilitar o setup inicial, criámos scripts de automação que instalam tod
 
 ##  Como rodar o projeto
 
-Após a instalação das dependências, utiliza os seguintes comandos no terminal do VS Code:
+Após a instalação das dependências, utilize os seguintes comandos no terminal do VS Code:
 
 1. **Entrar na pasta do frontend:**
    ```bash
