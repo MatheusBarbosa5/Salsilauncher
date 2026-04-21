@@ -1,0 +1,28 @@
+/* Design Tokens - Salsilauncher */
+:root {
+  /* Cores - Identidade Visual (Vermelho) */
+  --color-bg: #0f0f0f; /* Fundo principal escuro */
+  --color-surface: #1a1a1a; /* Superfície de cards e sidebar */
+  --color-primary: #ff0000; /* Vermelho da identidade */
+  --color-primary-hover: #cc0000; /* Vermelho para interação */
+  --color-text: #f5f5f5; /* Texto principal */
+  --color-text-muted: #a0a0a0; /* Texto secundário */
+  --color-border: #333333; /* Bordas sutis */
+
+  /* Espaçamento - Sistema de 8px */
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 32px;
+
+  /* Tipografia */
+  --font-main: "Inter", system-ui, sans-serif;
+}
+
+body {
+  margin: 0;
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-main);
+}
