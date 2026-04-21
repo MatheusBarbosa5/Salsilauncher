@@ -1,0 +1,324 @@
+/* ============================================================
+   1. CONFIGURAÇÕES GERAIS E RESET
+   ============================================================ */
+:root {
+  --bg-dark: #121212;
+  --bg-sidebar: #1a1a1a;
+  --accent-red: #ff0000;
+  --text-gray: #888;
+  --border-color: #333;
+  --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+body {
+  margin: 0;
+  background-color: var(--bg-dark);
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  color: white;
+  overflow: hidden;
+}
+
+/* ============================================================
+   2. ESTRUTURA DO LAYOUT
+   ============================================================ */
+.app-layout {
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+}
+
+/* ============================================================
+   3. SIDEBAR - NOVA LÓGICA DE ABAS E MENU 
+   ============================================================ */
+.sidebar {
+  width: 280px;
+  background-color: var(--bg-sidebar);
+  border-right: 1px solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar-header {
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.logo-box {
+  background-color: var(--accent-red);
+  padding: 8px;
+  border-radius: 8px;
+  box-shadow: 0 0 15px rgba(255, 0, 0, 0.3);
+  display: flex;
+}
+
+.sidebar-title {
+  font-size: 16px;
+  font-weight: 800;
+  margin: 0;
+  letter-spacing: 1px;
+}
+
+/* Abas Home/Coleções */
+.nav-tabs {
+  display: flex;
+  margin-top: 10px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.tab {
+  flex: 1;
+  padding: 15px;
+  text-align: center;
+  cursor: pointer;
+  color: var(--text-gray);
+  font-size: 14px;
+  font-weight: 600;
+  transition: var(--transition-smooth);
+  position: relative;
+}
+
+.tab.active {
+  color: white;
+}
+
+.tab.active::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 20%;
+  width: 60%;
+  height: 3px;
+  background-color: var(--accent-red);
+  border-radius: 10px 10px 0 0;
+  box-shadow: 0 -2px 10px rgba(255, 0, 0, 0.5);
+}
+
+/* Itens do Menu e Acordeão */
+.sidebar-content {
+  flex: 1;
+  padding: 15px;
+  overflow-y: auto;
+}
+
+.menu-item,
+.collection-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 15px;
+  border-radius: 8px;
+  cursor: pointer;
+  color: #aaa;
+  transition: 0.2s;
+  margin-bottom: 4px;
+}
+
+.menu-item:hover,
+.collection-item:hover {
+  background-color: #252525;
+  color: white;
+}
+
+.menu-item.active {
+  background-color: #252525;
+  color: white;
+  border-left: 3px solid var(--accent-red);
+}
+
+/* Sub-itens das Coleções (Acordeão) */
+.accordion-content {
+  max-height: 0;
+  overflow: hidden;
+  transition:
+    max-height 0.3s ease-out,
+    opacity 0.3s ease;
+  opacity: 0;
+}
+
+.accordion-content.show {
+  max-height: 200px;
+  opacity: 1;
+  background-color: #151515;
+  border-radius: 0 0 8px 8px;
+}
+
+.sub-item {
+  padding: 10px 45px;
+  font-size: 13px;
+  color: var(--text-gray);
+  cursor: pointer;
+  margin: 0;
+}
+
+.sub-item:hover {
+  color: var(--accent-red);
+}
+
+.arrow {
+  transition: transform 0.3s;
+}
+.arrow.open {
+  transform: rotate(180deg);
+}
+
+/* ============================================================
+   4. TOPBAR E ÁREA DE BUSCA 
+   ============================================================ */
+.content-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.topbar {
+  height: 70px;
+  padding: 0 30px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(18, 18, 18, 0.9);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.search-container {
+  background-color: #222;
+  padding: 8px 18px;
+  border-radius: 25px;
+  display: flex;
+  align-items: center;
+  width: 350px;
+  border: 1px solid transparent;
+}
+
+.search-container:focus-within {
+  border-color: var(--accent-red);
+}
+
+.search-container input {
+  background: transparent;
+  border: none;
+  color: white;
+  margin-left: 10px;
+  width: 100%;
+  outline: none;
+}
+
+/* ============================================================
+   5. GRID E SEÇÕES DE JOGOS
+   ============================================================ */
+.main-scroll {
+  flex: 1;
+  overflow-y: auto;
+  padding: 30px;
+}
+
+.section-container {
+  margin-bottom: 40px;
+}
+
+.section-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 16px;
+  font-weight: bold;
+  margin-bottom: 20px;
+  text-transform: uppercase;
+  color: #fff;
+}
+
+.game-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 200px));
+  gap: 25px;
+}
+
+/* ============================================================
+   6. GAME CARD - CORREÇÃO DE IMAGEM
+   ============================================================ */
+.game-card {
+  background-color: #1a1a1a;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid var(--border-color);
+  transition: var(--transition-smooth);
+  cursor: pointer;
+}
+
+.game-card:hover {
+  transform: translateY(-8px);
+  border-color: var(--accent-red);
+  box-shadow: 0 10px 25px rgba(255, 0, 0, 0.2);
+}
+
+.image-container {
+  width: 100%;
+  aspect-ratio: 2 / 3;
+  overflow: hidden;
+  position: relative;
+}
+
+.game-image {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+}
+
+.play-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: 0.3s;
+  backdrop-filter: blur(2px);
+}
+
+.game-card:hover .play-overlay {
+  opacity: 1;
+}
+
+.play-button {
+  background: var(--accent-red);
+  padding: 15px;
+  border-radius: 50%;
+  box-shadow: 0 0 20px rgba(255, 0, 0, 0.5);
+}
+
+/* ============================================================
+   7. ANIMAÇÕES E SCROLLBAR
+   ============================================================ */
+.animate-in {
+  animation: slideIn 0.4s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-15px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg-dark);
+}
+::-webkit-scrollbar-thumb {
+  background: #333;
+  border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-red);
+}
