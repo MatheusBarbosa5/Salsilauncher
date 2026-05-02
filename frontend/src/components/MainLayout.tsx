@@ -20,6 +20,7 @@ export function MainLayout() {
   return (
     <div className="app-layout">
       <aside className="sidebar">
+        {/* Header da Sidebar */}
         <div
           className="sidebar-header"
           onClick={() => navigate("/")}
@@ -31,6 +32,7 @@ export function MainLayout() {
           <h2 className="sidebar-title">SALSILAUNCHER</h2>
         </div>
 
+        {/* Tabs de Navegação */}
         <div className="nav-tabs">
           <div
             className={`tab ${activeTab === "home" ? "active" : ""}`}
@@ -49,6 +51,7 @@ export function MainLayout() {
           </div>
         </div>
 
+        {/* Conteúdo da Sidebar conforme a Tab ativa */}
         <div className="sidebar-content">
           {activeTab === "home" ? (
             <div className="menu-group animate-in">
@@ -65,30 +68,27 @@ export function MainLayout() {
                 className="collection-item"
                 onClick={() => setIsFavoritesOpen(!isFavoritesOpen)}
               >
-                <div className="item-label">
-                  <Star
-                    size={16}
-                    fill={isFavoritesOpen ? "#ff0000" : "none"}
-                    color={isFavoritesOpen ? "#ff0000" : "currentColor"}
-                  />
-                  <span>Favoritos</span>
-                </div>
+                <Star
+                  size={16}
+                  fill={isFavoritesOpen ? "#ff0000" : "none"}
+                  color={isFavoritesOpen ? "#ff0000" : "currentColor"}
+                />
+                <span>Favoritos</span>
                 <ChevronDown
                   size={16}
                   className={`arrow ${isFavoritesOpen ? "open" : ""}`}
+                  style={{
+                    marginLeft: "auto",
+                    transform: isFavoritesOpen ? "rotate(180deg)" : "none",
+                  }}
                 />
               </div>
 
-              <div
-                className={`accordion-content ${isFavoritesOpen ? "show" : ""}`}
-              >
-                <p className="sub-item">Elden Ring</p>
-                <p className="sub-item">Minecraft</p>
-              </div>
-
+              {/* ITEM "NOVO JOGO" DESTACADO EM VERMELHO */}
               <div
                 className="collection-item add-collection"
                 onClick={() => navigate("/cadastro-jogo")}
+                style={{ color: "#ff0000", fontWeight: "bold" }}
               >
                 <Plus size={16} /> <span>Novo Jogo</span>
               </div>
@@ -97,12 +97,14 @@ export function MainLayout() {
         </div>
       </aside>
 
+      {/* Área Principal de Conteúdo */}
       <div className="content-area">
         <header className="topbar">
           <div className="search-container">
             <Search size={18} color="#888" />
-            <input type="text" placeholder="Buscar..." />
+            <input type="text" placeholder="Buscar na biblioteca..." />
           </div>
+
           <div className="user-section">
             <div
               className="user-info"
@@ -119,6 +121,8 @@ export function MainLayout() {
             </button>
           </div>
         </header>
+
+        {/* Onde as páginas são renderizadas */}
         <main className="main-scroll">
           <Outlet />
         </main>
