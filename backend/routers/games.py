@@ -1,7 +1,10 @@
-from fastapi import APIRouter, HTTPException, Query, Depends
+import os
+from fastapi import APIRouter, Body, HTTPException, Query, Depends
 from sqlmodel import Session
 from typing import List, Optional
-
+from pathlib import Path
+from core.logging import logger
+from utils.scan_validation import validar_scan_path
 from models.games import Jogo, JogoCreate, JogoUpdate
 from repositories import games as game_repo
 from database import get_session
@@ -42,3 +45,66 @@ def deletar_jogo(jogo_id: int, session: Session = Depends(get_session)):
     if not sucesso:
         raise HTTPException(status_code=404, detail="Jogo não encontrado")
     return
+
+@router.post("/scan")
+def escanear_pasta_por_jogos(
+    caminho: str = Body(..., embed=True), # string do caminho do exe
+    session: Session = Depends(get_session) # sessão durrr
+):
+    """
+    Varre um diretório em busca de novas pastas contendo executáveis .exe.
+    Cria jogos automaticamente para qualquer pasta nova detectada.
+    """
+    
+    logger.info("POST /scan chamado (caminho=%s)", caminho)
+    
+    scan_path = Path(caminho) # Objeto Path do caminho do DIRETÓRIO
+    validar_scan_path(scan_path) # Validar objeto Path do DIRETÓRIO
+
+    jogos = game_repo.get_all_games(session, offset=0, limit=10_000) 
+    pastas_existentes = {j.caminho_pasta for j in jogos}
+    novos = []
+
+    # Descobrir novas pastas
+    def descobrir_pastas_validas():
+        for nome in os.listdir(caminho):
+            pasta = os.path.join(caminho, nome)
+            if os.path.isdir(pasta) and pasta not in pastas_existentes:
+                yield pasta
+
+    # Encontrar executável na pasta
+    def encontrar_executavel(pasta):
+        for root, _, files in os.walk(pasta):
+            for f in files:
+                if f.lower().endswith(".exe"):
+                    return os.path.join(root, f)
+        return None
+
+    # Criar o objeto Jogo a partir da pasta
+    def criar_jogo_para_pasta(pasta, executavel):
+        nome = os.path.basename(pasta)
+        return Jogo(
+            nome=nome,
+            caminho_executavel=executavel,
+            caminho_pasta=pasta
+        )
+
+    # Processar pastas novas
+    for pasta in descobrir_pastas_validas(): # Pasta valida (em algum sentido)
+        exe = encontrar_executavel(pasta)
+        if not exe:
+            logger.warning("Pasta ignorada (sem executável): %s", pasta)
+            continue  # ignorar pastas sem executável
+        jogo = criar_jogo_para_pasta(pasta, exe)
+        criado = game_repo.create_game(session, jogo)
+        novos.append(criado)
+
+    # salvar se mudou
+    if novos:
+        logger.info("%d novos jogos adicionados via scan", len(novos))
+
+    return {
+        "status": f"{len(novos)} jogos adicionados.",
+        "adicionados": [j.id for j in novos],
+        "total_biblioteca": len(jogos) + len(novos)
+    }
