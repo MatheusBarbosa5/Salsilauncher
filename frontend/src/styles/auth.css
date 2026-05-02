@@ -1,0 +1,135 @@
+.auth-container {
+  height: 100vh;
+  width: 100vw;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(circle at center, #1a0000 0%, #050505 100%);
+  position: relative;
+}
+
+.auth-card {
+  background-color: var(--bg-sidebar);
+  width: 100%;
+  max-width: 400px;
+  padding: 40px;
+  border-radius: 20px;
+  border: 1px solid var(--border-color);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+}
+
+.auth-header {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.logo-box-large {
+  background: var(--accent-red);
+  width: 65px;
+  height: 65px;
+  border-radius: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 15px;
+  box-shadow: 0 0 25px rgba(255, 0, 0, 0.4);
+}
+
+.input-group {
+  margin-bottom: 20px;
+}
+.input-group label {
+  display: block;
+  font-size: 12px;
+  color: #777;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+}
+
+.input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.input-icon {
+  position: absolute;
+  left: 15px;
+  color: #444;
+}
+
+.input-wrapper input {
+  width: 100%;
+  background: #080808;
+  border: 1px solid #222;
+  padding: 14px 15px 14px 45px;
+  border-radius: 10px;
+  color: white;
+  outline: none;
+  transition: 0.3s;
+}
+
+.input-wrapper input:focus {
+  border-color: var(--accent-red);
+  background: #0c0c0c;
+}
+
+/* Botão de mostrar/esconder senha */
+.eye-btn {
+  position: absolute;
+  right: 15px;
+  background: none;
+  border: none;
+  color: #444;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  transition: 0.3s;
+}
+
+.eye-btn:hover {
+  color: var(--accent-red);
+}
+
+.btn-primary {
+  width: 100%;
+  background: var(--accent-red);
+  color: white;
+  border: none;
+  padding: 15px;
+  border-radius: 10px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: 0.3s;
+  text-transform: uppercase;
+  margin-top: 10px;
+}
+
+.btn-primary:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 5px 15px rgba(255, 0, 0, 0.4);
+}
+
+.back-button {
+  position: absolute;
+  top: 30px;
+  left: 30px;
+  background: #1a1a1a;
+  border: 1px solid #333;
+  color: white;
+  padding: 12px;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.back-button:hover {
+  background: var(--accent-red);
+  border-color: var(--accent-red);
+}
+
+.auth-footer {
+  margin-top: 25px;
+  text-align: center;
+  color: #666;
+  font-size: 14px;
+}

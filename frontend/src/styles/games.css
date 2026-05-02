@@ -1,0 +1,158 @@
+.main-scroll {
+  flex: 1;
+  overflow-y: auto; /* SCROLL HABILITADO APENAS AQUI */
+  padding: 30px;
+}
+
+.section-container {
+  margin-bottom: 45px;
+}
+
+.section-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 16px;
+  font-weight: bold;
+  margin-bottom: 25px;
+  text-transform: uppercase;
+  color: #efefef;
+}
+
+/* Grid e GameCard */
+.game-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 25px;
+}
+
+.game-card {
+  background-color: #121212;
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid var(--border-color);
+  transition: var(--transition-smooth);
+  cursor: pointer;
+}
+
+.game-card:hover {
+  transform: translateY(-8px);
+  border-color: var(--accent-red);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+.image-container {
+  width: 100%;
+  aspect-ratio: 2 / 3;
+  overflow: hidden;
+  position: relative;
+}
+
+.game-image {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  transition: 0.5s;
+}
+
+.game-card:hover .game-image {
+  transform: scale(1.08);
+}
+
+/* Overlay de Play com Animação */
+.play-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: 0.3s;
+  backdrop-filter: blur(2px);
+}
+
+.game-card:hover .play-overlay {
+  opacity: 1;
+}
+
+.play-button {
+  background: var(--accent-red);
+  padding: 16px;
+  border-radius: 50%;
+  box-shadow: 0 0 20px rgba(255, 0, 0, 0.6);
+  transform: scale(0.7);
+  transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.game-card:hover .play-button {
+  transform: scale(1);
+}
+
+/* Cadastro de Jogos */
+.cadastro-layout {
+  display: grid;
+  grid-template-columns: 1fr 300px;
+  gap: 40px;
+  background: #121212;
+  padding: 35px;
+  border-radius: 15px;
+  border: 1px solid var(--border-color);
+}
+
+.form-actions {
+  display: flex;
+  gap: 15px;
+  margin-top: 25px;
+}
+
+.btn-secondary {
+  background: transparent;
+  border: 1px solid #333;
+  color: #ccc;
+  padding: 12px 25px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: 0.3s;
+}
+
+.btn-secondary:hover {
+  background: #222;
+  color: white;
+  border-color: #555;
+}
+
+/* Página de Detalhes */
+.game-detail-container {
+  margin-top: -30px;
+}
+
+.game-header {
+  height: 420px;
+  background-size: cover;
+  background-position: center;
+  position: relative;
+  border-radius: 0 0 25px 25px;
+}
+
+.btn-play-large {
+  background: #28a745;
+  color: white;
+  border: none;
+  padding: 16px 45px;
+  border-radius: 10px;
+  font-weight: 800;
+  font-size: 18px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  transition: 0.3s;
+  box-shadow: 0 0 20px rgba(40, 167, 69, 0.3);
+}
+
+.btn-play-large:hover {
+  transform: scale(1.03);
+  filter: brightness(1.1);
+}
