@@ -6,21 +6,12 @@ import {
   Tag,
   FileCode,
   Plus,
+  FolderIcon,
 } from "lucide-react";
 import { GameCard } from "../components/GameCard";
 
 export function EscanearPasta() {
   const navigate = useNavigate();
-
-  const [title, setTitle] = useState("");
-  const [category, setCategory] = useState("");
-  const [image, setImage] = useState("");
-
-  const handleSubmit2 = (e: React.FormEvent) => {
-    e.preventDefault();
-    alert("Pasta escaneada com sucesso!");
-    navigate("/");
-  };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
   e.preventDefault();
@@ -61,7 +52,7 @@ export function EscanearPasta() {
           <div className="input-group">
             <label>Pasta do Jogo</label>
             <div className="input-wrapper">
-              <FileCode size={18} className="input-icon" />
+              <FolderIcon size={18} className="input-icon" />
               <input type="text" name="caminho" placeholder="C:/Games/..." required />
             </div>
           </div>

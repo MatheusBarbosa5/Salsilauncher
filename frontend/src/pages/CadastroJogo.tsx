@@ -15,11 +15,37 @@ export function CadastroJogo() {
   const [title, setTitle] = useState("");
   const [category, setCategory] = useState("");
   const [image, setImage] = useState("");
+  const [exePath, setExePath] = useState("");
+  const [folderPath, setFolderPath] = useState("");
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    alert("Jogo cadastrado com sucesso!");
-    navigate("/");
+
+    const data = {
+      nome: title,
+      caminho_executavel: exePath,
+      caminho_pasta: exePath.substring(0, exePath.lastIndexOf("/")),
+      capa: image,
+    };
+
+    try {
+      const response = await fetch("http://localhost:8000/jogos", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        throw new Error("Erro na requisição");
+      }
+
+      const result = await response.json();
+      alert(`Jogo cadastrado com sucesso! ${result.nome}`);
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   return (
@@ -43,6 +69,7 @@ export function CadastroJogo() {
                 type="text"
                 placeholder="Ex: Minecraft"
                 value={title}
+                name="nome"
                 onChange={(e) => setTitle(e.target.value)}
                 required
               />
@@ -71,6 +98,7 @@ export function CadastroJogo() {
                 type="text"
                 placeholder="https://..."
                 value={image}
+                name="capa"
                 onChange={(e) => setImage(e.target.value)}
                 required
               />
@@ -81,7 +109,14 @@ export function CadastroJogo() {
             <label>Executável (.exe)</label>
             <div className="input-wrapper">
               <FileCode size={18} className="input-icon" />
-              <input type="text" placeholder="C:/Games/..." required />
+              <input
+                type="text"
+                placeholder="C:/Games/..."
+                name="caminho_executavel"
+                value={exePath}
+                onChange={(e) => setExePath(e.target.value)}
+                required
+              />
             </div>
           </div>
 
