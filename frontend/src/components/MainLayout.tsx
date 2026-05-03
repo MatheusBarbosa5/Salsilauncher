@@ -10,6 +10,7 @@ import {
   Star,
   Plus,
   Library,
+  Folder,
 } from "lucide-react";
 
 export function MainLayout() {
@@ -98,7 +99,7 @@ export function MainLayout() {
                 onClick={() => navigate("/escanear-pasta")}
                 style={{ color: "#ff0000", fontWeight: "bold" }}
               >
-                <Plus size={16} /> <span>Escanear Pasta</span>
+                <Folder size={16} /> <span>Escanear Pasta</span>
               </div>
             </div>
           )}

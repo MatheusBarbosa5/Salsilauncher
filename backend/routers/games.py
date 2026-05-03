@@ -8,7 +8,7 @@ from utils.scan_validation import validar_scan_path
 from models.games import Jogo, JogoCreate, JogoUpdate
 from repositories import games as game_repo
 from database import get_session
-
+import subprocess
 
 router = APIRouter(prefix="/jogos", tags=["Jogos"])
 
@@ -109,3 +109,18 @@ def escanear_pasta_por_jogos(
         "adicionados": [j.id for j in novos],
         "total_biblioteca": len(jogos) + len(novos)
     }
+
+
+@router.get("/abrir/{id}")
+def abrir_jogo(id: int, session: Session = Depends(get_session)):
+    jogo = game_repo.get_game_by_id(session, id)
+
+    if not jogo:
+        return {"erro": "Jogo não encontrado"}
+
+    try:
+        subprocess.Popen(jogo.caminho_executavel, shell=True)
+    except Exception as e:
+        return {"erro": str(e)}
+
+    return {"status": "jogo iniciado"}

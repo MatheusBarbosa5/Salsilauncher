@@ -4,12 +4,12 @@ import { useNavigate } from "react-router-dom"; // Importante para a navegação
 
 interface GameCardProps {
   id: number | string; // O ID é necessário para saber qual jogo abrir
-  title: string;
+  nome: string;
   image: string;
   category: string;
 }
 
-export function GameCard({ id, title, image, category }: GameCardProps) {
+export function GameCard({ id, nome, image, category }: GameCardProps) {
   const navigate = useNavigate();
 
   return (
@@ -19,7 +19,7 @@ export function GameCard({ id, title, image, category }: GameCardProps) {
       style={{ cursor: "pointer" }}
     >
       <div className="image-container">
-        <img src={image} alt={title} className="game-image" />
+        <img src={image} alt={nome} className="game-image" />
 
         {/* Este overlay é o que mostra o botão de Play no hover (CSS no games.css) */}
         <div className="play-overlay">
@@ -51,7 +51,7 @@ export function GameCard({ id, title, image, category }: GameCardProps) {
             textOverflow: "ellipsis",
           }}
         >
-          {title}
+          {nome}
         </h3>
       </div>
     </div>
