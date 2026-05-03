@@ -15,6 +15,7 @@ import { Home } from "./pages/Home";
 import { Login } from "./pages/Login";
 import { CadastroUsuario } from "./pages/CadastroUsuario";
 import { CadastroJogo } from "./pages/CadastroJogo";
+import { EscanearPasta } from "./pages/EscanearPasta";
 
 // Placeholder para o detalhe do jogo (será a nossa próxima tela)
 import { JogoDetalhe } from "./pages/JogoDetalhe";
@@ -31,6 +32,7 @@ function App() {
         <Route element={<MainLayout />}>
           <Route path="/" element={<Home />} />
           <Route path="/cadastro-jogo" element={<CadastroJogo />} />
+          <Route path="/escanear-pasta" element={<EscanearPasta />} />
           <Route path="/jogo/:id" element={<JogoDetalhe />} />
         </Route>
 

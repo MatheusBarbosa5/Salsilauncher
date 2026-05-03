@@ -92,6 +92,14 @@ export function MainLayout() {
               >
                 <Plus size={16} /> <span>Novo Jogo</span>
               </div>
+              {/* ITEM "NOVO JOGO" DESTACADO EM VERMELHO */}
+              <div
+                className="collection-item add-collection"
+                onClick={() => navigate("/escanear-pasta")}
+                style={{ color: "#ff0000", fontWeight: "bold" }}
+              >
+                <Plus size={16} /> <span>Escanear Pasta</span>
+              </div>
             </div>
           )}
         </div>

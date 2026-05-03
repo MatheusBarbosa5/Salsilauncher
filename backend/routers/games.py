@@ -1,5 +1,5 @@
 import os
-from fastapi import APIRouter, Body, HTTPException, Query, Depends
+from fastapi import APIRouter, Body, HTTPException, Query, Depends, Form
 from sqlmodel import Session
 from typing import List, Optional
 from pathlib import Path
@@ -8,6 +8,7 @@ from utils.scan_validation import validar_scan_path
 from models.games import Jogo, JogoCreate, JogoUpdate
 from repositories import games as game_repo
 from database import get_session
+
 
 router = APIRouter(prefix="/jogos", tags=["Jogos"])
 
@@ -48,8 +49,8 @@ def deletar_jogo(jogo_id: int, session: Session = Depends(get_session)):
 
 @router.post("/scan")
 def escanear_pasta_por_jogos(
-    caminho: str = Body(..., embed=True), # string do caminho do exe
-    session: Session = Depends(get_session) # sessão durrr
+    caminho: str = Form(...),
+    session: Session = Depends(get_session)
 ):
     """
     Varre um diretório em busca de novas pastas contendo executáveis .exe.
