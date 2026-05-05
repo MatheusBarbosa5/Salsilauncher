@@ -212,3 +212,44 @@
   border-radius: 20px;
   border: 1px solid var(--border-color);
 }
+.form-actions {
+  display: flex;
+  gap: 15px;
+  margin-top: 30px;
+}
+
+/* BOTÃO SALVAR (Primário) */
+.btn-primary {
+  background: var(--accent-red);
+  color: white;
+  padding: 12px 30px;
+  border-radius: 8px;
+  font-weight: 800;
+  cursor: pointer;
+  text-transform: uppercase;
+  transition: var(--transition-smooth);
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(255, 0, 0, 0.4);
+}
+
+/* BOTÃO CANCELAR/DESCARTAR (Secundário) */
+.btn-secondary {
+  background: #1a1a1a; /* Fundo escuro */
+  border: 1px solid #333; /* Borda discreta */
+  color: #ccc;
+  padding: 12px 25px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  text-transform: uppercase;
+  transition: 0.3s;
+}
+
+.btn-secondary:hover {
+  background: #222;
+  color: white;
+  border-color: #444;
+}

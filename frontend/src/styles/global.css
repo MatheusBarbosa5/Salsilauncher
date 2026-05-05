@@ -18,6 +18,20 @@ body {
   font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   color: white;
   overflow: hidden; /* Importante para manter a sidebar fixa */
+
+  /* FORÇA O NAVEGADOR A USAR O MODO ESCURO NOS CONTROLES DO SISTEMA */
+  color-scheme: dark;
+}
+
+/* Reset Global para Botões e Inputs (Evita o visual cinza padrão do Windows) */
+button,
+input,
+textarea,
+select {
+  font-family: inherit;
+  color: inherit;
+  outline: none;
+  border: none;
 }
 
 /* Links Vermelhos (Login/Cadastro) */
