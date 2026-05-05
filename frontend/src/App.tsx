@@ -16,6 +16,7 @@ import { Login } from "./pages/Login";
 import { CadastroUsuario } from "./pages/CadastroUsuario";
 import { CadastroJogo } from "./pages/CadastroJogo";
 import { EscanearPasta } from "./pages/EscanearPasta";
+import { EditarJogo } from "./pages/EditarJogo";
 
 // Placeholder para o detalhe do jogo (será a nossa próxima tela)
 import { JogoDetalhe } from "./pages/JogoDetalhe";
@@ -34,6 +35,7 @@ function App() {
           <Route path="/cadastro-jogo" element={<CadastroJogo />} />
           <Route path="/escanear-pasta" element={<EscanearPasta />} />
           <Route path="/jogo/:id" element={<JogoDetalhe />} />
+          <Route path="/editar-jogo/:id" element={<EditarJogo />} />
         </Route>
 
         {/* Redirecionamento de segurança */}

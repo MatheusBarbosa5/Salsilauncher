@@ -8,6 +8,7 @@ import {
   Tag,
   AlignLeft,
   ArrowLeft,
+  Edit3, // Importando o ícone de edição
 } from "lucide-react";
 
 type Jogo = {
@@ -27,7 +28,6 @@ type Jogo = {
   tempo_jogo: string;
   estudio: string;
   tamanho: string;
-
 };
 
 export function JogoDetalhe() {
@@ -37,7 +37,6 @@ export function JogoDetalhe() {
   const { id } = useParams();
   const navigate = useNavigate();
 
-  
   useEffect(() => {
     const fetchJogos = async () => {
       try {
@@ -69,15 +68,42 @@ export function JogoDetalhe() {
   const game = jogos.find((jogo) => jogo.id === Number(id));
 
   if (loading) {
-    return <p>Carregando...</p>;
+    return (
+      <div
+        className="main-scroll"
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "100%",
+        }}
+      >
+        <p>Carregando...</p>
+      </div>
+    );
   }
 
   if (!game) {
-    return <p>Jogo não encontrado</p>;
+    return (
+      <div
+        className="main-scroll"
+        style={{ padding: "40px", textAlign: "center" }}
+      >
+        <p>Jogo não encontrado</p>
+        <button
+          className="btn-secondary"
+          onClick={() => navigate("/")}
+          style={{ marginTop: "20px" }}
+        >
+          Voltar para Início
+        </button>
+      </div>
+    );
   }
 
   return (
     <div className="game-detail-container animate-in">
+      {/* Botão Voltar */}
       <button
         onClick={() => navigate("/")}
         style={{
@@ -91,24 +117,68 @@ export function JogoDetalhe() {
           padding: "10px",
           borderRadius: "50%",
           cursor: "pointer",
+          transition: "0.3s",
         }}
+        onMouseEnter={(e) =>
+          (e.currentTarget.style.background = "rgba(255,0,0,0.6)")
+        }
+        onMouseLeave={(e) =>
+          (e.currentTarget.style.background = "rgba(0,0,0,0.6)")
+        }
       >
         <ArrowLeft size={20} />
       </button>
 
-
+      {/* Header com Fundo e Título */}
       <header
         className="game-header"
         style={{
-          backgroundImage: `url(${game.fundo || "https://via.placeholder.com/800x450?text=Sem+Capa"})`,
+          backgroundImage: `url(${game.fundo || "https://via.placeholder.com/1200x600?text=Salsilauncher"})`,
         }}
       >
         <div className="header-overlay">
-          <h1 className="game-title-large">{game.nome}</h1>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "flex-end",
+              width: "100%",
+            }}
+          >
+            <h1 className="game-title-large">{game.nome}</h1>
+
+            {/* BOTÃO EDITAR */}
+            <button
+              onClick={() => navigate(`/editar-jogo/${game.id}`)}
+              style={{
+                background: "rgba(255,255,255,0.1)",
+                border: "1px solid rgba(255,255,255,0.2)",
+                color: "white",
+                padding: "10px 20px",
+                borderRadius: "8px",
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                gap: "8px",
+                marginBottom: "10px",
+                fontWeight: "600",
+                backdropFilter: "blur(5px)",
+                transition: "0.3s",
+              }}
+              onMouseEnter={(e) =>
+                (e.currentTarget.style.background = "rgba(255,255,255,0.2)")
+              }
+              onMouseLeave={(e) =>
+                (e.currentTarget.style.background = "rgba(255,255,255,0.1)")
+              }
+            >
+              <Edit3 size={18} /> Editar
+            </button>
+          </div>
         </div>
       </header>
 
-
+      {/* Barra de Ação (Jogar e Stats) */}
       <section className="play-bar">
         <button className="btn-play-large" onClick={() => AbrirJogo(game)}>
           <Play size={24} fill="white" /> JOGAR AGORA
@@ -117,27 +187,33 @@ export function JogoDetalhe() {
         <div className="stat-item">
           <span className="stat-label">ÚLTIMA VEZ</span>
           <div className="stat-value">
-            <Calendar size={14} /> {game.ultima_vez || "-"}
+            <Calendar size={14} /> {game.ultima_vez || "Nunca"}
           </div>
         </div>
 
         <div className="stat-item">
           <span className="stat-label">TEMPO DE JOGO</span>
           <div className="stat-value">
-            <Clock size={14} /> {game.tempo_jogo || "-"}
+            <Clock size={14} /> {game.tempo_jogo || "0h"}
           </div>
         </div>
       </section>
 
-
+      {/* Grade de Informações */}
       <section className="info-grid-detail">
         <div className="info-column">
           <h3>
             <Info size={18} /> Detalhes
           </h3>
-          <p><strong>Estúdio:</strong> {game.estudio || "-"}</p>
-          <p><strong>Tamanho:</strong> {game.tamanho || "-"}</p>
-          <p><strong>Status:</strong> Instalado</p>
+          <p>
+            <strong>Estúdio:</strong> {game.estudio || "Não informado"}
+          </p>
+          <p>
+            <strong>Tamanho:</strong> {game.tamanho || "Desconhecido"}
+          </p>
+          <p>
+            <strong>Status:</strong> Instalado
+          </p>
         </div>
 
         <div className="info-column">
@@ -145,11 +221,15 @@ export function JogoDetalhe() {
             <Tag size={18} /> Tags
           </h3>
           <div className="tag-cloud">
-            {(game.tags || []).map((tag) => (
-              <span key={tag} className="detail-tag">
-                {tag}
-              </span>
-            ))}
+            {game.tags && game.tags.length > 0 ? (
+              game.tags.map((tag) => (
+                <span key={tag} className="detail-tag">
+                  {tag}
+                </span>
+              ))
+            ) : (
+              <span className="detail-tag">PC Game</span>
+            )}
           </div>
         </div>
 
@@ -157,7 +237,9 @@ export function JogoDetalhe() {
           <h3>
             <AlignLeft size={18} /> Descrição
           </h3>
-          <p>{game.descricao || "Sem descrição disponível."}</p>
+          <p style={{ color: "#aaa", lineHeight: "1.6" }}>
+            {game.descricao || "Nenhuma descrição disponível para este jogo."}
+          </p>
         </div>
       </section>
     </div>
