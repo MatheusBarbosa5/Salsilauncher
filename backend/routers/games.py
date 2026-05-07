@@ -1,16 +1,33 @@
+from fastapi import (
+    APIRouter, 
+    Body,
+    HTTPException, 
+    Query, 
+    Depends,
+    Form
+    )
+
 import os
-from fastapi import APIRouter, Body, HTTPException, Query, Depends, Form
+import subprocess
+
+import psutil
 from sqlmodel import Session
 from typing import List, Optional
 from pathlib import Path
 from core.logging import logger
 from utils.scan_validation import validar_scan_path
 from models.games import Jogo, JogoCreate, JogoUpdate
-from repositories import games as game_repo
+from models.game_session import SessaoJogo, SessaoJogoCreate
+from repositories import (
+    games as game_repo,
+    game_session as game_session_repo
+    )
 from database import get_session
-import subprocess
+from sqlmodel import Session
+from datetime import datetime, timezone
 
 router = APIRouter(prefix="/jogos", tags=["Jogos"])
+
 
 @router.get("/", response_model=List[Jogo])
 def listar_jogos(
@@ -110,17 +127,50 @@ def escanear_pasta_por_jogos(
         "total_biblioteca": len(jogos) + len(novos)
     }
 
-
-@router.get("/abrir/{id}")
-def abrir_jogo(id: int, session: Session = Depends(get_session)):
-    jogo = game_repo.get_game_by_id(session, id)
+@router.post("/abrir/{jogo_id}")
+def abrir_jogo(
+    jogo_id: int,
+    session: Session = Depends(get_session)
+):
+    jogo = game_repo.get_game_by_id(session, jogo_id)
 
     if not jogo:
-        return {"erro": "Jogo não encontrado"}
+        raise HTTPException(
+            status_code=404,
+            detail="Jogo não encontrado"
+        )
+    
+    sessao_ativa = (
+        game_session_repo
+        .get_active_sessions_by_game(
+            session,
+            jogo.id
+        )
+    )
+
+    if sessao_ativa:
+        raise HTTPException(
+            status_code=400,
+            detail="Jogo já está em execução"
+        )
 
     try:
-        subprocess.Popen(jogo.caminho_executavel, shell=True)
-    except Exception as e:
-        return {"erro": str(e)}
+        processo = subprocess.Popen(jogo.caminho_executavel)
+        proc = psutil.Process(processo.pid)
 
-    return {"status": "jogo iniciado"}
+        sessao_jogo = SessaoJogoCreate(
+            jogo_id = jogo.id,
+            pid = processo.pid,
+            pid_criado_em = proc.create_time(),
+            iniciada_em = datetime.now(timezone.utc)
+        )
+
+        game_session_repo.create_session(session, sessao_jogo)
+
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=str(e)
+        )
+
+    return {"status": "Jogo iniciado"}

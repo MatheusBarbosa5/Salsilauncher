@@ -2,8 +2,10 @@ from typing import Optional, List, TYPE_CHECKING
 from sqlmodel import SQLModel, Field, Relationship
 from sqlalchemy import Column, JSON
 
+
 if TYPE_CHECKING:
     from models.collections import Colecao
+    from models.game_session import SessaoJogo
 
 class ColecaoJogoLink(SQLModel, table=True):
     __tablename__ = "colecao_jogo_link"
@@ -43,12 +45,16 @@ class Jogo(SQLModel, table=True):
         default_factory=list,
         sa_column=Column(JSON)
     )
-    horas_jogadas: int = 0
+    tempo_de_jogo: int = 0
     favorito: bool = False
 
     colecoes: List["Colecao"] = Relationship(
         back_populates="jogos",
         link_model=ColecaoJogoLink
+    )
+
+    sessoes: list["SessaoJogo"] = Relationship(
+        back_populates="jogo"
     )
 
 class JogoCreate(SQLModel):
@@ -60,7 +66,7 @@ class JogoCreate(SQLModel):
     fundo: Optional[str] = None
     imagens_extras: List[str] = []
     tags: List[str] = []
-    horas_jogadas: int = 0
+    tempo_de_jogo: int = 0
     favorito: bool = False
 
 class JogoUpdate(SQLModel):
@@ -72,5 +78,5 @@ class JogoUpdate(SQLModel):
     fundo: Optional[str] = None
     imagens_extras: Optional[List[str]] = None
     tags: Optional[List[str]] = None
-    horas_jogadas: Optional[int] = None
+    tempo_de_jogo: Optional[int] = None
     favorito: Optional[bool] = None
