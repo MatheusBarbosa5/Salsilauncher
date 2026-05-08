@@ -31,11 +31,20 @@ def processo_corresponde(sessao):
 
         return delta < 1
 
-    except psutil.NoSuchProcess:
+    except (
+        psutil.NoSuchProcess,
+        psutil.AccessDenied,
+        psutil.ZombieProcess
+    ):
         return False
     
 
 def encerrar_sessao(session, sessao):
+    
+    # Por segurança...
+    if not sessao.ativa: 
+        return
+    
     inicio = conversor_utc(sessao.iniciada_em)
     fim = datetime.now(timezone.utc)
 
@@ -56,18 +65,34 @@ def encerrar_sessao(session, sessao):
 
     session.add(sessao)
 
+    logger.info(
+        "Sessão encerrada | sessao_id=%s | jogo_id=%s | duracao=%s",
+        sessao.id,
+        sessao.jogo_id,
+        duracao
+    )
+
 
 def verificar_sessoes(session):
     sessoes = game_session_repo.get_all_active_sessions(session)
 
     for sessao in sessoes:
-        if processo_corresponde(sessao):
-            continue
+        try:
+            if processo_corresponde(sessao):
+                continue
+            
+            encerrar_sessao(session, sessao)
         
-        encerrar_sessao(session, sessao)
+        except Exception:
+            logger.exception(
+                "Erro ao processar sessão %s",
+                sessao.id
+                )
     
 
 def monitorar_sessoes():
+    logger.info("Worker iniciado")
+
     while True:
         try:
             with Session(engine) as session:
@@ -81,5 +106,4 @@ def monitorar_sessoes():
 
 
 if __name__ == "__main__":
-    print("Worker iniciado...")
     monitorar_sessoes()
