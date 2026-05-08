@@ -8,7 +8,10 @@ if TYPE_CHECKING:
 class SessaoJogo(SQLModel, table=True):
     __tablename__ = "sessao_jogo"
 
-    id: int | None = Field(default=None, primary_key=True)
+    id: int | None = Field(
+        default=None,
+        primary_key=True
+        )
     jogo_id: int = Field(foreign_key="jogo.id")
     pid: int
     pid_criado_em: float

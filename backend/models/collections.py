@@ -1,4 +1,4 @@
-from typing import List, Optional, TYPE_CHECKING
+from typing import TYPE_CHECKING
 from sqlmodel import SQLModel, Field, Relationship
 
 from models.games import ColecaoJogoLink
@@ -9,10 +9,13 @@ if TYPE_CHECKING:
 class Colecao(SQLModel, table=True):
     __tablename__ = "colecao"
     
-    id: Optional[int] = Field(default=None, primary_key=True)
+    id: int | None = Field(
+        default=None,
+        primary_key=True
+        )
     nome: str
 
-    jogos: List["Jogo"] = Relationship(
+    jogos: list["Jogo"] = Relationship(
         back_populates="colecoes",
         link_model=ColecaoJogoLink
     )
