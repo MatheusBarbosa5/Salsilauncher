@@ -127,7 +127,7 @@ def escanear_pasta_por_jogos(
         "total_biblioteca": len(jogos) + len(novos)
     }
 
-@router.post("/abrir/{jogo_id}")
+@router.get("/abrir/{jogo_id}")
 def abrir_jogo(
     jogo_id: int,
     session: Session = Depends(get_session)
@@ -155,7 +155,7 @@ def abrir_jogo(
         )
 
     try:
-        processo = subprocess.Popen(jogo.caminho_executavel)
+        processo = subprocess.Popen(jogo.caminho_executavel, shell=True)
         proc = psutil.Process(processo.pid)
 
         sessao_jogo = SessaoJogoCreate(

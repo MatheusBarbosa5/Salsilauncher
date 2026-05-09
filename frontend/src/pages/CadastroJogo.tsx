@@ -24,7 +24,7 @@ export function CadastroJogo() {
     const data = {
       nome: title,
       caminho_executavel: exePath,
-      caminho_pasta: exePath.substring(0, exePath.lastIndexOf("/")),
+      caminho_pasta: exePath.substring(0, exePath.lastIndexOf("\\")),
       capa: image,
     };
 
