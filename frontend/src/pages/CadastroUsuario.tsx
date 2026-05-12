@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import logoImg from "../assets/logo.png";
 import {
   User,
   Mail,
@@ -22,7 +23,11 @@ export function CadastroUsuario() {
       <div className="auth-card animate-in">
         <div className="auth-header">
           <div className="logo-box-large">
-            <Gamepad2 size={40} color="white" />
+            <img
+              src={logoImg}
+              alt="Salsilauncher Logo"
+              style={{ width: "100px", height: "100px", objectFit: "contain" }}
+            />
           </div>
           <h1>CRIAR CONTA</h1>
           <p>Cadastre-se para começar</p>

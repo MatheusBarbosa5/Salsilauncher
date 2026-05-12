@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Mail, Lock, Eye, EyeOff, Gamepad2 } from "lucide-react";
+import logoImg from "../assets/logo.png";
 
 export function Login() {
   const [showPassword, setShowPassword] = useState(false);
@@ -16,7 +17,11 @@ export function Login() {
       <div className="auth-card animate-in">
         <div className="auth-header">
           <div className="logo-box-large">
-            <Gamepad2 size={40} color="white" />
+            <img
+              src={logoImg}
+              alt="Salsilauncher Logo"
+              style={{ width: "100px", height: "100px", objectFit: "contain" }}
+            />
           </div>
           <h1>SALSILAUNCHER</h1>
           <p>Entre com sua conta para jogar</p>

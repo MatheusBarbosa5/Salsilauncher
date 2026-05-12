@@ -21,18 +21,38 @@
 }
 
 .logo-box {
-  background-color: var(--accent-red);
-  padding: 8px;
-  border-radius: 8px;
+  width: 68px;
+  height: 68px;
+  background-color: transparent;
   display: flex;
-  box-shadow: 0 0 15px rgba(255, 0, 0, 0.3);
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.logo-box img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 0 8px rgba(255, 0, 0, 0.4));
+}
+
+.sidebar-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 20px;
+  cursor: pointer;
+  transition: var(--transition-smooth);
 }
 
 .sidebar-title {
-  font-size: 16px;
-  font-weight: 800;
+  font-size: 1rem; /* Ajuste leve para equilibrar com a logo maior */
+  font-weight: 850;
+  letter-spacing: 0.5px;
+  color: white;
   margin: 0;
-  letter-spacing: 1px;
+  text-transform: uppercase;
 }
 
 .nav-tabs {

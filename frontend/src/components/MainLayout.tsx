@@ -1,12 +1,12 @@
 import React, { useState } from "react";
 import { Outlet, useNavigate } from "react-router-dom";
+import logoImg from "../assets/logo.png";
 import {
   Search,
   Home as HomeIcon,
   ChevronDown,
   User,
   Settings,
-  Gamepad2,
   Star,
   Plus,
   Library,
@@ -28,7 +28,12 @@ export function MainLayout() {
           style={{ cursor: "pointer" }}
         >
           <div className="logo-box">
-            <Gamepad2 size={24} color="white" />
+            {/* LOGO OFICIAL APLICADA AQUI */}
+            <img
+              src={logoImg}
+              alt="Salsilauncher Logo"
+              style={{ width: "100%", height: "100%", objectFit: "contain" }}
+            />
           </div>
           <h2 className="sidebar-title">SALSILAUNCHER</h2>
         </div>
@@ -85,7 +90,6 @@ export function MainLayout() {
                 />
               </div>
 
-              {/* ITEM "NOVO JOGO" DESTACADO EM VERMELHO */}
               <div
                 className="collection-item add-collection"
                 onClick={() => navigate("/cadastro-jogo")}
@@ -93,7 +97,7 @@ export function MainLayout() {
               >
                 <Plus size={16} /> <span>Novo Jogo</span>
               </div>
-              {/* ITEM "NOVO JOGO" DESTACADO EM VERMELHO */}
+
               <div
                 className="collection-item add-collection"
                 onClick={() => navigate("/escanear-pasta")}
