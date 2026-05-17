@@ -1,10 +1,10 @@
 from typing import TYPE_CHECKING
 from sqlmodel import SQLModel, Field, Relationship
 
-from models.games import ColecaoJogoLink
+from models.games import ColecaoGameLink
 
 if TYPE_CHECKING:
-    from models.games import Jogo
+    from models.games import Game
 
 class Colecao(SQLModel, table=True):
     __tablename__ = "colecao"
@@ -15,7 +15,7 @@ class Colecao(SQLModel, table=True):
         )
     nome: str
 
-    jogos: list["Jogo"] = Relationship(
+    games: list["Game"] = Relationship(
         back_populates="colecoes",
-        link_model=ColecaoJogoLink
+        link_model=ColecaoGameLink
     )

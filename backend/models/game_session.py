@@ -3,16 +3,16 @@ from sqlmodel import SQLModel, Field, Relationship
 from datetime import datetime
 
 if TYPE_CHECKING:
-    from models.games import Jogo
+    from models.games import Game
 
-class SessaoJogo(SQLModel, table=True):
-    __tablename__ = "sessao_jogo"
+class SessaoGame(SQLModel, table=True):
+    __tablename__ = "sessao_game"
 
     id: int | None = Field(
         default=None,
         primary_key=True
         )
-    jogo_id: int = Field(foreign_key="jogo.id")
+    game_id: int = Field(foreign_key="game.id")
     pid: int
     pid_criado_em: float
     iniciada_em: datetime
@@ -20,12 +20,12 @@ class SessaoJogo(SQLModel, table=True):
     ativa: bool = True
     duracao_segundos: int | None = None
     
-    jogo: "Jogo" = Relationship(
+    game: "Game" = Relationship(
         back_populates="sessoes"
     )
 
-class SessaoJogoCreate(SQLModel):
-    jogo_id: int
+class SessaoGameCreate(SQLModel):
+    game_id: int
     pid: int
     pid_criado_em: float
     iniciada_em: datetime

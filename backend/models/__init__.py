@@ -1,3 +1,3 @@
-from .games import Jogo
+from .games import Game
 from .collections import Colecao
-from .game_session import SessaoJogo
+from .game_session import SessaoGame

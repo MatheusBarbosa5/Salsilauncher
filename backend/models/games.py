@@ -5,39 +5,39 @@ from sqlalchemy import Column, JSON
 
 if TYPE_CHECKING:
     from models.collections import Colecao
-    from models.game_session import SessaoJogo
+    from models.game_session import SessaoGame
 
-class ColecaoJogoLink(SQLModel, table=True):
-    __tablename__ = "colecao_jogo_link"
+class ColecaoGameLink(SQLModel, table=True):
+    __tablename__ = "colecao_game_link"
     
     colecao_id: int | None = Field(
         default=None,
         foreign_key="colecao.id",
         primary_key=True
     )
-    jogo_id: int | None = Field(
+    game_id: int | None = Field(
         default=None,
-        foreign_key="jogo.id",
+        foreign_key="game.id",
         primary_key=True
     )
 
 # Modelo Principal
-class Jogo(SQLModel, table=True):
-    __tablename__ = "jogo"
+class Game(SQLModel, table=True):
+    __tablename__ = "game"
 
     id: int | None = Field(
         default=None,
         primary_key=True,
         index=True
     )
-    nome: str = Field(index=True)
-    descricao: str | None = None
-    caminho_executavel: str
-    caminho_pasta: str = Field(index=True)
-    capa: str | None = None
-    fundo: str | None = None
+    title: str = Field(index=True)
+    description: str | None = None
+    exe_path: str
+    folder_path: str = Field(index=True)
+    cover: str | None = None
+    background: str | None = None
 
-    imagens_extras: list[str] = Field(
+    extra_images: list[str] = Field(
         default_factory=list,
         sa_column=Column(JSON)
     )
@@ -45,38 +45,38 @@ class Jogo(SQLModel, table=True):
         default_factory=list,
         sa_column=Column(JSON)
     )
-    tempo_de_jogo: int = Field(default=0, ge=0)
-    favorito: bool = False
+    play_time: int = Field(default=0, ge=0)
+    favorite: bool = False
 
     colecoes: list["Colecao"] = Relationship(
-        back_populates="jogos",
-        link_model=ColecaoJogoLink
+        back_populates="games",
+        link_model=ColecaoGameLink
     )
 
-    sessoes: list["SessaoJogo"] = Relationship(
-        back_populates="jogo"
+    sessoes: list["SessaoGame"] = Relationship(
+        back_populates="game"
     )
 
-class JogoCreate(SQLModel):
-    nome: str
-    descricao: str | None = None
-    caminho_executavel: str
-    caminho_pasta: str
-    capa: str | None = None
-    fundo: str | None = None
-    imagens_extras: list[str] = Field(default_factory=list)
+class GameCreate(SQLModel):
+    title: str
+    description: str | None = None
+    exe_path: str
+    folder_path: str
+    cover: str | None = None
+    background: str | None = None
+    extra_images: list[str] = Field(default_factory=list)
     tags: list[str] = Field(default_factory=list)
-    tempo_de_jogo: int = Field(default=0)
-    favorito: bool = False
+    play_time: int = Field(default=0)
+    favorite: bool = False
 
-class JogoUpdate(SQLModel):
-    nome: str | None = None
-    descricao: str | None = None
-    caminho_executavel: str | None = None
-    caminho_pasta: str | None = None
-    capa: str | None = None
-    fundo: str | None = None
-    imagens_extras: list[str] | None = None
+class GameUpdate(SQLModel):
+    title: str | None = None
+    description: str | None = None
+    exe_path: str | None = None
+    folder_path: str | None = None
+    cover: str | None = None
+    background: str | None = None
+    extra_images: list[str] | None = None
     tags: list[str] | None = None
-    tempo_de_jogo: int | None = None
-    favorito: bool | None = None
+    play_time: int | None = None
+    favorite: bool | None = None
