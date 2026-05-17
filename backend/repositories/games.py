@@ -9,7 +9,7 @@ def get_all_games(session: Session, q: Optional[str] = None, tags: Optional[str]
 
     if q:
         q_lower = f"%{q.lower()}%"
-        stmt = stmt.where(or_(Game.nome.ilike(q_lower), Game.descricao.ilike(q_lower)))
+        stmt = stmt.where(or_(Game.title.ilike(q_lower), Game.description.ilike(q_lower)))
 
     # Busca no banco de dados
     games = session.exec(stmt).all()
