@@ -1,0 +1,82 @@
+from typing import TYPE_CHECKING
+from sqlmodel import SQLModel, Field, Relationship
+from sqlalchemy import Column, JSON
+
+
+if TYPE_CHECKING:
+    from models.collections import Colecao
+    from models.game_session import SessaoGame
+
+class ColecaoGameLink(SQLModel, table=True):
+    __tablename__ = "colecao_game_link"
+    
+    colecao_id: int | None = Field(
+        default=None,
+        foreign_key="colecao.id",
+        primary_key=True
+    )
+    game_id: int | None = Field(
+        default=None,
+        foreign_key="game.id",
+        primary_key=True
+    )
+
+# Modelo Principal
+class Game(SQLModel, table=True):
+    __tablename__ = "game"
+
+    id: int | None = Field(
+        default=None,
+        primary_key=True,
+        index=True
+    )
+    title: str = Field(index=True)
+    description: str | None = None
+    exe_path: str
+    folder_path: str = Field(index=True)
+    cover: str | None = None
+    background: str | None = None
+
+    extra_images: list[str] = Field(
+        default_factory=list,
+        sa_column=Column(JSON)
+    )
+    tags: list[str] = Field(
+        default_factory=list,
+        sa_column=Column(JSON)
+    )
+    play_time: int = Field(default=0, ge=0)
+    favorite: bool = False
+
+    colecoes: list["Colecao"] = Relationship(
+        back_populates="games",
+        link_model=ColecaoGameLink
+    )
+
+    sessoes: list["SessaoGame"] = Relationship(
+        back_populates="game"
+    )
+
+class GameCreate(SQLModel):
+    title: str
+    description: str | None = None
+    exe_path: str
+    folder_path: str
+    cover: str | None = None
+    background: str | None = None
+    extra_images: list[str] = Field(default_factory=list)
+    tags: list[str] = Field(default_factory=list)
+    play_time: int = Field(default=0)
+    favorite: bool = False
+
+class GameUpdate(SQLModel):
+    title: str | None = None
+    description: str | None = None
+    exe_path: str | None = None
+    folder_path: str | None = None
+    cover: str | None = None
+    background: str | None = None
+    extra_images: list[str] | None = None
+    tags: list[str] | None = None
+    play_time: int | None = None
+    favorite: bool | None = None

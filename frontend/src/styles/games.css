@@ -1,0 +1,255 @@
+/* Container Geral de Scroll */
+.main-scroll {
+  flex: 1;
+  overflow-y: auto;
+  padding: 40px;
+  background-color: var(--bg-dark);
+}
+
+/* --- GRID DA HOME --- */
+.section-container {
+  margin-bottom: 50px;
+}
+
+.section-title {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  font-size: 14px;
+  font-weight: 700;
+  margin-bottom: 30px;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: #eee;
+}
+
+.game-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 35px;
+}
+
+/* --- MOLDURA DO JOGO (GAMECARD) --- */
+.game-card {
+  background: #161616;
+  border-radius: 15px;
+  overflow: hidden;
+  border: 1px solid transparent;
+  transition: var(--transition-smooth);
+  position: relative;
+}
+
+.game-card:hover {
+  transform: translateY(-10px);
+  border-color: var(--accent-red);
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.6);
+}
+
+.image-container {
+  width: 100%;
+  aspect-ratio: 2/3;
+  overflow: hidden;
+  position: relative;
+  background: #080808;
+}
+
+.game-image {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  transition: 0.5s;
+}
+
+.game-card:hover .game-image {
+  transform: scale(1.1);
+}
+
+/* Overlay de Play no Hover */
+.play-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: 0.3s;
+  backdrop-filter: blur(2px);
+}
+
+.game-card:hover .play-overlay {
+  opacity: 1;
+}
+
+.play-button {
+  background: var(--accent-red);
+  padding: 15px;
+  border-radius: 50%;
+  box-shadow: 0 0 20px rgba(255, 0, 0, 0.5);
+  transform: scale(0.8);
+  transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.game-card:hover .play-button {
+  transform: scale(1);
+}
+
+.game-info {
+  padding: 15px;
+}
+
+.game-category {
+  font-size: 10px;
+  color: var(--text-gray);
+  text-transform: uppercase;
+  font-weight: bold;
+}
+
+.game-title {
+  margin: 5px 0 0 0;
+  font-size: 14px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* --- PÁGINA INDIVIDUAL DO JOGO --- */
+.game-detail-container {
+  margin-top: -40px; /* Sobe para encostar no topo */
+  display: flex;
+  flex-direction: column;
+}
+
+.game-header {
+  height: 450px;
+  background-size: cover;
+  background-position: center;
+  position: relative;
+  border-radius: 0 0 30px 30px;
+}
+
+.header-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(transparent 30%, var(--bg-dark) 100%);
+  padding: 50px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+
+.game-title-large {
+  font-size: 56px;
+  font-weight: 900;
+  margin: 0;
+  text-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+}
+
+.play-bar {
+  background: #161616;
+  padding: 25px 50px;
+  display: flex;
+  align-items: center;
+  gap: 50px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.btn-play-large {
+  background: #28a745;
+  color: white;
+  padding: 16px 45px;
+  border-radius: 10px;
+  font-weight: 800;
+  font-size: 18px;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  transition: 0.3s;
+}
+
+.btn-play-large:hover {
+  transform: scale(1.05);
+  filter: brightness(1.1);
+}
+
+/* Grade de Informações em 3 Colunas */
+.info-grid-detail {
+  padding: 50px;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1.5fr;
+  gap: 60px;
+}
+
+.info-column h3 {
+  font-size: 14px;
+  color: var(--accent-red);
+  text-transform: uppercase;
+  margin-bottom: 25px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  letter-spacing: 1px;
+}
+
+.detail-tag {
+  background: #222;
+  border: 1px solid #333;
+  padding: 6px 14px;
+  border-radius: 6px;
+  font-size: 12px;
+  color: #aaa;
+}
+
+/* --- LAYOUT CADASTRO MANUAL --- */
+.cadastro-layout {
+  display: grid;
+  grid-template-columns: 1fr 350px;
+  gap: 40px;
+  background: #121212;
+  padding: 40px;
+  border-radius: 20px;
+  border: 1px solid var(--border-color);
+}
+.form-actions {
+  display: flex;
+  gap: 15px;
+  margin-top: 30px;
+}
+
+/* BOTÃO SALVAR (Primário) */
+.btn-primary {
+  background: var(--accent-red);
+  color: white;
+  padding: 12px 30px;
+  border-radius: 8px;
+  font-weight: 800;
+  cursor: pointer;
+  text-transform: uppercase;
+  transition: var(--transition-smooth);
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(255, 0, 0, 0.4);
+}
+
+/* BOTÃO CANCELAR/DESCARTAR (Secundário) */
+.btn-secondary {
+  background: #1a1a1a; /* Fundo escuro */
+  border: 1px solid #333; /* Borda discreta */
+  color: #ccc;
+  padding: 12px 25px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  text-transform: uppercase;
+  transition: 0.3s;
+}
+
+.btn-secondary:hover {
+  background: #222;
+  color: white;
+  border-color: #444;
+}

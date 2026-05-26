@@ -1,0 +1,40 @@
+.home-hero {
+  background: linear-gradient(90deg, rgba(255, 0, 0, 0.1) 0%, transparent 100%);
+  padding: 40px;
+  border-radius: 15px;
+  margin-bottom: 30px;
+  border-left: 4px solid var(--accent-red);
+  display: flex;
+  align-items: center;
+}
+
+.hero-content {
+  display: flex;
+  align-items: center;
+  gap: 25px;
+}
+
+.hero-logo {
+  width: 80px;
+  height: 80px;
+  object-fit: contain;
+  /* Efeito de brilho suave na logo oficial */
+  filter: drop-shadow(0 0 10px rgba(255, 0, 0, 0.3));
+}
+
+.hero-text h1 {
+  margin: 0;
+  font-size: 2rem;
+  font-weight: 800;
+  color: white;
+}
+
+.hero-text p {
+  color: var(--text-gray);
+  margin: 5px 0 0;
+}
+
+/* Ajuste para a grade de jogos logo abaixo */
+.section-container {
+  margin-top: 20px;
+}

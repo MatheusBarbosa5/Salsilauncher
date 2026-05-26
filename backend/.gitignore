@@ -1,0 +1,10 @@
+# Ambiente virtual
+.venv/
+
+# Python ByteCode
+__pycache__/
+
+# Banco de dados
+*.db
+
+# ...

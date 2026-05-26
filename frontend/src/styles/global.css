@@ -1,0 +1,78 @@
+:root {
+  --bg-dark: #0a0a0a;
+  --bg-sidebar: #121212;
+  --accent-red: #ff0000;
+  --text-gray: #888;
+  --border-color: #222;
+  --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+* {
+  box-sizing: border-box;
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  margin: 0;
+  background-color: var(--bg-dark);
+  font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  color: white;
+  overflow: hidden; /* Importante para manter a sidebar fixa */
+
+  /* FORÇA O NAVEGADOR A USAR O MODO ESCURO NOS CONTROLES DO SISTEMA */
+  color-scheme: dark;
+}
+
+/* Reset Global para Botões e Inputs (Evita o visual cinza padrão do Windows) */
+button,
+input,
+textarea,
+select {
+  font-family: inherit;
+  color: inherit;
+  outline: none;
+  border: none;
+}
+
+/* Links Vermelhos (Login/Cadastro) */
+.red-link {
+  color: var(--accent-red) !important;
+  text-decoration: none !important;
+  font-weight: 600;
+  transition: var(--transition-smooth);
+}
+
+.red-link:hover {
+  filter: brightness(1.3);
+}
+
+/* Animação de entrada das páginas */
+.animate-in {
+  animation: slideUp 0.5s ease-out forwards;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Scrollbar Estilizada */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg-dark);
+}
+::-webkit-scrollbar-thumb {
+  background: #333;
+  border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-red);
+}
