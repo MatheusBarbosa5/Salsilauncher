@@ -25,19 +25,28 @@ from repositories import (
 from database import get_session
 from sqlmodel import Session
 from datetime import datetime, timezone
+from services.gameService import listar_games_service
 
 router = APIRouter(prefix="/games", tags=["Games"])
 
 
+
 @router.get("/", response_model=List[Game])
 def listar_games(
-    q: Optional[str] = Query(None, description="Busca por nome ou descrição"),
-    tags: Optional[str] = Query(None, description="Tags separadas por vírgula (ex: fps,rpg)"),
+    q: Optional[str] = Query(None),
+    tags: Optional[str] = Query(None),
     limit: int = Query(25, ge=1, le=100),
     offset: int = Query(0, ge=0),
     session: Session = Depends(get_session)
 ):
-    return game_repo.get_all_games(session, q=q, tags=tags, limit=limit, offset=offset)
+
+    return listar_games_service(
+        session=session,
+        q=q,
+        tags=tags,
+        limit=limit,
+        offset=offset
+    )
 
 @router.get("/{game_id}", response_model=Game)
 def obter_game(game_id: int, session: Session = Depends(get_session)):

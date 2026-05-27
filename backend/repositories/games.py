@@ -4,6 +4,8 @@ from typing import List, Optional
 
 from models.games import Game, GameCreate, GameUpdate
 
+
+# vamos desabilitar esse caminho, get_all_games_2 será ele
 def get_all_games(session: Session, q: Optional[str] = None, tags: Optional[str] = None, limit: int = 25, offset: int = 0):
     stmt = select(Game)
 
@@ -12,6 +14,7 @@ def get_all_games(session: Session, q: Optional[str] = None, tags: Optional[str]
         stmt = stmt.where(or_(Game.title.ilike(q_lower), Game.description.ilike(q_lower)))
 
     # Busca no banco de dados
+    # devemos retirar isso (está trazendo tudo para a memória)
     games = session.exec(stmt).all()
 
     if tags:
@@ -22,6 +25,10 @@ def get_all_games(session: Session, q: Optional[str] = None, tags: Optional[str]
         ]
 
     return games[offset : offset + limit]
+
+def get_all_games_2(session: Session) -> List[Game]:
+    stmt = select(Game)
+    return session.exec(stmt).all()
 
 def get_game_by_id(session: Session, game_id: int):
     return session.get(Game, game_id)
