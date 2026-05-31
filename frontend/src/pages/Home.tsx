@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { LayoutGrid } from "lucide-react";
 import { GameCard } from "../components/GameCard";
 import logoImg from "../assets/logo.png";
@@ -6,12 +7,16 @@ import "../styles/home.css";
 
 export function Home() {
   const [jogos, setJogos] = useState<any[]>([]);
+  const [searchParams] = useSearchParams();
+  const query = searchParams.get("q") || "";
 
   useEffect(() => {
     const fetchJogos = async () => {
       try {
-        // CORREÇÃO: Apontando para o endpoint correto em inglês
-        const response = await fetch("http://localhost:8000/games");
+        // CORREÇÃO: Alinhado para consumir a rota /games com o parâmetro q
+        const response = await fetch(
+          `http://localhost:8000/games?q=${encodeURIComponent(query)}`,
+        );
         const data = await response.json();
         setJogos(Array.isArray(data) ? data : []);
       } catch (error) {
@@ -20,11 +25,10 @@ export function Home() {
     };
 
     fetchJogos();
-  }, []);
+  }, [query]); // Escuta as mudanças de digitação em tempo real
 
   return (
     <div className="home-container animate-in">
-      {/* SEÇÃO HERO/BANNER */}
       <section className="home-hero">
         <div className="hero-content">
           <img src={logoImg} alt="Salsilauncher" className="hero-logo" />
@@ -35,11 +39,12 @@ export function Home() {
         </div>
       </section>
 
-      {/* GRADE DE JOGOS */}
       <section className="section-container">
         <div className="section-title">
           <LayoutGrid size={20} color="#ff0000" />
-          <span>Todos os Jogos</span>
+          <span>
+            {query ? `Resultados para: "${query}"` : "Todos os Jogos"}
+          </span>
         </div>
         <div className="game-row">
           {jogos && jogos.length > 0 ? (
@@ -47,14 +52,14 @@ export function Home() {
               <GameCard
                 key={game.id}
                 id={game.id}
-                nome={game.title} // CORREÇÃO: Vincula 'title' do DB ao 'nome' do Card
-                capa={game.cover} // CORREÇÃO: Vincula 'cover' do DB à 'capa' do Card
-                category={game.tags?.[0] || "PC Game"} // Primeira tag vira a categoria visual
+                nome={game.title} // Traduz propriedade title do banco para nome do card
+                capa={game.cover} // Traduz propriedade cover do banco para capa do card
+                category={game.tags?.[0] || "PC Game"}
               />
             ))
           ) : (
             <p style={{ color: "#888", padding: "20px" }}>
-              Nenhum jogo encontrado no banco de dados.
+              Nenhum jogo corresponde à sua busca na biblioteca.
             </p>
           )}
         </div>

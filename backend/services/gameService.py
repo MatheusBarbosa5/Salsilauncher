@@ -14,13 +14,13 @@ def listar_games_service(
     # 1. Buscar todos os jogos
     games = game_repo.get_all_games_2(session)
 
-    # 2. Filtrar por texto <- estado anterior a chamada de dados
+    # 2. CORREÇÃO: Filtragem por texto usando as propriedades corretas (title e description)
     if q:
-        q_lower = f"%{q.lower()}%"
+        q_lower = q.lower()  # Removidos os caracteres "%" que quebravam o "in" do Python
         games = [
-        g for g in games
-        if q_lower in (g.nome or "").lower()
-        or q_lower in (g.descricao or "").lower()]
+            g for g in games
+            if q_lower in (g.title or "").lower() or q_lower in (g.description or "").lower()
+        ]
 
     # 3. Filtro por tags
     if tags:

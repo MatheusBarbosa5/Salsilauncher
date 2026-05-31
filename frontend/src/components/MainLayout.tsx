@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Outlet, useNavigate } from "react-router-dom";
+import { Outlet, useNavigate, useSearchParams } from "react-router-dom";
 import logoImg from "../assets/logo.png";
 import {
   Search,
@@ -18,17 +18,18 @@ export function MainLayout() {
   const [isFavoritesOpen, setIsFavoritesOpen] = useState(true);
   const navigate = useNavigate();
 
+  const [searchParams] = useSearchParams();
+  const searchQuery = searchParams.get("q") || "";
+
   return (
     <div className="app-layout">
       <aside className="sidebar">
-        {/* Header da Sidebar */}
         <div
           className="sidebar-header"
           onClick={() => navigate("/")}
           style={{ cursor: "pointer" }}
         >
           <div className="logo-box">
-            {/* LOGO OFICIAL APLICADA AQUI */}
             <img
               src={logoImg}
               alt="Salsilauncher Logo"
@@ -38,7 +39,6 @@ export function MainLayout() {
           <h2 className="sidebar-title">SALSILAUNCHER</h2>
         </div>
 
-        {/* Tabs de Navegação */}
         <div className="nav-tabs">
           <div
             className={`tab ${activeTab === "home" ? "active" : ""}`}
@@ -57,7 +57,6 @@ export function MainLayout() {
           </div>
         </div>
 
-        {/* Conteúdo da Sidebar conforme a Tab ativa */}
         <div className="sidebar-content">
           {activeTab === "home" ? (
             <div className="menu-group animate-in">
@@ -110,12 +109,19 @@ export function MainLayout() {
         </div>
       </aside>
 
-      {/* Área Principal de Conteúdo */}
       <div className="content-area">
         <header className="topbar">
           <div className="search-container">
             <Search size={18} color="#888" />
-            <input type="text" placeholder="Buscar na biblioteca..." />
+            {/* CORREÇÃO: Atualiza dinamicamente os parâmetros da URL ao digitar */}
+            <input
+              type="text"
+              placeholder="Buscar na biblioteca..."
+              value={searchQuery}
+              onChange={(e) =>
+                navigate(`/?q=${encodeURIComponent(e.target.value)}`)
+              }
+            />
           </div>
 
           <div className="user-section">
@@ -135,7 +141,6 @@ export function MainLayout() {
           </div>
         </header>
 
-        {/* Onde as páginas são renderizadas */}
         <main className="main-scroll">
           <Outlet />
         </main>
