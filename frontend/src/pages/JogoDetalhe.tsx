@@ -9,8 +9,9 @@ import {
   AlignLeft,
   ArrowLeft,
   Edit3,
-  Trash2, // Importado o ícone de lixeira
+  Trash2,
 } from "lucide-react";
+import { useToast } from "../context/ToastContext";
 
 type Jogo = {
   id: number;
@@ -31,23 +32,21 @@ export function JogoDetalhe() {
   const [loading, setLoading] = useState(true);
   const { id } = useParams();
   const navigate = useNavigate();
+  const { showToast } = useToast();
 
   useEffect(() => {
     const fetchJogoUnico = async () => {
       try {
         const response = await fetch(`http://localhost:8000/games/${id}`);
-        if (!response.ok) {
-          throw new Error("Jogo não encontrado");
-        }
+        if (!response.ok) throw new Error("Jogo não encontrado");
         const data = await response.json();
         setGame(data);
       } catch (error) {
-        console.error("Erro ao buscar detalhes do jogo:", error);
+        console.error(error);
       } finally {
         setLoading(false);
       }
     };
-
     fetchJogoUnico();
   }, [id]);
 
@@ -57,41 +56,32 @@ export function JogoDetalhe() {
       const response = await fetch(
         `http://localhost:8000/games/abrir/${game.id}`,
       );
-      if (!response.ok) {
-        throw new Error("Não foi possível iniciar o jogo.");
-      }
-      alert("Comando enviado! O jogo está iniciando...");
+      if (!response.ok) throw new Error("Erro ao iniciar binário");
+      showToast("Comando enviado! O jogo está iniciando...", "success");
     } catch (error) {
-      console.error("Erro ao abrir jogo:", error);
-      alert("Houve um erro ao tentar executar o jogo.");
+      console.error(error);
+      showToast("Não foi possível iniciar o jogo.", "error");
     }
   };
 
-  // NOVA FUNÇÃO: Dispara a rota DELETE para o Backend Python
   const DeletarJogo = async () => {
     if (!game) return;
-
-    // Confirmação de segurança (Boa prática de UX)
     const confirmou = window.confirm(
       `Tem certeza absoluta que deseja remover "${game.title}" da sua biblioteca?`,
     );
-
     if (!confirmou) return;
 
     try {
       const response = await fetch(`http://localhost:8000/games/${id}`, {
-        method: "DELETE", // Método HTTP correto para remoção
+        method: "DELETE",
       });
+      if (!response.ok) throw new Error("Erro ao deletar");
 
-      if (!response.ok) {
-        throw new Error("Erro ao deletar o jogo no servidor.");
-      }
-
-      alert(`Jogo "${game.title}" foi removido com sucesso!`);
-      navigate("/"); // Redireciona o usuário de volta para a Home atualizada
+      showToast(`Jogo "${game.title}" foi removido com sucesso!`, "error");
+      navigate("/");
     } catch (error) {
-      console.error("Erro ao deletar jogo:", error);
-      alert("Não foi possível deletar o jogo. Tente novamente.");
+      console.error(error);
+      showToast("Não foi possível deletar o jogo. Tente novamente.", "error");
     }
   };
 
@@ -119,6 +109,7 @@ export function JogoDetalhe() {
       >
         <p>Jogo não encontrado no banco de dados.</p>
         <button
+          type="button"
           className="btn-secondary"
           onClick={() => navigate("/")}
           style={{ marginTop: "20px" }}
@@ -139,8 +130,8 @@ export function JogoDetalhe() {
 
   return (
     <div className="game-detail-container animate-in">
-      {/* Botão Voltar */}
       <button
+        type="button"
         onClick={() => navigate("/")}
         style={{
           position: "absolute",
@@ -165,7 +156,6 @@ export function JogoDetalhe() {
         <ArrowLeft size={20} />
       </button>
 
-      {/* Header com Fundo e Título */}
       <header
         className="game-header"
         style={{
@@ -182,11 +172,9 @@ export function JogoDetalhe() {
             }}
           >
             <h1 className="game-title-large">{game.title}</h1>
-
-            {/* CONTAINER DOS BOTÕES DE AÇÃO (EDITAR E DELETAR) */}
             <div style={{ display: "flex", gap: "12px", marginBottom: "10px" }}>
-              {/* BOTÃO EDITAR */}
               <button
+                type="button"
                 onClick={() => navigate(`/editar-jogo/${game.id}`)}
                 style={{
                   background: "rgba(255,255,255,0.1)",
@@ -211,9 +199,8 @@ export function JogoDetalhe() {
               >
                 <Edit3 size={18} /> Editar
               </button>
-
-              {/* NOVO BOTÃO: DELETAR JOGO */}
               <button
+                type="button"
                 onClick={DeletarJogo}
                 style={{
                   background: "rgba(255, 0, 0, 0.2)",
@@ -245,19 +232,16 @@ export function JogoDetalhe() {
         </div>
       </header>
 
-      {/* Barra de Ação (Jogar e Stats) */}
       <section className="play-bar">
-        <button className="btn-play-large" onClick={AbrirJogo}>
+        <button type="button" className="btn-play-large" onClick={AbrirJogo}>
           <Play size={24} fill="white" /> JOGAR AGORA
         </button>
-
         <div className="stat-item">
           <span className="stat-label">ÚLTIMA VEZ</span>
           <div className="stat-value">
             <Calendar size={14} /> {"Disponível em breve"}
           </div>
         </div>
-
         <div className="stat-item">
           <span className="stat-label">TEMPO DE JOGO</span>
           <div className="stat-value">
@@ -266,7 +250,6 @@ export function JogoDetalhe() {
         </div>
       </section>
 
-      {/* Grade de Informações */}
       <section className="info-grid-detail">
         <div className="info-column">
           <h3>
@@ -279,7 +262,6 @@ export function JogoDetalhe() {
             <strong>Status:</strong> Pronto para o Play
           </p>
         </div>
-
         <div className="info-column">
           <h3>
             <Tag size={18} /> Tags
@@ -296,7 +278,6 @@ export function JogoDetalhe() {
             )}
           </div>
         </div>
-
         <div className="info-column">
           <h3>
             <AlignLeft size={18} /> Descrição

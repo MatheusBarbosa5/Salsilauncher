@@ -13,7 +13,6 @@ export function Home() {
   useEffect(() => {
     const fetchJogos = async () => {
       try {
-        // CORREÇÃO: Alinhado para consumir a rota /games com o parâmetro q
         const response = await fetch(
           `http://localhost:8000/games?q=${encodeURIComponent(query)}`,
         );
@@ -23,12 +22,12 @@ export function Home() {
         console.error("Erro ao buscar jogos:", error);
       }
     };
-
     fetchJogos();
-  }, [query]); // Escuta as mudanças de digitação em tempo real
+  }, [query]);
 
   return (
     <div className="home-container animate-in">
+      {/* SEÇÃO HERO/BANNER */}
       <section className="home-hero">
         <div className="hero-content">
           <img src={logoImg} alt="Salsilauncher" className="hero-logo" />
@@ -39,6 +38,7 @@ export function Home() {
         </div>
       </section>
 
+      {/* GRADE DE JOGOS */}
       <section className="section-container">
         <div className="section-title">
           <LayoutGrid size={20} color="#ff0000" />
@@ -52,8 +52,8 @@ export function Home() {
               <GameCard
                 key={game.id}
                 id={game.id}
-                nome={game.title} // Traduz propriedade title do banco para nome do card
-                capa={game.cover} // Traduz propriedade cover do banco para capa do card
+                nome={game.title}
+                capa={game.cover}
                 category={game.tags?.[0] || "PC Game"}
               />
             ))

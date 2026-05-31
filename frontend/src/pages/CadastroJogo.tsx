@@ -6,34 +6,33 @@ import {
   Tag,
   FileCode,
   Plus,
+  ArrowLeft,
 } from "lucide-react";
-import { GameCard } from "../components/GameCard";
+import { useToast } from "../context/ToastContext";
 
 export function CadastroJogo() {
-  const navigate = useNavigate();
-
   const [title, setTitle] = useState("");
   const [category, setCategory] = useState("");
   const [image, setImage] = useState("");
   const [exePath, setExePath] = useState("");
-  const [folderPath, setFolderPath] = useState("");
+
+  const navigate = useNavigate();
+  const { showToast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    // CORREÇÃO: Mapeando os nomes das propriedades para o formato que o SQLModel (Python) espera
     const data = {
       title: title,
       exe_path: exePath,
       folder_path: exePath.includes("\\")
         ? exePath.substring(0, exePath.lastIndexOf("\\"))
-        : "C:\\Games", // Fallback seguro caso o caminho não tenha barras
+        : "C:\\Games",
       cover: image,
-      tags: category ? [category] : [], // O backend espera uma lista de strings para as tags
+      tags: category ? [category] : [],
     };
 
     try {
-      // CORREÇÃO: Alterado de /jogos para /games/
       const response = await fetch("http://localhost:8000/games/", {
         method: "POST",
         headers: {
@@ -47,26 +46,39 @@ export function CadastroJogo() {
       }
 
       const result = await response.json();
-      alert(`Jogo "${result.title}" cadastrado com sucesso!`);
-
-      // Limpa os campos após o sucesso
-      setTitle("");
-      setCategory("");
-      setImage("");
-      setExePath("");
-
-      navigate("/"); // Redireciona para a home para ver o jogo adicionado
+      showToast(`Jogo "${result.title}" cadastrado com sucesso!`, "success");
+      navigate("/");
     } catch (error) {
       console.error("Erro no cadastro:", error);
-      alert("Houve um erro ao tentar salvar o jogo.");
+      showToast("Houve um erro ao tentar salvar o jogo.", "error");
     }
   };
 
   return (
     <div className="page-container animate-in">
-      <div className="section-title">
-        <Plus size={20} color="#ff0000" />
-        <span>Cadastrar Jogo Manualmente</span>
+      <div
+        className="section-title"
+        style={{
+          marginBottom: "30px",
+          display: "flex",
+          alignItems: "center",
+          gap: "15px",
+        }}
+      >
+        <button
+          type="button"
+          onClick={() => navigate("/")}
+          style={{
+            background: "none",
+            border: "none",
+            color: "white",
+            cursor: "pointer",
+            display: "flex",
+          }}
+        >
+          <ArrowLeft size={20} />
+        </button>
+        <span>Cadastrar Novo Jogo Manualmente</span>
       </div>
 
       <div className="cadastro-layout">
@@ -83,7 +95,6 @@ export function CadastroJogo() {
                 type="text"
                 placeholder="Ex: Minecraft"
                 value={title}
-                name="nome"
                 onChange={(e) => setTitle(e.target.value)}
                 required
               />
@@ -91,7 +102,7 @@ export function CadastroJogo() {
           </div>
 
           <div className="input-group">
-            <label>Gênero</label>
+            <label>Gênero / Categoria</label>
             <div className="input-wrapper">
               <Tag size={18} className="input-icon" />
               <input
@@ -105,14 +116,13 @@ export function CadastroJogo() {
           </div>
 
           <div className="input-group">
-            <label>URL da Capa</label>
+            <label>URL da Imagem de Capa</label>
             <div className="input-wrapper">
               <ImageIcon size={18} className="input-icon" />
               <input
                 type="text"
-                placeholder="https://..."
+                placeholder="https://linkdaimagem.com/capa.jpg"
                 value={image}
-                name="capa"
                 onChange={(e) => setImage(e.target.value)}
                 required
               />
@@ -120,13 +130,12 @@ export function CadastroJogo() {
           </div>
 
           <div className="input-group">
-            <label>Executável (.exe)</label>
+            <label>Caminho do Executável (.exe)</label>
             <div className="input-wrapper">
               <FileCode size={18} className="input-icon" />
               <input
                 type="text"
-                placeholder="C:/Games/..."
-                name="caminho_executavel"
+                placeholder="D:\Games\Minecraft\minecraft.exe"
                 value={exePath}
                 onChange={(e) => setExePath(e.target.value)}
                 required
@@ -134,7 +143,7 @@ export function CadastroJogo() {
             </div>
           </div>
 
-          <div className="form-actions">
+          <div className="form-actions" style={{ marginTop: "20px" }}>
             <button
               type="button"
               className="btn-secondary"
@@ -142,25 +151,34 @@ export function CadastroJogo() {
             >
               CANCELAR
             </button>
-            <button type="submit" className="btn-primary">
-              SALVAR
+            <button
+              type="submit"
+              className="btn-primary"
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "8px",
+                justifyContent: "center",
+              }}
+            >
+              <Plus size={18} /> CADASTRAR JOGO
             </button>
           </div>
         </form>
 
         <div className="preview-section">
           <span>Prévia na Biblioteca</span>
-          <div className="game-card preview-card">
+          <div className="game-card" style={{ width: "230px" }}>
             <div className="image-container">
-              {image ? (
-                <img src={image} alt="Preview" className="game-image" />
-              ) : (
-                <div className="image-placeholder">
-                  <ImageIcon size={40} color="#333" />
-                </div>
-              )}
+              <img
+                src={
+                  image || "https://via.placeholder.com/230x345?text=Sem+Imagem"
+                }
+                alt="Preview"
+                className="game-image"
+              />
             </div>
-            <div className="game-info">
+            <div className="game-info" style={{ padding: "15px" }}>
               <span className="game-category">{category || "CATEGORIA"}</span>
               <h3 className="game-title">{title || "Título do Jogo"}</h3>
             </div>

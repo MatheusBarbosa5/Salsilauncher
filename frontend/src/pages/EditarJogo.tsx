@@ -8,96 +8,74 @@ import {
   Save,
   ArrowLeft,
 } from "lucide-react";
+import { useToast } from "../context/ToastContext";
 
 export function EditarJogo() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { showToast } = useToast();
 
-  // Estados dos campos do formulário
   const [title, setTitle] = useState("");
   const [category, setCategory] = useState("");
   const [image, setImage] = useState("");
   const [exePath, setExePath] = useState("");
 
-  // Guardar os dados originais para fazer o "Dirty Checking" (mudar apenas o alterado)
   const [originalGame, setOriginalGame] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
-  // 1. CRITÉRIO: Página de edição conta com os dados reais do jogo a ser editado
   useEffect(() => {
     const fetchJogo = async () => {
       try {
         const response = await fetch(`http://localhost:8000/games/${id}`);
-        if (!response.ok) {
-          throw new Error("Não foi possível carregar os dados do jogo.");
-        }
+        if (!response.ok) throw new Error("Erro ao carregar");
         const gameData = await response.json();
 
         setOriginalGame(gameData);
-
-        // Preenche os inputs com os dados retornados do banco
         setTitle(gameData.title || "");
         setImage(gameData.cover || "");
         setExePath(gameData.exe_path || "");
-        setCategory(gameData.tags?.[0] || ""); // Mapeia a primeira tag como gênero
+        setCategory(gameData.tags?.[0] || "");
       } catch (error) {
-        console.error("Erro ao carregar jogo:", error);
-        alert("Erro ao carregar as informações do jogo.");
+        console.error(error);
+        showToast("Erro ao carregar as informações do jogo.", "error");
       } finally {
         setLoading(false);
       }
     };
-
     fetchJogo();
-  }, [id]);
+  }, [id, showToast]);
 
-  // 2. CRITÉRIO: Tratar e enviar as alterações
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-
     if (!originalGame) return;
 
-    // 3. CRITÉRIO: Mudar no DB somente as informações que foram alteradas
     const updatedFields: any = {};
-
-    if (title !== originalGame.title) {
-      updatedFields.title = title;
-    }
-    if (image !== originalGame.cover) {
-      updatedFields.cover = image;
-    }
-    if (exePath !== originalGame.exe_path) {
-      updatedFields.exe_path = exePath;
-    }
-    if (category !== (originalGame.tags?.[0] || "")) {
+    if (title !== originalGame.title) updatedFields.title = title;
+    if (image !== originalGame.cover) updatedFields.cover = image;
+    if (exePath !== originalGame.exe_path) updatedFields.exe_path = exePath;
+    if (category !== (originalGame.tags?.[0] || ""))
       updatedFields.tags = [category];
-    }
 
-    // Se o usuário clicou em salvar sem mudar nada, evitamos requisição desnecessária
     if (Object.keys(updatedFields).length === 0) {
-      alert("Nenhuma alteração foi detectada.");
-      navigate(`/jogo/${id}`);
+      showToast("Nenhuma alteração foi detectada.", "info");
+      navigate("/");
       return;
     }
 
     try {
       const response = await fetch(`http://localhost:8000/games/${id}`, {
         method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(updatedFields), // Envia apenas as chaves modificadas
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updatedFields),
       });
 
-      if (!response.ok) {
-        throw new Error("Erro ao atualizar o jogo.");
-      }
+      if (!response.ok) throw new Error("Erro ao atualizar");
 
-      alert(`Alterações em "${title}" salvas com sucesso!`);
-      navigate(`/jogo/${id}`); // Retorna para a página de detalhes atualizada
+      showToast(`Alterações em "${title}" salvas com sucesso!`, "success");
+      navigate("/");
     } catch (error) {
-      console.error("Erro ao salvar alterações:", error);
-      alert("Houve um erro ao tentar salvar as alterações.");
+      console.error(error);
+      showToast("Houve um erro ao tentar salvar as alterações.", "error");
     }
   };
 
@@ -124,6 +102,7 @@ export function EditarJogo() {
         }}
       >
         <button
+          type="button"
           onClick={() => navigate(-1)}
           style={{
             background: "none",
@@ -215,7 +194,6 @@ export function EditarJogo() {
           </div>
         </form>
 
-        {/* Prévia em tempo real */}
         <div className="preview-section">
           <span>Prévia na Biblioteca</span>
           <div className="game-card" style={{ width: "230px" }}>

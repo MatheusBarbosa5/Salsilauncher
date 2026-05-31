@@ -1,17 +1,11 @@
-import React, { useState } from "react";
+import React from "react";
 import { useNavigate } from "react-router-dom";
-import {
-  Gamepad2,
-  Image as ImageIcon,
-  Tag,
-  FileCode,
-  Plus,
-  FolderIcon,
-} from "lucide-react";
-import { GameCard } from "../components/GameCard";
+import { Plus, FolderIcon } from "lucide-react";
+import { useToast } from "../context/ToastContext";
 
 export function EscanearPasta() {
   const navigate = useNavigate();
+  const { showToast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -19,19 +13,24 @@ export function EscanearPasta() {
     try {
       const formData = new FormData(e.currentTarget);
 
+      // CORREÇÃO: Endpoint atualizado para inglês (/games/scan) em vez de /jogos/scan
       const response = await fetch("http://localhost:8000/games/scan", {
         method: "POST",
         body: formData,
       });
 
       if (!response.ok) {
-        throw new Error("Erro na requisição");
+        throw new Error("Erro na requisição de varredura.");
       }
 
       const data = await response.json();
-      alert(`Pasta escaneada com sucesso! ${data.status}`);
+
+      // SUBSTITUIÇÃO: alert() nativo trocado pela notificação estilizada do sistema
+      showToast(`Pasta escaneada com sucesso! ${data.status}`, "success");
+      navigate("/");
     } catch (error) {
       console.error(error);
+      showToast("Não foi possível concluir a varredura da pasta.", "error");
     }
   };
 
@@ -39,24 +38,24 @@ export function EscanearPasta() {
     <div className="page-container animate-in">
       <div className="section-title">
         <Plus size={20} color="#ff0000" />
-        <span>Escanear Pasta</span>
+        <span>Escanear Pasta por Jogos</span>
       </div>
 
       <div className="cadastro-layout">
         <form className="cadastro-form" onSubmit={handleSubmit}>
           <p className="form-helper">
-            Use esta opção para encontrar jogos em uma pasta específica do seu
-            computador.
+            Use esta opção para encontrar jogos automaticamente em uma pasta
+            específica do seu computador.
           </p>
 
           <div className="input-group">
-            <label>Pasta do Jogo</label>
+            <label>Caminho do Diretório</label>
             <div className="input-wrapper">
               <FolderIcon size={18} className="input-icon" />
               <input
                 type="text"
                 name="caminho"
-                placeholder="C:/Games/..."
+                placeholder="Ex: C:/Games"
                 required
               />
             </div>
@@ -71,7 +70,7 @@ export function EscanearPasta() {
               CANCELAR
             </button>
             <button type="submit" className="btn-primary">
-              Buscar
+              INICIAR BUSCA
             </button>
           </div>
         </form>
