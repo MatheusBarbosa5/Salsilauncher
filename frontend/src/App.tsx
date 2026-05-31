@@ -17,9 +17,8 @@ import { CadastroUsuario } from "./pages/CadastroUsuario";
 import { CadastroJogo } from "./pages/CadastroJogo";
 import { EscanearPasta } from "./pages/EscanearPasta";
 import { EditarJogo } from "./pages/EditarJogo";
-
-// Placeholder para o detalhe do jogo (será a nossa próxima tela)
 import { JogoDetalhe } from "./pages/JogoDetalhe";
+import { CreateCollection } from "./pages/CreateCollection"; // Importação com nome do componente em inglês
 
 function App() {
   return (
@@ -36,6 +35,11 @@ function App() {
           <Route path="/escanear-pasta" element={<EscanearPasta />} />
           <Route path="/jogo/:id" element={<JogoDetalhe />} />
           <Route path="/editar-jogo/:id" element={<EditarJogo />} />
+          <Route
+            path="/create-collection"
+            element={<CreateCollection />}
+          />{" "}
+          {/* Rota técnica em inglês */}
         </Route>
 
         {/* Redirecionamento de segurança */}

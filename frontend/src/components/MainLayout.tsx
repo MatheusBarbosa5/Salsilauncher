@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+// frontend/src/components/MainLayout.tsx
+import React, { useState, useEffect } from "react";
 import { Outlet, useNavigate, useSearchParams } from "react-router-dom";
 import logoImg from "../assets/logo.png";
 import { ToastProvider } from "../context/ToastContext";
@@ -12,21 +13,32 @@ import {
   Plus,
   Library,
   Folder,
+  FolderHeart,
 } from "lucide-react";
 
 export function MainLayout() {
   const [activeTab, setActiveTab] = useState("home");
   const [isFavoritesOpen, setIsFavoritesOpen] = useState(true);
+  const [customCollections, setCustomCollections] = useState<any[]>([]);
   const navigate = useNavigate();
 
   const [searchParams] = useSearchParams();
   const searchQuery = searchParams.get("q") || "";
 
+  // Reloads custom collections from localStorage whenever the collection tab becomes active
+  useEffect(() => {
+    const loadCollections = () => {
+      const stored = localStorage.getItem("salsilauncher_collections");
+      setCustomCollections(stored ? JSON.parse(stored) : []);
+    };
+    loadCollections();
+  }, [activeTab]);
+
   return (
     <ToastProvider>
       <div className="app-layout">
         <aside className="sidebar">
-          {/* Header da Sidebar com a logo da parceira aplicada */}
+          {/* Header da Sidebar */}
           <div
             className="sidebar-header"
             onClick={() => navigate("/")}
@@ -42,7 +54,7 @@ export function MainLayout() {
             <h2 className="sidebar-title">SALSILAUNCHER</h2>
           </div>
 
-          {/* Tabs de Navegação */}
+          {/* Abas de Navegação */}
           <div className="nav-tabs">
             <div
               className={`tab ${activeTab === "home" ? "active" : ""}`}
@@ -61,19 +73,24 @@ export function MainLayout() {
             </div>
           </div>
 
-          {/* Conteúdo dinâmico da Sidebar conforme a Tab ativa */}
+          {/* Conteúdo da Sidebar conforme a Aba Ativa */}
           <div className="sidebar-content">
             {activeTab === "home" ? (
               <div className="menu-group animate-in">
                 <div className="menu-item active" onClick={() => navigate("/")}>
                   <HomeIcon size={18} /> <span>Início</span>
                 </div>
-                <div className="menu-item">
+                <div
+                  className="menu-item"
+                  style={{ opacity: 0.5, cursor: "not-allowed" }}
+                  title="Mapeado para Trabalhos Futuros"
+                >
                   <Library size={18} /> <span>Biblioteca</span>
                 </div>
               </div>
             ) : (
               <div className="menu-group animate-in">
+                {/* CATEGORIA DE FAVORITOS PADRÃO */}
                 <div
                   className="collection-item"
                   onClick={() => setIsFavoritesOpen(!isFavoritesOpen)}
@@ -92,6 +109,50 @@ export function MainLayout() {
                       transform: isFavoritesOpen ? "rotate(180deg)" : "none",
                     }}
                   />
+                </div>
+
+                {/* LISTAGEM DAS COLEÇÕES PERSONALIZADAS */}
+                {customCollections.map((col) => (
+                  <div
+                    key={col.id}
+                    className="collection-item"
+                    style={{
+                      paddingLeft: "25px",
+                      fontSize: "0.9rem",
+                      color: "#ccc",
+                    }}
+                  >
+                    <Folder size={14} color="#ff3333" />
+                    <span>{col.name}</span>
+                    <span
+                      style={{
+                        marginLeft: "auto",
+                        fontSize: "0.75rem",
+                        color: "#666",
+                        background: "#181818",
+                        padding: "2px 6px",
+                        borderRadius: "4px",
+                      }}
+                    >
+                      {col.gamesCount}
+                    </span>
+                  </div>
+                ))}
+
+                {/* BOTÕES DE AÇÃO - CORRIGIDO PARA BRANCO (#ffffff) SEGUINDO A IDENTIDADE */}
+                <div
+                  className="collection-item add-collection"
+                  onClick={() => navigate("/create-collection")}
+                  style={{
+                    color: "#ffffff",
+                    fontWeight: "bold",
+                    borderTop: "1px solid #1a1a1a",
+                    marginTop: "10px",
+                    paddingTop: "12px",
+                  }}
+                >
+                  <FolderHeart size={16} color="#ff3333" />{" "}
+                  <span>+ Nova Coleção</span>
                 </div>
 
                 <div
