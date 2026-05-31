@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { LayoutGrid } from "lucide-react";
 import { GameCard } from "../components/GameCard";
 import logoImg from "../assets/logo.png";
-import "../styles/home.css"; // Importante: Garanta que esse arquivo existe!
+import "../styles/home.css";
 
 export function Home() {
   const [jogos, setJogos] = useState<any[]>([]);
@@ -10,9 +10,10 @@ export function Home() {
   useEffect(() => {
     const fetchJogos = async () => {
       try {
-        const response = await fetch("http://localhost:8000/jogos");
+        // CORREÇÃO: Apontando para o endpoint correto em inglês
+        const response = await fetch("http://localhost:8000/games");
         const data = await response.json();
-        setJogos(data);
+        setJogos(Array.isArray(data) ? data : []);
       } catch (error) {
         console.error("Erro ao buscar jogos:", error);
       }
@@ -42,7 +43,15 @@ export function Home() {
         </div>
         <div className="game-row">
           {jogos && jogos.length > 0 ? (
-            jogos.map((game) => <GameCard key={game.id} {...game} />)
+            jogos.map((game) => (
+              <GameCard
+                key={game.id}
+                id={game.id}
+                nome={game.title} // CORREÇÃO: Vincula 'title' do DB ao 'nome' do Card
+                capa={game.cover} // CORREÇÃO: Vincula 'cover' do DB à 'capa' do Card
+                category={game.tags?.[0] || "PC Game"} // Primeira tag vira a categoria visual
+              />
+            ))
           ) : (
             <p style={{ color: "#888", padding: "20px" }}>
               Nenhum jogo encontrado no banco de dados.

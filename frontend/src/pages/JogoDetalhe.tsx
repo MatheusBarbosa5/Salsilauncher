@@ -8,64 +8,65 @@ import {
   Tag,
   AlignLeft,
   ArrowLeft,
-  Edit3, // Importando o ícone de edição
+  Edit3,
 } from "lucide-react";
 
 type Jogo = {
   id: number;
-  nome: string;
-  descricao: string;
-  caminho_executavel: string;
-  caminho_pasta: string;
-  capa: string;
-  fundo: string;
-  imagens: string[];
+  title: string;
+  description: string;
+  exe_path: string;
+  folder_path: string;
+  cover: string;
+  background: string;
+  extra_images: string[];
   tags: string[];
-  horas_jogadas: number;
-  favorito: boolean;
-  // Ainda não tem no banco:
-  ultima_vez: string;
-  tempo_jogo: string;
-  estudio: string;
-  tamanho: string;
+  play_time: number;
+  favorite: bool;
 };
 
 export function JogoDetalhe() {
-  const [jogos, setJogos] = useState<Jogo[]>([]);
+  const [game, setGame] = useState<Jogo | null>(null);
   const [loading, setLoading] = useState(true);
-
   const { id } = useParams();
   const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchJogos = async () => {
+    const fetchJogoUnico = async () => {
       try {
-        const response = await fetch("http://localhost:8000/jogos");
+        // CORREÇÃO 1: Rota correta em inglês buscando pelo ID direto no backend
+        const response = await fetch(`http://localhost:8000/games/${id}`);
+        if (!response.ok) {
+          throw new Error("Jogo não encontrado");
+        }
         const data = await response.json();
-        setJogos(data);
+        setGame(data);
       } catch (error) {
-        console.error("Erro ao buscar jogos:", error);
+        console.error("Erro ao buscar detalhes do jogo:", error);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchJogos();
-  }, []);
+    fetchJogoUnico();
+  }, [id]);
 
-  const AbrirJogo = async (game: Jogo) => {
+  const AbrirJogo = async () => {
     if (!game?.id) return;
-
     try {
-      await fetch(`http://localhost:8000/jogos/abrir/${game.id}`, {
-        method: "GET",
-      });
+      // CORREÇÃO 2: Rota correta em inglês para abrir o executável do jogo
+      const response = await fetch(
+        `http://localhost:8000/games/abrir/${game.id}`,
+      );
+      if (!response.ok) {
+        throw new Error("Não foi possível iniciar o jogo.");
+      }
+      alert("Comando enviado! O jogo está iniciando...");
     } catch (error) {
       console.error("Erro ao abrir jogo:", error);
+      alert("Houve um erro ao tentar executar o jogo.");
     }
   };
-
-  const game = jogos.find((jogo) => jogo.id === Number(id));
 
   if (loading) {
     return (
@@ -78,7 +79,7 @@ export function JogoDetalhe() {
           height: "100%",
         }}
       >
-        <p>Carregando...</p>
+        <p style={{ color: "#888" }}>Carregando detalhes do jogo...</p>
       </div>
     );
   }
@@ -89,7 +90,7 @@ export function JogoDetalhe() {
         className="main-scroll"
         style={{ padding: "40px", textAlign: "center" }}
       >
-        <p>Jogo não encontrado</p>
+        <p>Jogo não encontrado no banco de dados.</p>
         <button
           className="btn-secondary"
           onClick={() => navigate("/")}
@@ -100,6 +101,15 @@ export function JogoDetalhe() {
       </div>
     );
   }
+
+  // Converte os segundos gravados no banco para um formato legível
+  const formatarTempoJogo = (segundos: number) => {
+    if (!segundos) return "0h";
+    const horas = Math.floor(segundos / 3600);
+    if (horas > 0) return `${horas}h`;
+    const minutos = Math.floor(segundos / 60);
+    return `${minutos}min`;
+  };
 
   return (
     <div className="game-detail-container animate-in">
@@ -133,7 +143,7 @@ export function JogoDetalhe() {
       <header
         className="game-header"
         style={{
-          backgroundImage: `url(${game.fundo || "https://via.placeholder.com/1200x600?text=Salsilauncher"})`,
+          backgroundImage: `url(${game.background || game.cover || "https://via.placeholder.com/1200x600?text=Salsilauncher"})`,
         }}
       >
         <div className="header-overlay">
@@ -145,7 +155,8 @@ export function JogoDetalhe() {
               width: "100%",
             }}
           >
-            <h1 className="game-title-large">{game.nome}</h1>
+            {/* CORREÇÃO 3: Mapeado de game.nome para game.title */}
+            <h1 className="game-title-large">{game.title}</h1>
 
             {/* BOTÃO EDITAR */}
             <button
@@ -180,21 +191,21 @@ export function JogoDetalhe() {
 
       {/* Barra de Ação (Jogar e Stats) */}
       <section className="play-bar">
-        <button className="btn-play-large" onClick={() => AbrirJogo(game)}>
+        <button className="btn-play-large" onClick={AbrirJogo}>
           <Play size={24} fill="white" /> JOGAR AGORA
         </button>
 
         <div className="stat-item">
           <span className="stat-label">ÚLTIMA VEZ</span>
           <div className="stat-value">
-            <Calendar size={14} /> {game.ultima_vez || "Nunca"}
+            <Calendar size={14} /> {"Disponível em breve"}
           </div>
         </div>
 
         <div className="stat-item">
           <span className="stat-label">TEMPO DE JOGO</span>
           <div className="stat-value">
-            <Clock size={14} /> {game.tempo_jogo || "0h"}
+            <Clock size={14} /> {formatarTempoJogo(game.play_time)}
           </div>
         </div>
       </section>
@@ -205,14 +216,11 @@ export function JogoDetalhe() {
           <h3>
             <Info size={18} /> Detalhes
           </h3>
-          <p>
-            <strong>Estúdio:</strong> {game.estudio || "Não informado"}
+          <p style={{ wordBreak: "break-all" }}>
+            <strong>Caminho:</strong> {game.exe_path}
           </p>
           <p>
-            <strong>Tamanho:</strong> {game.tamanho || "Desconhecido"}
-          </p>
-          <p>
-            <strong>Status:</strong> Instalado
+            <strong>Status:</strong> Pronto para o Play
           </p>
         </div>
 
@@ -238,7 +246,8 @@ export function JogoDetalhe() {
             <AlignLeft size={18} /> Descrição
           </h3>
           <p style={{ color: "#aaa", lineHeight: "1.6" }}>
-            {game.descricao || "Nenhuma descrição disponível para este jogo."}
+            {/* CORREÇÃO 4: Mapeado de game.descricao para game.description */}
+            {game.description || "Nenhuma descrição disponível para este jogo."}
           </p>
         </div>
       </section>

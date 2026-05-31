@@ -21,15 +21,20 @@ export function CadastroJogo() {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
+    // CORREÇÃO: Mapeando os nomes das propriedades para o formato que o SQLModel (Python) espera
     const data = {
-      nome: title,
-      caminho_executavel: exePath,
-      caminho_pasta: exePath.substring(0, exePath.lastIndexOf("\\")),
-      capa: image,
+      title: title,
+      exe_path: exePath,
+      folder_path: exePath.includes("\\")
+        ? exePath.substring(0, exePath.lastIndexOf("\\"))
+        : "C:\\Games", // Fallback seguro caso o caminho não tenha barras
+      cover: image,
+      tags: category ? [category] : [], // O backend espera uma lista de strings para as tags
     };
 
     try {
-      const response = await fetch("http://localhost:8000/jogos", {
+      // CORREÇÃO: Alterado de /jogos para /games/
+      const response = await fetch("http://localhost:8000/games/", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -38,13 +43,22 @@ export function CadastroJogo() {
       });
 
       if (!response.ok) {
-        throw new Error("Erro na requisição");
+        throw new Error("Erro ao cadastrar jogo no servidor.");
       }
 
       const result = await response.json();
-      alert(`Jogo cadastrado com sucesso! ${result.nome}`);
+      alert(`Jogo "${result.title}" cadastrado com sucesso!`);
+
+      // Limpa os campos após o sucesso
+      setTitle("");
+      setCategory("");
+      setImage("");
+      setExePath("");
+
+      navigate("/"); // Redireciona para a home para ver o jogo adicionado
     } catch (error) {
-      console.error(error);
+      console.error("Erro no cadastro:", error);
+      alert("Houve um erro ao tentar salvar o jogo.");
     }
   };
 

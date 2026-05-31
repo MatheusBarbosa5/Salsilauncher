@@ -14,27 +14,26 @@ export function EscanearPasta() {
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-  e.preventDefault();
+    e.preventDefault();
 
-  try {
-    const formData = new FormData(e.currentTarget);
+    try {
+      const formData = new FormData(e.currentTarget);
 
-    const response = await fetch("http://localhost:8000/jogos/scan", {
-      method: "POST",
-      body: formData,
-    });
+      const response = await fetch("http://localhost:8000/games/scan", {
+        method: "POST",
+        body: formData,
+      });
 
-    if (!response.ok) {
-      throw new Error("Erro na requisição");
+      if (!response.ok) {
+        throw new Error("Erro na requisição");
+      }
+
+      const data = await response.json();
+      alert(`Pasta escaneada com sucesso! ${data.status}`);
+    } catch (error) {
+      console.error(error);
     }
-
-    const data = await response.json();
-    alert(`Pasta escaneada com sucesso! ${data.status}`);
-
-  } catch (error) {
-    console.error(error);
-  }
-};
+  };
 
   return (
     <div className="page-container animate-in">
@@ -46,14 +45,20 @@ export function EscanearPasta() {
       <div className="cadastro-layout">
         <form className="cadastro-form" onSubmit={handleSubmit}>
           <p className="form-helper">
-            Use esta opção para encontrar jogos em uma pasta específica do seu computador.
+            Use esta opção para encontrar jogos em uma pasta específica do seu
+            computador.
           </p>
 
           <div className="input-group">
             <label>Pasta do Jogo</label>
             <div className="input-wrapper">
               <FolderIcon size={18} className="input-icon" />
-              <input type="text" name="caminho" placeholder="C:/Games/..." required />
+              <input
+                type="text"
+                name="caminho"
+                placeholder="C:/Games/..."
+                required
+              />
             </div>
           </div>
 
@@ -70,8 +75,6 @@ export function EscanearPasta() {
             </button>
           </div>
         </form>
-        
-
       </div>
     </div>
   );
