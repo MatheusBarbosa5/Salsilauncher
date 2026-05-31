@@ -9,6 +9,7 @@ import {
   AlignLeft,
   ArrowLeft,
   Edit3,
+  Trash2, // Importado o ícone de lixeira
 } from "lucide-react";
 
 type Jogo = {
@@ -22,7 +23,7 @@ type Jogo = {
   extra_images: string[];
   tags: string[];
   play_time: number;
-  favorite: bool;
+  favorite: boolean;
 };
 
 export function JogoDetalhe() {
@@ -34,7 +35,6 @@ export function JogoDetalhe() {
   useEffect(() => {
     const fetchJogoUnico = async () => {
       try {
-        // CORREÇÃO 1: Rota correta em inglês buscando pelo ID direto no backend
         const response = await fetch(`http://localhost:8000/games/${id}`);
         if (!response.ok) {
           throw new Error("Jogo não encontrado");
@@ -54,7 +54,6 @@ export function JogoDetalhe() {
   const AbrirJogo = async () => {
     if (!game?.id) return;
     try {
-      // CORREÇÃO 2: Rota correta em inglês para abrir o executável do jogo
       const response = await fetch(
         `http://localhost:8000/games/abrir/${game.id}`,
       );
@@ -65,6 +64,34 @@ export function JogoDetalhe() {
     } catch (error) {
       console.error("Erro ao abrir jogo:", error);
       alert("Houve um erro ao tentar executar o jogo.");
+    }
+  };
+
+  // NOVA FUNÇÃO: Dispara a rota DELETE para o Backend Python
+  const DeletarJogo = async () => {
+    if (!game) return;
+
+    // Confirmação de segurança (Boa prática de UX)
+    const confirmou = window.confirm(
+      `Tem certeza absoluta que deseja remover "${game.title}" da sua biblioteca?`,
+    );
+
+    if (!confirmou) return;
+
+    try {
+      const response = await fetch(`http://localhost:8000/games/${id}`, {
+        method: "DELETE", // Método HTTP correto para remoção
+      });
+
+      if (!response.ok) {
+        throw new Error("Erro ao deletar o jogo no servidor.");
+      }
+
+      alert(`Jogo "${game.title}" foi removido com sucesso!`);
+      navigate("/"); // Redireciona o usuário de volta para a Home atualizada
+    } catch (error) {
+      console.error("Erro ao deletar jogo:", error);
+      alert("Não foi possível deletar o jogo. Tente novamente.");
     }
   };
 
@@ -102,7 +129,6 @@ export function JogoDetalhe() {
     );
   }
 
-  // Converte os segundos gravados no banco para um formato legível
   const formatarTempoJogo = (segundos: number) => {
     if (!segundos) return "0h";
     const horas = Math.floor(segundos / 3600);
@@ -155,36 +181,66 @@ export function JogoDetalhe() {
               width: "100%",
             }}
           >
-            {/* CORREÇÃO 3: Mapeado de game.nome para game.title */}
             <h1 className="game-title-large">{game.title}</h1>
 
-            {/* BOTÃO EDITAR */}
-            <button
-              onClick={() => navigate(`/editar-jogo/${game.id}`)}
-              style={{
-                background: "rgba(255,255,255,0.1)",
-                border: "1px solid rgba(255,255,255,0.2)",
-                color: "white",
-                padding: "10px 20px",
-                borderRadius: "8px",
-                cursor: "pointer",
-                display: "flex",
-                alignItems: "center",
-                gap: "8px",
-                marginBottom: "10px",
-                fontWeight: "600",
-                backdropFilter: "blur(5px)",
-                transition: "0.3s",
-              }}
-              onMouseEnter={(e) =>
-                (e.currentTarget.style.background = "rgba(255,255,255,0.2)")
-              }
-              onMouseLeave={(e) =>
-                (e.currentTarget.style.background = "rgba(255,255,255,0.1)")
-              }
-            >
-              <Edit3 size={18} /> Editar
-            </button>
+            {/* CONTAINER DOS BOTÕES DE AÇÃO (EDITAR E DELETAR) */}
+            <div style={{ display: "flex", gap: "12px", marginBottom: "10px" }}>
+              {/* BOTÃO EDITAR */}
+              <button
+                onClick={() => navigate(`/editar-jogo/${game.id}`)}
+                style={{
+                  background: "rgba(255,255,255,0.1)",
+                  border: "1px solid rgba(255,255,255,0.2)",
+                  color: "white",
+                  padding: "10px 20px",
+                  borderRadius: "8px",
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px",
+                  fontWeight: "600",
+                  backdropFilter: "blur(5px)",
+                  transition: "0.3s",
+                }}
+                onMouseEnter={(e) =>
+                  (e.currentTarget.style.background = "rgba(255,255,255,0.2)")
+                }
+                onMouseLeave={(e) =>
+                  (e.currentTarget.style.background = "rgba(255,255,255,0.1)")
+                }
+              >
+                <Edit3 size={18} /> Editar
+              </button>
+
+              {/* NOVO BOTÃO: DELETAR JOGO */}
+              <button
+                onClick={DeletarJogo}
+                style={{
+                  background: "rgba(255, 0, 0, 0.2)",
+                  border: "1px solid rgba(255, 0, 0, 0.3)",
+                  color: "#ff4d4d",
+                  padding: "10px 20px",
+                  borderRadius: "8px",
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px",
+                  fontWeight: "600",
+                  backdropFilter: "blur(5px)",
+                  transition: "0.3s",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = "rgba(255, 0, 0, 0.6)";
+                  e.currentTarget.style.color = "white";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = "rgba(255, 0, 0, 0.2)";
+                  e.currentTarget.style.color = "#ff4d4d";
+                }}
+              >
+                <Trash2 size={18} /> Deletar
+              </button>
+            </div>
           </div>
         </div>
       </header>
@@ -246,7 +302,6 @@ export function JogoDetalhe() {
             <AlignLeft size={18} /> Descrição
           </h3>
           <p style={{ color: "#aaa", lineHeight: "1.6" }}>
-            {/* CORREÇÃO 4: Mapeado de game.descricao para game.description */}
             {game.description || "Nenhuma descrição disponível para este jogo."}
           </p>
         </div>
