@@ -9,22 +9,6 @@ import {
   ArrowLeft,
 } from "lucide-react";
 
-// Mock de dados para simular o que existe no banco enquanto não conectamos
-const GAMES_DATABASE: any = {
-  "1": {
-    nome: "Elden Ring",
-    categoria: "Soulslike",
-    capa: "https://shared.fastly.steamstatic.com/store_apps/1245620/library_hero.jpg",
-    path: "C:/Games/EldenRing.exe",
-  },
-  "2": {
-    nome: "Valorant",
-    categoria: "FPS",
-    capa: "https://www.zero3games.com.br/loja/assets/valorant_2024-main.webp",
-    path: "C:/Riot Games/Valorant.exe",
-  },
-};
-
 export function EditarJogo() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -35,23 +19,98 @@ export function EditarJogo() {
   const [image, setImage] = useState("");
   const [exePath, setExePath] = useState("");
 
-  // Simula o carregamento dos dados ao abrir a página
+  // Guardar os dados originais para fazer o "Dirty Checking" (mudar apenas o alterado)
+  const [originalGame, setOriginalGame] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  // 1. CRITÉRIO: Página de edição conta com os dados reais do jogo a ser editado
   useEffect(() => {
-    const jogoExistente = GAMES_DATABASE[id as string];
-    if (jogoExistente) {
-      setTitle(jogoExistente.nome);
-      setCategory(jogoExistente.categoria);
-      setImage(jogoExistente.capa);
-      setExePath(jogoExistente.path);
-    }
+    const fetchJogo = async () => {
+      try {
+        const response = await fetch(`http://localhost:8000/games/${id}`);
+        if (!response.ok) {
+          throw new Error("Não foi possível carregar os dados do jogo.");
+        }
+        const gameData = await response.json();
+
+        setOriginalGame(gameData);
+
+        // Preenche os inputs com os dados retornados do banco
+        setTitle(gameData.title || "");
+        setImage(gameData.cover || "");
+        setExePath(gameData.exe_path || "");
+        setCategory(gameData.tags?.[0] || ""); // Mapeia a primeira tag como gênero
+      } catch (error) {
+        console.error("Erro ao carregar jogo:", error);
+        alert("Erro ao carregar as informações do jogo.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchJogo();
   }, [id]);
 
-  const handleSave = (e: React.FormEvent) => {
+  // 2. CRITÉRIO: Tratar e enviar as alterações
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    // No futuro: aqui faremos o fetch(PUT) para o backend
-    alert(`Alterações em "${title}" salvas com sucesso!`);
-    navigate(`/jogo/${id}`);
+
+    if (!originalGame) return;
+
+    // 3. CRITÉRIO: Mudar no DB somente as informações que foram alteradas
+    const updatedFields: any = {};
+
+    if (title !== originalGame.title) {
+      updatedFields.title = title;
+    }
+    if (image !== originalGame.cover) {
+      updatedFields.cover = image;
+    }
+    if (exePath !== originalGame.exe_path) {
+      updatedFields.exe_path = exePath;
+    }
+    if (category !== (originalGame.tags?.[0] || "")) {
+      updatedFields.tags = [category];
+    }
+
+    // Se o usuário clicou em salvar sem mudar nada, evitamos requisição desnecessária
+    if (Object.keys(updatedFields).length === 0) {
+      alert("Nenhuma alteração foi detectada.");
+      navigate(`/jogo/${id}`);
+      return;
+    }
+
+    try {
+      const response = await fetch(`http://localhost:8000/games/${id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(updatedFields), // Envia apenas as chaves modificadas
+      });
+
+      if (!response.ok) {
+        throw new Error("Erro ao atualizar o jogo.");
+      }
+
+      alert(`Alterações em "${title}" salvas com sucesso!`);
+      navigate(`/jogo/${id}`); // Retorna para a página de detalhes atualizada
+    } catch (error) {
+      console.error("Erro ao salvar alterações:", error);
+      alert("Houve um erro ao tentar salvar as alterações.");
+    }
   };
+
+  if (loading) {
+    return (
+      <div
+        className="page-container"
+        style={{ display: "flex", justifyContent: "center", padding: "40px" }}
+      >
+        <p style={{ color: "#888" }}>Carregando dados do jogo...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="page-container animate-in">
