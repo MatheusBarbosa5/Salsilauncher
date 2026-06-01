@@ -27,8 +27,8 @@ from sqlmodel import Session
 from datetime import datetime, timezone
 from services.gameService import listar_games_service
 
-router = APIRouter(prefix="/games", tags=["Games"])
 
+router = APIRouter(prefix="/games", tags=["Games"])
 
 
 @router.get("/", response_model=List[Game])

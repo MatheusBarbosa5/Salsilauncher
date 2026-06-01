@@ -1,21 +1,32 @@
 from typing import TYPE_CHECKING
 from sqlmodel import SQLModel, Field, Relationship
 
-from models.games import ColecaoGameLink
+from models.games import CollectionGameLink
 
 if TYPE_CHECKING:
     from models.games import Game
 
-class Colecao(SQLModel, table=True):
-    __tablename__ = "colecao"
+class Collection(SQLModel, table=True):
+    __tablename__ = "collection"
     
     id: int | None = Field(
         default=None,
         primary_key=True
         )
-    nome: str
-
+    title: str
     games: list["Game"] = Relationship(
-        back_populates="colecoes",
-        link_model=ColecaoGameLink
+        back_populates="collections",
+        link_model=CollectionGameLink
+    )
+
+class CollectionCreate(SQLModel):
+    title: str
+    game_ids: list[int] = Field(
+        default_factory=list
+    )
+
+class CollectionUpdate(SQLModel):
+    title: str | None = None
+    game_ids: list | None = Field(
+        default_factory=list
     )

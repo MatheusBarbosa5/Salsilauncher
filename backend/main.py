@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from contextlib import asynccontextmanager
 from database import create_db_and_tables
-from routers import games
+from routers import games, collections
 from models import games as game_models
 from models import collections as collection_models
 from fastapi.middleware.cors import CORSMiddleware
@@ -29,6 +29,8 @@ app.add_middleware(
 )
 
 app.include_router(games.router)
+app.include_router(collections.router)
+
 
 @app.get("/")
 def root():

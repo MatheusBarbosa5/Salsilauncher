@@ -4,15 +4,15 @@ from sqlalchemy import Column, JSON
 
 
 if TYPE_CHECKING:
-    from models.collections import Colecao
+    from models.collections import Collection
     from models.game_session import SessaoGame
 
-class ColecaoGameLink(SQLModel, table=True):
-    __tablename__ = "colecao_game_link"
+class CollectionGameLink(SQLModel, table=True):
+    __tablename__ = "collection_game_link"
     
-    colecao_id: int | None = Field(
+    collection_id: int | None = Field(
         default=None,
-        foreign_key="colecao.id",
+        foreign_key="collection.id",
         primary_key=True
     )
     game_id: int | None = Field(
@@ -48,9 +48,9 @@ class Game(SQLModel, table=True):
     play_time: int = Field(default=0, ge=0)
     favorite: bool = False
 
-    colecoes: list["Colecao"] = Relationship(
+    collections: list["Collection"] = Relationship(
         back_populates="games",
-        link_model=ColecaoGameLink
+        link_model=CollectionGameLink
     )
 
     sessoes: list["SessaoGame"] = Relationship(
