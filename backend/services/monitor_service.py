@@ -60,7 +60,7 @@ def encerrar_sessao(session, sessao):
     jogo = session.get(games.Jogo, sessao.jogo_id)
 
     if jogo:
-        jogo.tempo_de_jogo += duracao
+        jogo.play_time += duracao
         session.add(jogo)
 
     session.add(sessao)

@@ -111,9 +111,9 @@ def escanear_pasta_por_games(
     def criar_game_para_pasta(pasta, executavel):
         nome = os.path.basename(pasta)
         return Game(
-            nome=nome,
-            caminho_executavel=executavel,
-            caminho_pasta=pasta
+            title=nome,
+            exe_path=executavel,
+            folder_path=pasta
         )
 
     # Processar pastas novas
@@ -164,7 +164,7 @@ def abrir_game(
         )
 
     try:
-        processo = subprocess.Popen(game.caminho_executavel, shell=True)
+        processo = subprocess.Popen(game.exe_path, shell=True)
         proc = psutil.Process(processo.pid)
 
         sessao_game = SessaoGameCreate(
