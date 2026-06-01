@@ -1,6 +1,11 @@
 // frontend/src/components/MainLayout.tsx
 import React, { useState, useEffect } from "react";
-import { Outlet, useNavigate, useSearchParams } from "react-router-dom";
+import {
+  Outlet,
+  useNavigate,
+  useSearchParams,
+  useLocation,
+} from "react-router-dom";
 import logoImg from "../assets/logo.png";
 import { ToastProvider } from "../context/ToastContext";
 import {
@@ -17,22 +22,28 @@ import {
 } from "lucide-react";
 
 export function MainLayout() {
-  const [activeTab, setActiveTab] = useState("home");
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [searchParams] = useSearchParams();
+
+  // Track tab state according to active navigation path URL
+  const activeTab =
+    location.pathname.startsWith("/collections") ||
+    location.pathname.startsWith("/create-collection")
+      ? "collections"
+      : "home";
+
   const [isFavoritesOpen, setIsFavoritesOpen] = useState(true);
   const [customCollections, setCustomCollections] = useState<any[]>([]);
-  const navigate = useNavigate();
-
-  const [searchParams] = useSearchParams();
   const searchQuery = searchParams.get("q") || "";
 
-  // Reloads custom collections from localStorage whenever the collection tab becomes active
   useEffect(() => {
     const loadCollections = () => {
       const stored = localStorage.getItem("salsilauncher_collections");
       setCustomCollections(stored ? JSON.parse(stored) : []);
     };
     loadCollections();
-  }, [activeTab]);
+  }, [location.pathname]);
 
   return (
     <ToastProvider>
@@ -58,16 +69,13 @@ export function MainLayout() {
           <div className="nav-tabs">
             <div
               className={`tab ${activeTab === "home" ? "active" : ""}`}
-              onClick={() => {
-                setActiveTab("home");
-                navigate("/");
-              }}
+              onClick={() => navigate("/")}
             >
               Home
             </div>
             <div
               className={`tab ${activeTab === "collections" ? "active" : ""}`}
-              onClick={() => setActiveTab("collections")}
+              onClick={() => navigate("/collections")}
             >
               Coleções
             </div>
@@ -121,6 +129,7 @@ export function MainLayout() {
                       fontSize: "0.9rem",
                       color: "#ccc",
                     }}
+                    onClick={() => navigate("/collections")}
                   >
                     <Folder size={14} color="#ff3333" />
                     <span>{col.name}</span>
@@ -139,7 +148,7 @@ export function MainLayout() {
                   </div>
                 ))}
 
-                {/* BOTÕES DE AÇÃO - CORRIGIDO PARA BRANCO (#ffffff) SEGUINDO A IDENTIDADE */}
+                {/* BOTÃO ADICIONAR COLEÇÃO - CONSERVA O BRANCO SÓLIDO PREMIUM */}
                 <div
                   className="collection-item add-collection"
                   onClick={() => navigate("/create-collection")}

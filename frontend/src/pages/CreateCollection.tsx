@@ -1,19 +1,27 @@
 // frontend/src/pages/CreateCollection.tsx
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { FolderPlus, Tag, ArrowLeft, CheckSquare, Square } from "lucide-react";
+import {
+  FolderPlus,
+  Tag,
+  ArrowLeft,
+  CheckSquare,
+  Square,
+  Search,
+} from "lucide-react";
 import { useToast } from "../context/ToastContext";
 
 export function CreateCollection() {
   const [collectionName, setCollectionName] = useState("");
   const [games, setGames] = useState<any[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
   const [selectedGames, setSelectedGames] = useState<number[]>([]);
   const [loading, setLoading] = useState(true);
 
   const navigate = useNavigate();
   const { showToast } = useToast();
 
-  // Fetches available games from the backend database
+  // Fetches available games from database
   useEffect(() => {
     const fetchGames = async () => {
       try {
@@ -21,7 +29,7 @@ export function CreateCollection() {
         const data = await response.json();
         setGames(Array.isArray(data) ? data : []);
       } catch (error) {
-        console.error("Failed to load games for collection:", error);
+        console.error("Failed to load games for collection storage:", error);
       } finally {
         setLoading(false);
       }
@@ -29,7 +37,6 @@ export function CreateCollection() {
     fetchGames();
   }, []);
 
-  // Toggles the selection state of a game
   const toggleGameSelection = (gameId: number) => {
     if (selectedGames.includes(gameId)) {
       setSelectedGames(selectedGames.filter((id) => id !== gameId));
@@ -42,11 +49,10 @@ export function CreateCollection() {
     e.preventDefault();
 
     if (!collectionName.trim()) {
-      showToast("Por favor, insira um nome para a coleção.", "info");
+      showToast("Por favor, informe o nome do agrupamento.", "info");
       return;
     }
 
-    // Retrieve existing collections from localStorage
     const existingCollectionsRaw = localStorage.getItem(
       "salsilauncher_collections",
     );
@@ -54,25 +60,27 @@ export function CreateCollection() {
       ? JSON.parse(existingCollectionsRaw)
       : [];
 
-    // Create the new collection object
     const newCollection = {
-      id: Date.now(), // Unique temporary ID based on timestamp
+      id: Date.now(),
       name: collectionName,
       gamesCount: selectedGames.length,
       gamesIds: selectedGames,
     };
 
-    // Save back to local storage
     collections.push(newCollection);
     localStorage.setItem(
       "salsilauncher_collections",
       JSON.stringify(collections),
     );
 
-    // Success feedback and redirection
     showToast(`Coleção "${collectionName}" criada com sucesso!`, "success");
-    navigate("/");
+    navigate("/collections");
   };
+
+  // Local matching filter engine
+  const filteredGames = games.filter((game) =>
+    (game.title || "").toLowerCase().includes(searchQuery.toLowerCase()),
+  );
 
   return (
     <div className="page-container animate-in">
@@ -87,7 +95,7 @@ export function CreateCollection() {
       >
         <button
           type="button"
-          onClick={() => navigate("/")}
+          onClick={() => navigate(-1)}
           style={{
             background: "none",
             border: "none",
@@ -118,7 +126,7 @@ export function CreateCollection() {
               <Tag size={18} className="input-icon" />
               <input
                 type="text"
-                placeholder="Ex: Jogos de Estratégia, Cooperativos, Para Zerar"
+                placeholder="Ex: Campanhas Longas, FPS Competitivo, Clássicos"
                 value={collectionName}
                 onChange={(e) => setCollectionName(e.target.value)}
                 required
@@ -131,31 +139,51 @@ export function CreateCollection() {
               Selecionar Jogos ({selectedGames.length} selecionados)
             </label>
 
+            {/* MECANISMO DE BUSCA INTERNO INTERATIVO */}
+            <div
+              className="input-wrapper"
+              style={{ marginBottom: "15px", background: "#080808" }}
+            >
+              <Search size={16} className="input-icon" color="#444" />
+              <input
+                type="text"
+                placeholder="Filtrar títulos da biblioteca por nome..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                style={{ fontSize: "13px" }}
+              />
+            </div>
+
             {loading ? (
-              <p
-                style={{ color: "#888", fontSize: "0.9rem", padding: "10px 0" }}
-              >
-                Carregando sua biblioteca...
+              <p style={{ color: "#888", fontSize: "14px" }}>
+                Buscando catálogo...
               </p>
-            ) : games.length === 0 ? (
+            ) : filteredGames.length === 0 ? (
               <p
-                style={{ color: "#888", fontSize: "0.9rem", padding: "10px 0" }}
+                style={{
+                  color: "#555",
+                  fontSize: "13px",
+                  textAlign: "center",
+                  padding: "20px",
+                  background: "#080808",
+                  borderRadius: "10px",
+                  border: "1px solid #222",
+                }}
               >
-                Nenhum jogo encontrado para adicionar a esta coleção.
+                Nenhum título corresponde aos termos digitados.
               </p>
             ) : (
               <div
                 className="games-selection-list"
                 style={{
-                  background: "#121212",
-                  borderRadius: "8px",
+                  background: "#080808",
+                  borderRadius: "10px",
                   border: "1px solid #222",
-                  maxHeight: "250px",
+                  maxHeight: "220px",
                   overflowY: "auto",
-                  marginTop: "10px",
                 }}
               >
-                {games.map((game) => {
+                {filteredGames.map((game) => {
                   const isSelected = selectedGames.includes(game.id);
                   return (
                     <div
@@ -166,10 +194,10 @@ export function CreateCollection() {
                         alignItems: "center",
                         gap: "15px",
                         padding: "12px 15px",
-                        borderBottom: "1px solid #1a1a1a",
+                        borderBottom: "1px solid #161616",
                         cursor: "pointer",
                         background: isSelected
-                          ? "rgba(255, 0, 0, 0.05)"
+                          ? "rgba(255, 0, 0, 0.03)"
                           : "transparent",
                         transition: "0.2s",
                       }}
@@ -177,22 +205,23 @@ export function CreateCollection() {
                       {isSelected ? (
                         <CheckSquare size={18} color="#ff0000" />
                       ) : (
-                        <Square size={18} color="#444" />
+                        <Square size={18} color="#333" />
                       )}
                       <img
                         src={game.cover || "https://via.placeholder.com/40x60"}
                         alt={game.title}
                         style={{
-                          width: "30px",
+                          width: "32px",
                           height: "45px",
                           objectFit: "cover",
-                          borderRadius: "4px",
+                          borderRadius: "6px",
                         }}
                       />
                       <span
                         style={{
                           color: isSelected ? "white" : "#aaa",
                           fontWeight: isSelected ? "600" : "normal",
+                          fontSize: "14px",
                         }}
                       >
                         {game.title}
@@ -208,7 +237,7 @@ export function CreateCollection() {
             <button
               type="button"
               className="btn-secondary"
-              onClick={() => navigate("/")}
+              onClick={() => navigate(-1)}
             >
               CANCELAR
             </button>

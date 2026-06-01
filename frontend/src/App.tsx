@@ -18,7 +18,8 @@ import { CadastroJogo } from "./pages/CadastroJogo";
 import { EscanearPasta } from "./pages/EscanearPasta";
 import { EditarJogo } from "./pages/EditarJogo";
 import { JogoDetalhe } from "./pages/JogoDetalhe";
-import { CreateCollection } from "./pages/CreateCollection"; // Importação com nome do componente em inglês
+import { CreateCollection } from "./pages/CreateCollection";
+import { Collections } from "./pages/Collections";
 
 function App() {
   return (
@@ -35,11 +36,8 @@ function App() {
           <Route path="/escanear-pasta" element={<EscanearPasta />} />
           <Route path="/jogo/:id" element={<JogoDetalhe />} />
           <Route path="/editar-jogo/:id" element={<EditarJogo />} />
-          <Route
-            path="/create-collection"
-            element={<CreateCollection />}
-          />{" "}
-          {/* Rota técnica em inglês */}
+          <Route path="/create-collection" element={<CreateCollection />} />
+          <Route path="/collections" element={<Collections />} />
         </Route>
 
         {/* Redirecionamento de segurança */}
