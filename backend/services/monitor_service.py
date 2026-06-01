@@ -19,11 +19,7 @@ def processo_corresponde(sessao):
     try:
         processo = psutil.Process(sessao.pid)
 
-        criado_em = datetime.fromtimestamp(
-            processo.create_time(),
-            timezone.utc
-        )
-
+        criado_em = processo.create_time()
         delta = abs(
             (criado_em - sessao.pid_criado_em).total_seconds()
         )
@@ -57,18 +53,18 @@ def encerrar_sessao(session, sessao):
     sessao.encerrada_em = fim
     sessao.duracao_segundos = duracao
 
-    jogo = session.get(games.Jogo, sessao.jogo_id)
+    game = session.get(games.Game, sessao.game_id)
 
-    if jogo:
-        jogo.play_time += duracao
-        session.add(jogo)
+    if game:
+        game.play_time += duracao
+        session.add(game)
 
     session.add(sessao)
 
     logger.info(
-        "Sessão encerrada | sessao_id=%s | jogo_id=%s | duracao=%s",
+        "Sessão encerrada | sessao_id=%s | game_id=%s | duracao=%s",
         sessao.id,
-        sessao.jogo_id,
+        sessao.game_id,
         duracao
     )
 
