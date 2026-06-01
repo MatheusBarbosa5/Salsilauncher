@@ -20,6 +20,7 @@ import { EditarJogo } from "./pages/EditarJogo";
 import { JogoDetalhe } from "./pages/JogoDetalhe";
 import { CreateCollection } from "./pages/CreateCollection";
 import { Collections } from "./pages/Collections";
+import { EditCollection } from "./pages/EditCollection"; // Novo import adicionado
 
 function App() {
   return (
@@ -38,6 +39,11 @@ function App() {
           <Route path="/editar-jogo/:id" element={<EditarJogo />} />
           <Route path="/create-collection" element={<CreateCollection />} />
           <Route path="/collections" element={<Collections />} />
+          <Route
+            path="/edit-collection/:id"
+            element={<EditCollection />}
+          />{" "}
+          {/* Nova rota registrada */}
         </Route>
 
         {/* Redirecionamento de segurança */}

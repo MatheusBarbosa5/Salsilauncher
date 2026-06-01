@@ -1,3 +1,4 @@
+// frontend/src/pages/JogoDetalhe.tsx
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
@@ -56,7 +57,7 @@ export function JogoDetalhe() {
       const response = await fetch(
         `http://localhost:8000/games/abrir/${game.id}`,
       );
-      if (!response.ok) throw new Error("Erro ao iniciar binário");
+      if (!response.ok) throw new Error("Erro");
       showToast("Comando enviado! O jogo está iniciando...", "success");
     } catch (error) {
       console.error(error);
@@ -124,8 +125,8 @@ export function JogoDetalhe() {
     if (!segundos) return "0h";
     const horas = Math.floor(segundos / 3600);
     if (horas > 0) return `${horas}h`;
-    const minutos = Math.floor(segundos / 60);
-    return `${minutos}min`;
+    const minutes = Math.floor(segundos / 60);
+    return `${minutes}min`;
   };
 
   return (
