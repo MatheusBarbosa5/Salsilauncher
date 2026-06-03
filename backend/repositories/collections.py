@@ -3,7 +3,7 @@ from sqlalchemy import or_
 from typing import List, Optional
 
 from models.collections import Collection, CollectionCreate, CollectionUpdate
-from models.games import Game
+from models.games import Game, CollectionGameLink
 
 def get_all_collections(
         session: Session,
@@ -87,3 +87,18 @@ def update_collection(
     session.refresh(collection)
 
     return collection
+
+def get_games(
+    session: Session,
+    collection_id: int
+) -> list[Game]:
+
+    stmt = (
+        select(Game)
+        .join(CollectionGameLink)
+        .where(
+            CollectionGameLink.collection_id == collection_id
+        )
+    )
+
+    return list(session.exec(stmt))

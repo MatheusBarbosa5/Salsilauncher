@@ -21,7 +21,7 @@ router = APIRouter(prefix="/collections", tags=["Collections"])
 
 
 @router.get("/", response_model=List[Collection])
-def list_collections(
+def get_collections(
     q: Optional[str] = Query(None, description="Search by title"),
     limit: int = Query(25, ge=1, le=100),
     offset: int = Query(0, ge=0),
@@ -32,6 +32,16 @@ def list_collections(
         q=q, 
         limit=limit, 
         offset=offset
+        )
+
+@router.get("/{collection_id}", response_model=List[Game])
+def get_games(
+    collection_id: int,
+    session: Session = Depends(get_session)
+):
+    return collection_repo.get_games(
+        session,
+        collection_id
         )
 
 

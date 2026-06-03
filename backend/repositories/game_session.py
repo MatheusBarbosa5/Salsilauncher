@@ -27,3 +27,4 @@ def get_active_sessions_by_game(session: Session, game_id: int):
             SessaoGame.ativa == True
         )
     ).first()
+

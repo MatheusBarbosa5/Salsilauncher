@@ -27,6 +27,6 @@ class CollectionCreate(SQLModel):
 
 class CollectionUpdate(SQLModel):
     title: str | None = None
-    game_ids: list | None = Field(
+    game_ids: list[int] | None = Field(
         default_factory=list
     )
