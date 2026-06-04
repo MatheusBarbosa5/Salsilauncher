@@ -1,58 +1,74 @@
 from sqlmodel import Session, select
 from sqlalchemy import or_
-from typing import List, Optional
+from typing import List, Optional, Set
 
 from models.games import Game, GameCreate, GameUpdate
 
+# Buscar todos os jogos, com ou sem filtro
+def get_games(
+    session: Session,
+    q: Optional[str] = None,
+    tags: Optional[List[str]] = None,
+    limit: int = 25,
+    offset: int = 0
+) -> List[Game]:
 
-# vamos desabilitar esse caminho, get_all_games_2 será ele
-def get_all_games(session: Session, q: Optional[str] = None, tags: Optional[str] = None, limit: int = 25, offset: int = 0):
     stmt = select(Game)
 
     if q:
-        q_lower = f"%{q.lower()}%"
-        stmt = stmt.where(or_(Game.title.ilike(q_lower), Game.description.ilike(q_lower)))
+        q_like = f"%{q.lower()}%"
+        stmt = stmt.where(
+            or_(
+                Game.title.ilike(q_like),
+                Game.description.ilike(q_like)
+            )
+        )
 
-    # Busca no banco de dados
-    # devemos retirar isso (está trazendo tudo para a memória)
+    stmt = stmt.offset(offset).limit(limit)
+
     games = session.exec(stmt).all()
 
     if tags:
-        tags_requisitadas = {t.strip().lower() for t in tags.split(",")}
+        tag_set = set(t.lower() for t in tags)
+
         games = [
             game for game in games
-            if tags_requisitadas.issubset({t.lower() for t in game.tags})
+            if tag_set.issubset(
+                set((t.lower() for t in (game.tags or [])))
+            )
         ]
 
-    return games[offset : offset + limit]
+    return games
 
-def get_all_games_2(session: Session) -> List[Game]:
-    stmt = select(Game)
-    return session.exec(stmt).all()
-
+# Bucar jogo com base no ID
 def get_game_by_id(session: Session, game_id: int):
     return session.get(Game, game_id)
 
-def create_game(session: Session, game_data: GameCreate):
-    novo_game = Game(**game_data.model_dump())
-    session.add(novo_game)
+# Criar Jogo
+def create_game(session: Session, game_data: GameCreate) -> Game:
+    new_game = Game(**game_data.model_dump())
+
+    session.add(new_game)
     session.commit()
-    session.refresh(novo_game)
-    return novo_game
+    session.refresh(new_game)
+
+    return new_game
 
 def update_game(session: Session, game_id: int, game_data: GameUpdate):
     game_db = session.get(Game, game_id)
+
     if not game_db:
         return None
 
-    # Atualiza apenas os campos que foram enviados
     update_dict = game_data.model_dump(exclude_unset=True)
+
     for key, value in update_dict.items():
         setattr(game_db, key, value)
 
     session.add(game_db)
     session.commit()
     session.refresh(game_db)
+
     return game_db
 
 def delete_game(session: Session, game_id: int):

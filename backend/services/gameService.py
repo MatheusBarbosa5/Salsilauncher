@@ -1,35 +1,51 @@
 from typing import Optional, List
 from sqlmodel import Session
-from models.games import Game
-from repositories import games as game_repo
 
-def listar_games_service(
-        session: Session,
-        q: Optional[str] = None,
-        tags: Optional[str] = None,
-        limit: int = 25,
-        offset: int = 0,
+from models.games import Game, GameCreate, GameUpdate
+from repositories import games as game_repository
+
+def get_games(
+    session: Session,
+    q: Optional[str] = None,
+    tags: Optional[str] = None,
+    limit: int = 25,
+    offset: int = 0,
 ) -> List[Game]:
-    
-    # 1. Buscar todos os jogos
-    games = game_repo.get_all_games_2(session)
 
-    # 2. CORREÇÃO: Filtragem por texto usando as propriedades corretas (title e description)
-    if q:
-        q_lower = q.lower()  # Removidos os caracteres "%" que quebravam o "in" do Python
-        games = [
-            g for g in games
-            if q_lower in (g.title or "").lower() or q_lower in (g.description or "").lower()
-        ]
+    tag_list: Optional[List[str]] = None
 
-    # 3. Filtro por tags
     if tags:
-        tags_set = {t.strip().lower() for t in tags.split(",")}
-
-        games = [
-            g for g in games
-            if tags_set.issubset({t.lower() for t in (g.tags or [])})
+        tag_list = [
+            t.strip().lower()
+            for t in tags.split(",")
+            if t.strip()
         ]
 
-    # 4. Paginação
-    return games[offset: offset + limit]
+    return game_repository.get_games(
+        session=session,
+        q=q,
+        tags=tag_list,
+        limit=limit,
+        offset=offset
+    )
+
+# Bucar jogo com base no ID
+def get_game_by_id(session: Session, game_id: int) -> Optional[Game]:
+    return game_repository.get_game_by_id(session, game_id)
+
+# Cria jogo
+def create_game(session: Session, game: GameCreate) -> Game:
+    return game_repository.create_game(session, game)
+
+# Atulizar Jogo
+def update_game(
+    session: Session,
+    game_id: int,
+    game_update: GameUpdate
+) -> Game | None:
+
+    return game_repository.update_game(
+        session=session,
+        game_id=game_id,
+        game_data=game_update
+    )

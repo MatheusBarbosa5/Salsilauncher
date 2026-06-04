@@ -25,22 +25,21 @@ from repositories import (
 from database import get_session
 from sqlmodel import Session
 from datetime import datetime, timezone
-from services.gameService import listar_games_service
+from services import gameService
 
 
 router = APIRouter(prefix="/games", tags=["Games"])
 
-
-@router.get("/", response_model=List[Game])
-def listar_games(
-    q: Optional[str] = Query(None),
-    tags: Optional[str] = Query(None),
+# Buscar todos os jogos, com ou sem filtro
+@router.get("/", response_model=list[Game])
+def get_games(
+    q: str | None = Query(None),
+    tags: str | None = Query(None),
     limit: int = Query(25, ge=1, le=100),
     offset: int = Query(0, ge=0),
     session: Session = Depends(get_session)
 ):
-
-    return listar_games_service(
+    return gameService.get_games(
         session=session,
         q=q,
         tags=tags,
@@ -48,23 +47,40 @@ def listar_games(
         offset=offset
     )
 
+# Bucar jogo com base no ID
 @router.get("/{game_id}", response_model=Game)
-def obter_game(game_id: int, session: Session = Depends(get_session)):
-    game = game_repo.get_game_by_id(session, game_id)
+def get_game_by_id(
+    game_id: int,
+    session: Session = Depends(get_session)
+):
+    game = gameService.get_game_by_id(session, game_id)
+
     if not game:
         raise HTTPException(status_code=404, detail="Game não encontrado")
+
     return game
 
+# Cria jogo
 @router.post("/", response_model=Game, status_code=201)
-def criar_game(game: GameCreate, session: Session = Depends(get_session)):
-    return game_repo.create_game(session, game)
+def create_game(
+    game: GameCreate,
+    session: Session = Depends(get_session)
+):
+    return gameService.create_game(session, game)
 
+# Atualizar Jogo
 @router.put("/{game_id}", response_model=Game)
-def atualizar_game(game_id: int, game_update: GameUpdate, session: Session = Depends(get_session)):
-    game_atualizado = game_repo.update_game(session, game_id, game_update)
-    if not game_atualizado:
-        raise HTTPException(status_code=404, detail="Game não encontrado")
-    return game_atualizado
+def update_game(
+    game_id: int,
+    game_update: GameUpdate,
+    session: Session = Depends(get_session)
+):
+    updated_game = gameService.update_game(session, game_id, game_update)
+
+    if not updated_game:
+        raise HTTPException(status_code=404, detail="Game not found")
+
+    return updated_game
 
 @router.delete("/{game_id}", status_code=204)
 def deletar_game(game_id: int, session: Session = Depends(get_session)):
