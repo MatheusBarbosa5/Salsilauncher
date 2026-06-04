@@ -5,32 +5,34 @@ from typing import List, Optional
 from models.collections import Collection, CollectionCreate, CollectionUpdate
 from models.games import Game, CollectionGameLink
 
-def get_all_collections(
-        session: Session,
-        q: Optional[str] = None,
-        limit: int = 25, 
-        offset: int = 0
-        ):
-    
+# Obter Coleções
+def get_collections(
+    session: Session,
+    q: Optional[str] = None,
+    limit: int = 25,
+    offset: int = 0
+):
     stmt = select(Collection)
 
     if q:
-        q_lower = f"%{q.lower()}%"
-        stmt = stmt.where(or_(
-            Collection.title.ilike(q_lower), 
-            Collection.description.ilike(q_lower)
-            ))
+        q_like = f"%{q.lower()}%"
+        stmt = stmt.where(
+            or_(
+                Collection.title.ilike(q_like),
+                Collection.description.ilike(q_like)
+            )
+        )
 
-    # Busca no banco de dados
-    collections = session.exec(stmt).all()
+    stmt = stmt.offset(offset).limit(limit)
 
-    return collections[offset : offset + limit]
+    return session.exec(stmt).all()
 
+# Criar coleções
 def create_collection(
     session: Session,
     collection_data: CollectionCreate
-):
-    
+) -> Collection:
+
     games = session.exec(
         select(Game).where(
             Game.id.in_(collection_data.game_ids)
@@ -39,33 +41,33 @@ def create_collection(
 
     if len(games) != len(collection_data.game_ids):
         raise ValueError(
-            "Um ou mais jogos informados não existem."
+            "Um ou mais jogos informados não existem. (rafapi: bl)"
         )
 
-    collection = Collection(
+    new_collection = Collection(
         title=collection_data.title,
         games=games
     )
 
-    session.add(collection)
+    session.add(new_collection)
     session.commit()
-    session.refresh(collection)
+    session.refresh(new_collection)
 
-    return collection
+    return new_collection
 
-
+# Atualzair coleção
 def update_collection(
     session: Session,
     collection_id: int,
     collection_data: CollectionUpdate
-):
+) -> Collection | None:
 
-    collection = session.get(
+    collection_db = session.get(
         Collection,
         collection_id
     )
 
-    if collection is None:
+    if collection_db is None:
         return None
 
     games = session.exec(
@@ -76,19 +78,20 @@ def update_collection(
 
     if len(games) != len(collection_data.game_ids):
         raise ValueError(
-            "Um ou mais jogos informados não existem."
+            "Um ou mais jogos informados não existem. (rafapi: blz)"
         )
 
-    collection.title = collection_data.title
-    collection.games = games
+    collection_db.title = collection_data.title
+    collection_db.games = games
 
-    session.add(collection)
+    session.add(collection_db)
     session.commit()
-    session.refresh(collection)
+    session.refresh(collection_db)
 
-    return collection
+    return collection_db
 
-def get_games(
+# Obter jogos na coleção
+def get_collection_games(
     session: Session,
     collection_id: int
 ) -> list[Game]:
@@ -101,4 +104,4 @@ def get_games(
         )
     )
 
-    return list(session.exec(stmt))
+    return session.exec(stmt).all()

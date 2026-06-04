@@ -12,6 +12,8 @@ from typing import List, Optional
 from models.games import Game, GameCreate, GameUpdate
 from models.collections import Collection, CollectionCreate, CollectionUpdate
 from repositories import collections as collection_repo
+
+from services import collectionsService
     
 from database import get_session
 from sqlmodel import Session
@@ -19,48 +21,60 @@ from sqlmodel import Session
 
 router = APIRouter(prefix="/collections", tags=["Collections"])
 
-
-@router.get("/", response_model=List[Collection])
+# Obter as coleções
+@router.get("/", response_model=list[Collection])
 def get_collections(
-    q: Optional[str] = Query(None, description="Search by title"),
+    q: str | None = Query(None, description="Search by title"),
     limit: int = Query(25, ge=1, le=100),
     offset: int = Query(0, ge=0),
     session: Session = Depends(get_session)
 ):
-    return collection_repo.get_all_collections(
-        session,
-        q=q, 
-        limit=limit, 
+    return collectionsService.get_collections(
+        session=session,
+        q=q,
+        limit=limit,
         offset=offset
-        )
+    )
 
-@router.get("/{collection_id}", response_model=List[Game])
-def get_games(
+# Obter todos os jogos daquela coleção
+@router.get("/{collection_id}", response_model=list[Game])
+def get_collection_games(
     collection_id: int,
     session: Session = Depends(get_session)
 ):
-    return collection_repo.get_games(
-        session,
-        collection_id
-        )
+    return collectionsService.get_collection_games(
+        session=session,
+        collection_id=collection_id
+    )
 
-
+# Criar coleção
 @router.post("/", response_model=Collection, status_code=201)
-def create_collection(collection: CollectionCreate, session: Session = Depends(get_session)):
-    return collection_repo.create_collection(session, collection)
+def create_collection(
+    collection: CollectionCreate,
+    session: Session = Depends(get_session)
+):
+    return collectionsService.create_collection(
+        session=session,
+        collection=collection
+    )
 
-
+# Atualizar coleção
 @router.put("/{collection_id}", response_model=Collection)
 def update_collection(
-    collection_id: int, 
-    collection_update: CollectionUpdate, 
+    collection_id: int,
+    collection_update: CollectionUpdate,
     session: Session = Depends(get_session)
-    ):
+):
+    updated_collection = collectionsService.update_collection(
+        session=session,
+        collection_id=collection_id,
+        collection_update=collection_update
+    )
 
-    collection_updated = collection_repo.update_collection(
-        session, collection_id, collection_update
+    if not updated_collection:
+        raise HTTPException(
+            status_code=404,
+            detail="Collection not found"
         )
-    
-    if not collection_updated:
-        raise HTTPException(status_code=404, detail="Collection not found")
-    return collection_updated
+
+    return updated_collection
