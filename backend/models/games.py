@@ -1,12 +1,13 @@
-from typing import TYPE_CHECKING
 from sqlmodel import SQLModel, Field, Relationship
 from sqlalchemy import Column, JSON
 
-
+from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from models.collections import Collection
-    from models.game_session import SessaoGame
+    from models.game_session import GameSession
+    from models.tags import Tag
 
+# Relacionamento com coleção
 class CollectionGameLink(SQLModel, table=True):
     __tablename__ = "collection_game_link"
     
@@ -18,6 +19,22 @@ class CollectionGameLink(SQLModel, table=True):
     game_id: int | None = Field(
         default=None,
         foreign_key="game.id",
+        primary_key=True
+    )
+
+# relacionamento com Tag | Um jogo possui várias tags e Uma tag possui vários jogos (N:N)
+class GameTagLink(SQLModel, table=True):
+    __tablename__ = "game_tag_link"
+
+    game_id: int | None = Field(
+        default=None,
+        foreign_key="game.id",
+        primary_key=True
+    )
+
+    tag_id: int | None = Field(
+        default=None,
+        foreign_key="tag.id",
         primary_key=True
     )
 
@@ -41,10 +58,12 @@ class Game(SQLModel, table=True):
         default_factory=list,
         sa_column=Column(JSON)
     )
-    tags: list[str] = Field(
-        default_factory=list,
-        sa_column=Column(JSON)
+
+    tags: list["Tag"] = Relationship(
+        back_populates="games",
+        link_model=GameTagLink
     )
+
     play_time: int = Field(default=0, ge=0)
     favorite: bool = False
 
@@ -53,7 +72,7 @@ class Game(SQLModel, table=True):
         link_model=CollectionGameLink
     )
 
-    sessoes: list["SessaoGame"] = Relationship(
+    sessions: list["GameSession"] = Relationship(
         back_populates="game"
     )
 
@@ -65,7 +84,7 @@ class GameCreate(SQLModel):
     cover: str | None = None
     background: str | None = None
     extra_images: list[str] = Field(default_factory=list)
-    tags: list[str] = Field(default_factory=list)
+    tag_ids: list[int] = Field(default_factory=list)
     play_time: int = Field(default=0)
     favorite: bool = False
 
@@ -77,6 +96,6 @@ class GameUpdate(SQLModel):
     cover: str | None = None
     background: str | None = None
     extra_images: list[str] | None = None
-    tags: list[str] | None = None
+    tag_ids: list[int] | None = None
     play_time: int | None = None
     favorite: bool | None = None

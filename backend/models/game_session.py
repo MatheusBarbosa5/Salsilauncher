@@ -5,7 +5,7 @@ from datetime import datetime
 if TYPE_CHECKING:
     from models.games import Game
 
-class SessaoGame(SQLModel, table=True):
+class GameSession(SQLModel, table=True):
     __tablename__ = "sessao_game"
 
     id: int | None = Field(
@@ -21,10 +21,10 @@ class SessaoGame(SQLModel, table=True):
     duracao_segundos: int | None = None
     
     game: "Game" = Relationship(
-        back_populates="sessoes"
+        back_populates="sessions"
     )
 
-class SessaoGameCreate(SQLModel):
+class GameSessionCreate(SQLModel):
     game_id: int
     pid: int
     pid_criado_em: float

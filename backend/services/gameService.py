@@ -4,6 +4,7 @@ from sqlmodel import Session
 from models.games import Game, GameCreate, GameUpdate
 from repositories import games as game_repository
 
+# Obter Jogos
 def get_games(
     session: Session,
     q: Optional[str] = None,
@@ -30,11 +31,19 @@ def get_games(
     )
 
 # Bucar jogo com base no ID
-def get_game_by_id(session: Session, game_id: int) -> Optional[Game]:
+def get_game_by_id(
+        session: Session,
+        game_id: int
+) -> Optional[Game]:
+    
     return game_repository.get_game_by_id(session, game_id)
 
 # Cria jogo
-def create_game(session: Session, game: GameCreate) -> Game:
+def create_game(
+        session: Session, 
+        game: GameCreate
+) -> Game:
+    
     return game_repository.create_game(session, game)
 
 # Atulizar Jogo

@@ -17,7 +17,7 @@ from pathlib import Path
 from core.logging import logger
 from utils.scan_validation import validar_scan_path
 from models.games import Game, GameCreate, GameUpdate
-from models.game_session import SessaoGame, SessaoGameCreate
+from models.game_session import GameSession, GameSessionCreate
 from repositories import (
     games as game_repo,
     game_session as game_session_repo
@@ -183,7 +183,7 @@ def abrir_game(
         processo = subprocess.Popen(game.exe_path, shell=True)
         proc = psutil.Process(processo.pid)
 
-        sessao_game = SessaoGameCreate(
+        sessao_game = GameSessionCreate(
             game_id = game.id,
             pid = processo.pid,
             pid_criado_em = proc.create_time(),
