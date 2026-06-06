@@ -18,7 +18,6 @@ import {
   Plus,
   Library,
   Folder,
-  FolderHeart,
 } from "lucide-react";
 
 export function MainLayout() {
@@ -26,6 +25,7 @@ export function MainLayout() {
   const location = useLocation();
   const [searchParams] = useSearchParams();
 
+  // Track tab state according to active navigation path URL
   const activeTab =
     location.pathname.startsWith("/collections") ||
     location.pathname.startsWith("/create-collection")
@@ -147,28 +147,18 @@ export function MainLayout() {
                   </div>
                 ))}
 
-                {/* BOTÃO ADICIONAR COLEÇÃO */}
+                {/* REMOVIDO: O botão "+ Nova Coleção" foi retirado daqui para evitar redundância visual */}
+
                 <div
                   className="collection-item add-collection"
-                  onClick={() => navigate("/create-collection")}
+                  onClick={() => navigate("/escanear-pasta")}
                   style={{
-                    color: "#ffffff",
+                    color: "#ff0000",
                     fontWeight: "bold",
                     borderTop: "1px solid #1a1a1a",
                     marginTop: "10px",
                     paddingTop: "12px",
                   }}
-                >
-                  <FolderHeart size={16} color="#ff3333" />{" "}
-                  <span>+ Nova Coleção</span>
-                </div>
-
-                {/* REMOVIDO: Botão "Novo Jogo" retirado daqui para evitar redundância visual */}
-
-                <div
-                  className="collection-item add-collection"
-                  onClick={() => navigate("/escanear-pasta")}
-                  style={{ color: "#ff0000", fontWeight: "bold" }}
                 >
                   <Folder size={16} /> <span>Escanear Pasta</span>
                 </div>
@@ -209,6 +199,7 @@ export function MainLayout() {
             </div>
           </header>
 
+          {/* Sub-routes Render Outlet */}
           <main className="main-scroll">
             <Outlet />
           </main>
