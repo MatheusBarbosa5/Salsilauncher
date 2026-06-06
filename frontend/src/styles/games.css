@@ -8,6 +8,7 @@
 
 /* --- GRID DA HOME --- */
 .section-container {
+  margin-top: 20px;
   margin-bottom: 50px;
 }
 
@@ -115,7 +116,8 @@
 
 /* --- PÁGINA INDIVIDUAL DO JOGO --- */
 .game-detail-container {
-  margin-top: -40px; /* Sobe para encostar no topo */
+  margin-top: -40px;
+  /* Sobe para encostar no topo */
   display: flex;
   flex-direction: column;
 }
@@ -212,43 +214,67 @@
   border-radius: 20px;
   border: 1px solid var(--border-color);
 }
+
+/* CORREÇÃO 1: ALTA VISIBILIDADE PARA OS TEXTOS (LABELS) ACIMA DOS INPUTS */
+.cadastro-layout .input-group label {
+  color: #e5e5e5 !important; /* Transforma o cinza escuro em um prata nítido de alta leitura */
+  font-weight: 600;
+  font-size: 11px;
+  letter-spacing: 0.8px;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+}
+
 .form-actions {
   display: flex;
   gap: 15px;
-  margin-top: 30px;
+  margin-top: 35px;
+  align-items: center;
+  width: 100%;
 }
 
-/* BOTÃO SALVAR (Primário) */
-.btn-primary {
+/* CORREÇÃO 2: UNIFORMIZAÇÃO ABSOLUTA DE ALTURA E ALINHAMENTO DOS BOTÕES */
+.form-actions .btn-primary,
+.form-actions .btn-secondary {
+  height: 48px; /* Força exatamente a mesma altura em pixels */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 30px;
+  border-radius: 10px; /* Cantos arredondados modernos e simétricos */
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  box-sizing: border-box;
+  margin: 0;
+  white-space: nowrap;
+}
+
+/* Garante proporções de grid elegantes preenchendo o contêiner */
+.form-actions .btn-primary {
+  flex: 2; /* Ação principal ganha destaque em largura */
   background: var(--accent-red);
   color: white;
-  padding: 12px 30px;
-  border-radius: 8px;
-  font-weight: 800;
   cursor: pointer;
   text-transform: uppercase;
   transition: var(--transition-smooth);
 }
 
-.btn-primary:hover {
+.form-actions .btn-primary:hover {
   transform: translateY(-2px);
   box-shadow: 0 5px 15px rgba(255, 0, 0, 0.4);
 }
 
-/* BOTÃO CANCELAR/DESCARTAR (Secundário) */
-.btn-secondary {
-  background: #1a1a1a; /* Fundo escuro */
-  border: 1px solid #333; /* Borda discreta */
+.form-actions .btn-secondary {
+  flex: 1; /* Cancelar proporcionalmente menor, mas com simetria de altura */
+  background: #1a1a1a;
+  border: 1px solid #333;
   color: #ccc;
-  padding: 12px 25px;
-  border-radius: 8px;
   cursor: pointer;
-  font-weight: 600;
   text-transform: uppercase;
   transition: 0.3s;
 }
 
-.btn-secondary:hover {
+.form-actions .btn-secondary:hover {
   background: #222;
   color: white;
   border-color: #444;
