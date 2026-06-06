@@ -1,44 +1,85 @@
 // frontend/src/pages/Home.tsx
 import React, { useState, useEffect } from "react";
-import { useSearchParams, useNavigate } from "react-router-dom"; // Importado useNavigate para o redirecionamento
-import { LayoutGrid, Plus } from "lucide-react"; // Importado o ícone Plus para o card de atalho
+import { useSearchParams, useNavigate } from "react-router-dom";
+import { LayoutGrid, Plus } from "lucide-react";
 import { GameCard } from "../components/GameCard";
 import logoImg from "../assets/logo.png";
 import "../styles/home.css";
 
 export function Home() {
-  const [jogos, setJogos] = useState<any[]>([]);
+  const [games, setGames] = useState<any[]>([]); // Variável em inglês conforme o padrão do projeto
   const [searchParams] = useSearchParams();
   const query = searchParams.get("q") || "";
-  const navigate = useNavigate(); // Instanciado o navegador do React Router
+  const navigate = useNavigate();
+
+  // Technical states in English to control the fluid collapse animation
+  const [bannerVisible, setBannerVisible] = useState(true);
+  const [bannerCollapsed, setBannerCollapsed] = useState(false);
 
   useEffect(() => {
-    const fetchJogos = async () => {
+    const fetchGames = async () => {
       try {
         const response = await fetch(
           `http://localhost:8000/games?q=${encodeURIComponent(query)}`,
         );
         const data = await response.json();
-        setJogos(Array.isArray(data) ? data : []);
+        setGames(Array.isArray(data) ? data : []);
       } catch (error) {
         console.error("Erro ao buscar jogos:", error);
       }
     };
-    fetchJogos();
+    fetchGames();
   }, [query]);
+
+  // Timers to handle the fluid flash message animation and structural unmounting
+  useEffect(() => {
+    // 1. Starts the smooth fade-out and collapse transition after 4 seconds
+    const fadeTimer = setTimeout(() => {
+      setBannerVisible(false);
+    }, 4000);
+
+    // 2. Completely unmounts the element from the DOM after the animation ends (4.6s total)
+    const collapseTimer = setTimeout(() => {
+      setBannerCollapsed(true);
+    }, 4600);
+
+    return () => {
+      clearTimeout(fadeTimer);
+      clearTimeout(collapseTimer);
+    };
+  }, []);
 
   return (
     <div className="home-container animate-in">
-      {/* SEÇÃO HERO/BANNER */}
-      <section className="home-hero">
-        <div className="hero-content">
-          <img src={logoImg} alt="Salsilauncher" className="hero-logo" />
-          <div className="hero-text">
-            <h1>Bem-vindo ao Salsilauncher</h1>
-            <p>Sua biblioteca de jogos, organizada e pronta para o play.</p>
+      {/* SEÇÃO HERO/BANNER COM ANIMAÇÃO FLUIDA DE DESVANECIMENTO E COLAPSO */}
+      {!bannerCollapsed && (
+        <section
+          className="home-hero"
+          style={{
+            opacity: bannerVisible ? 1 : 0,
+            transform: bannerVisible ? "translateY(0)" : "translateY(-20px)",
+            maxHeight: bannerVisible ? "200px" : "0px",
+            paddingTop: bannerVisible ? "40px" : "0px",
+            paddingBottom: bannerVisible ? "40px" : "0px",
+            marginTop: bannerVisible ? "0px" : "-30px",
+            marginBottom: bannerVisible ? "30px" : "0px",
+            overflow: "hidden",
+            transition:
+              "opacity 0.6s ease, transform 0.6s ease, max-height 0.6s cubic-bezier(0.4, 0, 0.2, 1), padding 0.6s ease, margin 0.6s ease",
+            borderLeft: bannerVisible
+              ? "4px solid var(--accent-red)"
+              : "4px solid transparent",
+          }}
+        >
+          <div className="hero-content">
+            <img src={logoImg} alt="Salsilauncher" className="hero-logo" />
+            <div className="hero-text">
+              <h1>Bem-vindo ao Salsilauncher</h1>
+              <p>Sua biblioteca de jogos, organizada e pronta para o play.</p>
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* GRADE DE JOGOS */}
       <section className="section-container">
@@ -113,14 +154,14 @@ export function Home() {
           )}
 
           {/* LISTAGEM DOS JOGOS EXISTENTES NO BANCO */}
-          {jogos && jogos.length > 0 ? (
-            jogos.map((game) => (
+          {games && games.length > 0 ? (
+            games.map((game) => (
               <GameCard
                 key={game.id}
                 id={game.id}
                 nome={game.title}
                 capa={game.cover}
-                category={game.tags?.[0]?.name || "PC Game"}
+                category={game.tags?.[0] || "PC Game"}
               />
             ))
           ) : query ? (
