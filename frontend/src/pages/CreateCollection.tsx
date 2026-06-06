@@ -8,11 +8,14 @@ import {
   CheckSquare,
   Square,
   Search,
+  Image as ImageIcon,
+  Folder,
 } from "lucide-react";
 import { useToast } from "../context/ToastContext";
 
 export function CreateCollection() {
   const [collectionName, setCollectionName] = useState("");
+  const [collectionCover, setCollectionCover] = useState("");
   const [games, setGames] = useState<any[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedGames, setSelectedGames] = useState<number[]>([]);
@@ -63,6 +66,7 @@ export function CreateCollection() {
     const newCollection = {
       id: Date.now(),
       name: collectionName,
+      cover: collectionCover.trim() || null,
       gamesCount: selectedGames.length,
       gamesIds: selectedGames,
     };
@@ -77,7 +81,146 @@ export function CreateCollection() {
     navigate("/collections");
   };
 
-  // Local matching filter engine
+  // REAL-TIME COVER PREVIEW ENGINE (SPOTIFY MOSAIC MIX STYLE)
+  const renderPreviewCover = () => {
+    if (collectionCover.trim()) {
+      return (
+        <img
+          src={collectionCover.trim()}
+          alt="Prévia da Capa Customizada"
+          style={{ width: "100%", height: "100%", objectFit: "cover" }}
+        />
+      );
+    }
+
+    const selectedCovers: string[] = [];
+    selectedGames.forEach((gameId) => {
+      const matched = games.find((g) => g.id === gameId);
+      if (matched && matched.cover) {
+        selectedCovers.push(matched.cover);
+      }
+    });
+
+    if (selectedCovers.length === 0) {
+      return (
+        <div
+          style={{
+            width: "100%",
+            height: "100%",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            background: "#1a1a1a",
+          }}
+        >
+          <Folder size={40} color="#333" />
+        </div>
+      );
+    }
+
+    if (selectedCovers.length === 1) {
+      return (
+        <img
+          src={selectedCovers[0]}
+          alt="Preview 1"
+          style={{ width: "100%", height: "100%", objectFit: "cover" }}
+        />
+      );
+    }
+
+    if (selectedCovers.length === 2) {
+      return (
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "1fr 1fr",
+            width: "100%",
+            height: "100%",
+          }}
+        >
+          <img
+            src={selectedCovers[0]}
+            alt="Preview 1"
+            style={{ width: "100%", height: "100%", objectFit: "cover" }}
+          />
+          <img
+            src={selectedCovers[1]}
+            alt="Preview 2"
+            style={{ width: "100%", height: "100%", objectFit: "cover" }}
+          />
+        </div>
+      );
+    }
+
+    if (selectedCovers.length === 3) {
+      return (
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "1fr 1fr",
+            gridTemplateRows: "1fr 1fr",
+            width: "100%",
+            height: "100%",
+          }}
+        >
+          <img
+            src={selectedCovers[0]}
+            alt="Preview 1"
+            style={{
+              width: "100%",
+              height: "200%",
+              gridRow: "1 / span 2",
+              objectFit: "cover",
+            }}
+          />
+          <img
+            src={selectedCovers[1]}
+            alt="Preview 2"
+            style={{ width: "100%", height: "100%", objectFit: "cover" }}
+          />
+          <img
+            src={selectedCovers[2]}
+            alt="Preview 3"
+            style={{ width: "100%", height: "100%", objectFit: "cover" }}
+          />
+        </div>
+      );
+    }
+
+    return (
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "1fr 1fr",
+          gridTemplateRows: "1fr 1fr",
+          width: "100%",
+          height: "100%",
+        }}
+      >
+        <img
+          src={selectedCovers[0]}
+          alt="Preview 1"
+          style={{ width: "100%", height: "100%", objectFit: "cover" }}
+        />
+        <img
+          src={selectedCovers[1]}
+          alt="Preview 2"
+          style={{ width: "100%", height: "100%", objectFit: "cover" }}
+        />
+        <img
+          src={selectedCovers[2]}
+          alt="Preview 3"
+          style={{ width: "100%", height: "100%", objectFit: "cover" }}
+        />
+        <img
+          src={selectedCovers[3]}
+          alt="Preview 4"
+          style={{ width: "100%", height: "100%", objectFit: "cover" }}
+        />
+      </div>
+    );
+  };
+
   const filteredGames = games.filter((game) =>
     (game.title || "").toLowerCase().includes(searchQuery.toLowerCase()),
   );
@@ -116,8 +259,8 @@ export function CreateCollection() {
           style={{ flex: 1 }}
         >
           <p className="form-helper">
-            Agrupe os seus jogos favoritos em categorias personalizadas para
-            organizar a sua barra lateral.
+            Escolha um nome e selecione os jogos. Deixe a capa em branco se
+            preferir gerar o mix automático.
           </p>
 
           <div className="input-group">
@@ -126,10 +269,23 @@ export function CreateCollection() {
               <Tag size={18} className="input-icon" />
               <input
                 type="text"
-                placeholder="Ex: Campanhas Longas, FPS Competitivo, Clássicos"
+                placeholder="Ex: Campanhas Longas, Favoritos"
                 value={collectionName}
                 onChange={(e) => setCollectionName(e.target.value)}
                 required
+              />
+            </div>
+          </div>
+
+          <div className="input-group" style={{ marginTop: "20px" }}>
+            <label>URL da Imagem de Capa (Opcional)</label>
+            <div className="input-wrapper">
+              <ImageIcon size={18} className="input-icon" />
+              <input
+                type="text"
+                placeholder="https://linkdaimagem.com/capa.jpg"
+                value={collectionCover}
+                onChange={(e) => setCollectionCover(e.target.value)}
               />
             </div>
           </div>
@@ -139,7 +295,6 @@ export function CreateCollection() {
               Selecionar Jogos ({selectedGames.length} selecionados)
             </label>
 
-            {/* MECANISMO DE BUSCA INTERNO INTERATIVO */}
             <div
               className="input-wrapper"
               style={{ marginBottom: "15px", background: "#080808" }}
@@ -179,7 +334,7 @@ export function CreateCollection() {
                   background: "#080808",
                   borderRadius: "10px",
                   border: "1px solid #222",
-                  maxHeight: "220px",
+                  maxHeight: "150px",
                   overflowY: "auto",
                 }}
               >
@@ -255,6 +410,75 @@ export function CreateCollection() {
             </button>
           </div>
         </form>
+
+        {/* SIDE PREVIEW CONTAINER */}
+        <div
+          className="preview-section"
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            gap: "12px",
+            minWidth: "240px",
+            padding: "10px",
+          }}
+        >
+          <span
+            style={{
+              color: "#555",
+              fontSize: "11px",
+              fontWeight: "bold",
+              letterSpacing: "1px",
+              textTransform: "uppercase",
+            }}
+          >
+            Prévia do Card
+          </span>
+          <div
+            style={{
+              width: "200px",
+              aspectRatio: "1/1",
+              background: "#121212",
+              borderRadius: "15px",
+              border: "2px solid #222",
+              overflow: "hidden",
+              position: "relative",
+              boxShadow: "0 10px 25px rgba(0,0,0,0.5)",
+            }}
+          >
+            {renderPreviewCover()}
+            <span
+              style={{
+                position: "absolute",
+                bottom: "10px",
+                right: "10px",
+                fontSize: "10px",
+                color: "white",
+                fontWeight: "bold",
+                background: "rgba(0, 0, 0, 0.75)",
+                padding: "2px 6px",
+                borderRadius: "4px",
+              }}
+            >
+              {selectedGames.length}{" "}
+              {selectedGames.length === 1 ? "título" : "títulos"}
+            </span>
+          </div>
+          <h4
+            style={{
+              color: "white",
+              margin: "5px 0 0 0",
+              fontSize: "14px",
+              fontWeight: "700",
+              maxWidth: "200px",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              whiteSpace: "nowrap",
+            }}
+          >
+            {collectionName || "Nome da Coleção"}
+          </h4>
+        </div>
       </div>
     </div>
   );

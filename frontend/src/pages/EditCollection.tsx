@@ -8,6 +8,8 @@ import {
   CheckSquare,
   Square,
   Search,
+  Image as ImageIcon,
+  Folder,
 } from "lucide-react";
 import { useToast } from "../context/ToastContext";
 
@@ -17,21 +19,19 @@ export function EditCollection() {
   const { showToast } = useToast();
 
   const [collectionName, setCollectionName] = useState("");
+  const [collectionCover, setCollectionCover] = useState("");
   const [games, setGames] = useState<any[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedGames, setSelectedGames] = useState<number[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Fetches games from the backend and loads the specific collection from local storage
   useEffect(() => {
     const loadCollectionData = async () => {
       try {
-        // 1. Fetch available games catalog
         const response = await fetch("http://localhost:8000/games");
         const gamesData = await response.json();
         setGames(Array.isArray(gamesData) ? gamesData : []);
 
-        // 2. Load targeted collection data for modification
         const stored = localStorage.getItem("salsilauncher_collections");
         if (stored) {
           const collections = JSON.parse(stored);
@@ -39,6 +39,7 @@ export function EditCollection() {
 
           if (target) {
             setCollectionName(target.name || "");
+            setCollectionCover(target.cover || "");
             setSelectedGames(target.gamesIds || []);
           } else {
             showToast("Coleção não encontrada.", "error");
@@ -74,12 +75,12 @@ export function EditCollection() {
     const stored = localStorage.getItem("salsilauncher_collections");
     const collections = stored ? JSON.parse(stored) : [];
 
-    // Map and replace the matching entry in local storage
     const updatedCollections = collections.map((col: any) => {
       if (col.id === Number(id)) {
         return {
           ...col,
           name: collectionName,
+          cover: collectionCover.trim() || null,
           gamesCount: selectedGames.length,
           gamesIds: selectedGames,
         };
@@ -93,6 +94,146 @@ export function EditCollection() {
     );
     showToast(`Coleção "${collectionName}" atualizada com sucesso!`, "success");
     navigate("/collections");
+  };
+
+  // REAL-TIME COVER PREVIEW ENGINE (SPOTIFY MOSAIC MIX STYLE)
+  const renderPreviewCover = () => {
+    if (collectionCover.trim()) {
+      return (
+        <img
+          src={collectionCover.trim()}
+          alt="Prévia da Capa Customizada"
+          style={{ width: "100%", height: "100%", objectFit: "cover" }}
+        />
+      );
+    }
+
+    const selectedCovers: string[] = [];
+    selectedGames.forEach((gameId) => {
+      const matched = games.find((g) => g.id === gameId);
+      if (matched && matched.cover) {
+        selectedCovers.push(matched.cover);
+      }
+    });
+
+    if (selectedCovers.length === 0) {
+      return (
+        <div
+          style={{
+            width: "100%",
+            height: "100%",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            background: "#1a1a1a",
+          }}
+        >
+          <Folder size={40} color="#333" />
+        </div>
+      );
+    }
+
+    if (selectedCovers.length === 1) {
+      return (
+        <img
+          src={selectedCovers[0]}
+          alt="Preview 1"
+          style={{ width: "100%", height: "100%", objectFit: "cover" }}
+        />
+      );
+    }
+
+    if (selectedCovers.length === 2) {
+      return (
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "1fr 1fr",
+            width: "100%",
+            height: "100%",
+          }}
+        >
+          <img
+            src={selectedCovers[0]}
+            alt="Preview 1"
+            style={{ width: "100%", height: "100%", objectFit: "cover" }}
+          />
+          <img
+            src={selectedCovers[1]}
+            alt="Preview 2"
+            style={{ width: "100%", height: "100%", objectFit: "cover" }}
+          />
+        </div>
+      );
+    }
+
+    if (selectedCovers.length === 3) {
+      return (
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "1fr 1fr",
+            gridTemplateRows: "1fr 1fr",
+            width: "100%",
+            height: "100%",
+          }}
+        >
+          <img
+            src={selectedCovers[0]}
+            alt="Preview 1"
+            style={{
+              width: "100%",
+              height: "200%",
+              gridRow: "1 / span 2",
+              objectFit: "cover",
+            }}
+          />
+          <img
+            src={selectedCovers[1]}
+            alt="Preview 2"
+            style={{ width: "100%", height: "100%", objectFit: "cover" }}
+          />
+          <img
+            src={selectedCovers[2]}
+            alt="Preview 3"
+            style={{ width: "100%", height: "100%", objectFit: "cover" }}
+          />
+        </div>
+      );
+    }
+
+    return (
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "1fr 1fr",
+          gridTemplateRows: "1fr 1fr",
+          width: "100%",
+          height: "100%",
+        }}
+      >
+        <img
+          src={selectedCovers[0]}
+          alt="Preview 1"
+          style={{ width: "100%", height: "100%", objectFit: "cover" }}
+        />
+        <img
+          src={selectedCovers[1]}
+          alt="Preview 2"
+          style={{ width: "100%", height: "100%", objectFit: "cover" }}
+        />
+        <img
+          src={selectedCovers[2]}
+          alt="Preview 3"
+          style={{ width: "100%", height: "100%", objectFit: "cover" }}
+        />
+        <img
+          src={selectedCovers[3]}
+          alt="Preview 4"
+          style={{ width: "100%", height: "100%", objectFit: "cover" }}
+        />
+      </div>
+    );
   };
 
   const filteredGames = games.filter((game) =>
@@ -144,8 +285,8 @@ export function EditCollection() {
           style={{ flex: 1 }}
         >
           <p className="form-helper">
-            Modifique o título ou gerencie os títulos inclusos na sua categoria
-            selecionada.
+            Modifique o título, gerencie o link da capa ou mude os títulos
+            inclusos.
           </p>
 
           <div className="input-group">
@@ -162,10 +303,22 @@ export function EditCollection() {
             </div>
           </div>
 
+          <div className="input-group" style={{ marginTop: "20px" }}>
+            <label>URL da Imagem de Capa (Opcional)</label>
+            <div className="input-wrapper">
+              <ImageIcon size={18} className="input-icon" />
+              <input
+                type="text"
+                placeholder="https://linkdaimagem.com/capa.jpg"
+                value={collectionCover}
+                onChange={(e) => setCollectionCover(e.target.value)}
+              />
+            </div>
+          </div>
+
           <div className="input-group" style={{ marginTop: "25px" }}>
             <label>Gerenciar Jogos ({selectedGames.length} selecionados)</label>
 
-            {/* BARRA DE PESQUISA INTERNA DA EDICÃO */}
             <div
               className="input-wrapper"
               style={{ marginBottom: "15px", background: "#080808" }}
@@ -201,7 +354,7 @@ export function EditCollection() {
                   background: "#080808",
                   borderRadius: "10px",
                   border: "1px solid #222",
-                  maxHeight: "220px",
+                  maxHeight: "150px",
                   overflowY: "auto",
                 }}
               >
@@ -277,6 +430,75 @@ export function EditCollection() {
             </button>
           </div>
         </form>
+
+        {/* SIDE PREVIEW CONTAINER */}
+        <div
+          className="preview-section"
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            gap: "12px",
+            minWidth: "240px",
+            padding: "10px",
+          }}
+        >
+          <span
+            style={{
+              color: "#555",
+              fontSize: "11px",
+              fontWeight: "bold",
+              letterSpacing: "1px",
+              textTransform: "uppercase",
+            }}
+          >
+            Prévia do Card
+          </span>
+          <div
+            style={{
+              width: "200px",
+              aspectRatio: "1/1",
+              background: "#121212",
+              borderRadius: "15px",
+              border: "2px solid #222",
+              overflow: "hidden",
+              position: "relative",
+              boxShadow: "0 10px 25px rgba(0,0,0,0.5)",
+            }}
+          >
+            {renderPreviewCover()}
+            <span
+              style={{
+                position: "absolute",
+                bottom: "10px",
+                right: "10px",
+                fontSize: "10px",
+                color: "white",
+                fontWeight: "bold",
+                background: "rgba(0, 0, 0, 0.75)",
+                padding: "2px 6px",
+                borderRadius: "4px",
+              }}
+            >
+              {selectedGames.length}{" "}
+              {selectedGames.length === 1 ? "título" : "títulos"}
+            </span>
+          </div>
+          <h4
+            style={{
+              color: "white",
+              margin: "5px 0 0 0",
+              fontSize: "14px",
+              fontWeight: "700",
+              maxWidth: "200px",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              whiteSpace: "nowrap",
+            }}
+          >
+            {collectionName || "Nome da Coleção"}
+          </h4>
+        </div>
       </div>
     </div>
   );

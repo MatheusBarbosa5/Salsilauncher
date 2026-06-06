@@ -16,8 +16,6 @@ export function Collections() {
   const [collections, setCollections] = useState<any[]>([]);
   const [games, setGames] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-
-  // UX State: Keeps track of which collection is currently being viewed in detail
   const [selectedCollection, setSelectedCollection] = useState<any | null>(
     null,
   );
@@ -75,6 +73,153 @@ export function Collections() {
     }
   };
 
+  // ENGINE REATIVA DO MOSAICO DE CAPAS (ESTILO SPOTIFY)
+  const renderCollectionCover = (col: any) => {
+    // 1. If custom cover URL string is specified, use it directly
+    if (col.cover) {
+      return (
+        <img
+          src={col.cover}
+          alt={col.name}
+          style={{ width: "100%", height: "100%", objectFit: "cover" }}
+        />
+      );
+    }
+
+    // 2. Fetch cover strings from valid included game references
+    const covers: string[] = [];
+    if (col.gamesIds && col.gamesIds.length > 0) {
+      col.gamesIds.forEach((gameId: number) => {
+        const matched = games.find((g) => g.id === gameId);
+        if (matched && matched.cover) {
+          covers.push(matched.cover);
+        }
+      });
+    }
+
+    // Fallback: If no covers are found, render a nice default dark icon block
+    if (covers.length === 0) {
+      return (
+        <div
+          style={{
+            width: "100%",
+            height: "100%",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            background: "#1a1a1a",
+          }}
+        >
+          <Folder size={40} color="#333" />
+        </div>
+      );
+    }
+
+    // Layout configuration based on matching game cover array quantity
+    if (covers.length === 1) {
+      return (
+        <img
+          src={covers[0]}
+          alt="Mix 1"
+          style={{ width: "100%", height: "100%", objectFit: "cover" }}
+        />
+      );
+    }
+
+    if (covers.length === 2) {
+      return (
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "1fr 1fr",
+            width: "100%",
+            height: "100%",
+          }}
+        >
+          <img
+            src={covers[0]}
+            alt="Mix 1"
+            style={{ width: "100%", height: "100%", objectFit: "cover" }}
+          />
+          <img
+            src={covers[1]}
+            alt="Mix 2"
+            style={{ width: "100%", height: "100%", objectFit: "cover" }}
+          />
+        </div>
+      );
+    }
+
+    if (covers.length === 3) {
+      return (
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "1fr 1fr",
+            gridTemplateRows: "1fr 1fr",
+            width: "100%",
+            height: "100%",
+          }}
+        >
+          <img
+            src={covers[0]}
+            alt="Mix 1"
+            style={{
+              width: "100%",
+              height: "200%",
+              gridRow: "1 / span 2",
+              objectFit: "cover",
+            }}
+          />
+          <img
+            src={covers[1]}
+            alt="Mix 2"
+            style={{ width: "100%", height: "100%", objectFit: "cover" }}
+          />
+          <img
+            src={covers[2]}
+            alt="Mix 3"
+            style={{ width: "100%", height: "100%", objectFit: "cover" }}
+          />
+        </div>
+      );
+    }
+
+    // 4 or more games maps to a perfect 2x2 multi-grid split quadrant layout
+    return (
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "1fr 1fr",
+          gridTemplateRows: "1fr 1fr",
+          width: "100%",
+          height: "100%",
+        }}
+      >
+        <img
+          src={covers[0]}
+          alt="Mix 1"
+          style={{ width: "100%", height: "100%", objectFit: "cover" }}
+        />
+        <img
+          src={covers[1]}
+          alt="Mix 2"
+          style={{ width: "100%", height: "100%", objectFit: "cover" }}
+        />
+        <img
+          src={covers[2]}
+          alt="Mix 3"
+          style={{ width: "100%", height: "100%", objectFit: "cover" }}
+        />
+        <img
+          src={covers[3]}
+          alt="Mix 4"
+          style={{ width: "100%", height: "100%", objectFit: "cover" }}
+        />
+      </div>
+    );
+  };
+
   if (loading) {
     return (
       <div
@@ -90,7 +235,6 @@ export function Collections() {
     );
   }
 
-  // NAVEGAÇÃO INTERNA: Visualização dos jogos inclusos na coleção selecionada
   if (selectedCollection) {
     return (
       <div
@@ -149,7 +293,6 @@ export function Collections() {
     );
   }
 
-  // PAINEL PRINCIPAL: Listagem de pastas de coleções
   return (
     <div className="page-container animate-in" style={{ padding: "10px 20px" }}>
       <div
@@ -167,14 +310,15 @@ export function Collections() {
         </div>
       </div>
 
+      {/* DASHBOARD GRID DE EXIBIÇÃO PREMIUM */}
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))",
-          gap: "25px",
+          gridTemplateColumns: "repeat(auto-fill, minmax(230px, 1fr))",
+          gap: "30px",
         }}
       >
-        {/* CARD DE ATALHO EXCLUSIVO: CRIAR NOVA COLEÇÃO (FIXADO COMO PRIMEIRO CARD) */}
+        {/* CARD TRACEJADO: ADICIONAR NOVA COLEÇÃO */}
         <div
           onClick={() => navigate("/create-collection")}
           style={{
@@ -183,13 +327,13 @@ export function Collections() {
             flexDirection: "column",
             justifyContent: "center",
             alignItems: "center",
-            minHeight: "180px",
             background: "linear-gradient(135deg, #0f0f0f 0%, #151515 100%)",
             border: "2px dashed #222",
             borderRadius: "15px",
             transition: "0.2s",
             padding: "20px",
             textAlign: "center",
+            aspectRatio: "1/1",
           }}
           onMouseEnter={(e) => {
             e.currentTarget.style.borderColor = "var(--accent-red)";
@@ -215,12 +359,7 @@ export function Collections() {
             <FolderHeart size={24} color="var(--accent-red)" />
           </div>
           <span
-            style={{
-              color: "#ffffff",
-              fontWeight: "700",
-              fontSize: "14px",
-              letterSpacing: "0.5px",
-            }}
+            style={{ color: "#ffffff", fontWeight: "700", fontSize: "14px" }}
           >
             Criar Coleção
           </span>
@@ -229,7 +368,7 @@ export function Collections() {
           </span>
         </div>
 
-        {/* MAPEAMENTO DAS PASTAS DE COLECÕES JÁ EXISTENTES */}
+        {/* MAP COMPONENT: PASTAS DE COLECÕES COM CAPA INDIVIDUAL OU GRID MOSAICO REATIVO */}
         {collections.map((col) => (
           <div
             key={col.id}
@@ -238,124 +377,128 @@ export function Collections() {
               background: "#121212",
               borderRadius: "15px",
               border: "1px solid #222",
-              padding: "20px",
               display: "flex",
               flexDirection: "column",
-              justifyContent: "space-between",
               cursor: "pointer",
               transition: "0.2s",
+              overflow: "hidden",
             }}
             onMouseEnter={(e) =>
               (e.currentTarget.style.borderColor = "#ff0000")
             }
             onMouseLeave={(e) => (e.currentTarget.style.borderColor = "#222")}
           >
-            <div>
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  marginBottom: "20px",
-                }}
-              >
-                <div
-                  style={{ display: "flex", alignItems: "center", gap: "10px" }}
-                >
-                  <Folder size={20} color="#ff0000" />
-                  <h3
-                    style={{
-                      color: "white",
-                      margin: 0,
-                      fontSize: "16px",
-                      fontWeight: "700",
-                    }}
-                  >
-                    {col.name}
-                  </h3>
-                </div>
-
-                <div style={{ display: "flex", gap: "12px" }}>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      navigate(`/edit-collection/${col.id}`);
-                    }}
-                    style={{
-                      background: "none",
-                      border: "none",
-                      color: "#444",
-                      cursor: "pointer",
-                      transition: "0.2s",
-                    }}
-                    onMouseEnter={(e) =>
-                      (e.currentTarget.style.color = "#ffffff")
-                    }
-                    onMouseLeave={(e) => (e.currentTarget.style.color = "#444")}
-                    title="Editar Coleção"
-                  >
-                    <Edit3 size={16} />
-                  </button>
-                  <button
-                    onClick={(e) => handleDeleteCollection(col.id, col.name, e)}
-                    style={{
-                      background: "none",
-                      border: "none",
-                      color: "#444",
-                      cursor: "pointer",
-                      transition: "0.2s",
-                    }}
-                    onMouseEnter={(e) =>
-                      (e.currentTarget.style.color = "#ff0000")
-                    }
-                    onMouseLeave={(e) => (e.currentTarget.style.color = "#444")}
-                    title="Excluir Coleção"
-                  >
-                    <Trash2 size={16} />
-                  </button>
-                </div>
-              </div>
-
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "8px",
-                  color: "#666",
-                  fontSize: "13px",
-                }}
-              >
-                <LayoutGrid size={14} />
-                <span>Clique para visualizar os jogos inclusos</span>
-              </div>
-            </div>
-
+            {/* CONTAINER DA CAPA QUADRADA (MOSAICO OU URL FIXA) */}
             <div
               style={{
-                borderTop: "1px solid #1a1a1a",
-                paddingTop: "15px",
-                marginTop: "25px",
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
+                width: "100%",
+                aspectRatio: "1/1",
+                position: "relative",
+                background: "#080808",
+                overflow: "hidden",
               }}
             >
-              <span style={{ fontSize: "13px", color: "#555" }}>
-                Quantidade de títulos:
-              </span>
+              {renderCollectionCover(col)}
+
+              {/* FLUTUANTE DE CONTAGEM COMPACTO */}
               <span
                 style={{
-                  fontSize: "12px",
+                  position: "absolute",
+                  bottom: "10px",
+                  right: "10px",
+                  fontSize: "11px",
                   color: "white",
                   fontWeight: "bold",
-                  background: "#1a1a1a",
-                  padding: "4px 10px",
-                  borderRadius: "6px",
-                  border: "1px solid #252525",
+                  background: "rgba(0, 0, 0, 0.75)",
+                  padding: "3px 8px",
+                  borderRadius: "4px",
+                  border: "1px solid rgba(255,255,255,0.05)",
+                  backdropFilter: "blur(4px)",
                 }}
               >
-                {col.gamesCount}
+                {col.gamesCount} {col.gamesCount === 1 ? "título" : "títulos"}
               </span>
+            </div>
+
+            {/* CONTEÚDO E GERENCIAMENTO DO CARD */}
+            <div
+              style={{
+                padding: "15px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                background: "#0f0f0f",
+                flex: 1,
+              }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  minWidth: "0",
+                }}
+              >
+                <h3
+                  style={{
+                    color: "white",
+                    margin: 0,
+                    fontSize: "14px",
+                    fontWeight: "700",
+                    whiteSpace: "nowrap",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                  }}
+                >
+                  {col.name}
+                </h3>
+              </div>
+
+              <div
+                style={{
+                  display: "flex",
+                  gap: "10px",
+                  marginLeft: "10px",
+                  flexShrink: 0,
+                }}
+              >
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    navigate(`/edit-collection/${col.id}`);
+                  }}
+                  style={{
+                    background: "none",
+                    border: "none",
+                    color: "#444",
+                    cursor: "pointer",
+                    transition: "0.2s",
+                  }}
+                  onMouseEnter={(e) =>
+                    (e.currentTarget.style.color = "#ffffff")
+                  }
+                  onMouseLeave={(e) => (e.currentTarget.style.color = "#444")}
+                  title="Editar Coleção"
+                >
+                  <Edit3 size={15} />
+                </button>
+                <button
+                  onClick={(e) => handleDeleteCollection(col.id, col.name, e)}
+                  style={{
+                    background: "none",
+                    border: "none",
+                    color: "#444",
+                    cursor: "pointer",
+                    transition: "0.2s",
+                  }}
+                  onMouseEnter={(e) =>
+                    (e.currentTarget.style.color = "#ff0000")
+                  }
+                  onMouseLeave={(e) => (e.currentTarget.style.color = "#444")}
+                  title="Excluir Coleção"
+                >
+                  <Trash2 size={15} />
+                </button>
+              </div>
             </div>
           </div>
         ))}
