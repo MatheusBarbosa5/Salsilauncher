@@ -26,7 +26,6 @@ export function MainLayout() {
   const location = useLocation();
   const [searchParams] = useSearchParams();
 
-  // Track tab state according to active navigation path URL
   const activeTab =
     location.pathname.startsWith("/collections") ||
     location.pathname.startsWith("/create-collection")
@@ -108,7 +107,7 @@ export function MainLayout() {
                     fill={isFavoritesOpen ? "#ff0000" : "none"}
                     color={isFavoritesOpen ? "#ff0000" : "currentColor"}
                   />
-                  <span>Favoritos</span>
+                  <span>Favorites</span>
                   <ChevronDown
                     size={16}
                     className={`arrow ${isFavoritesOpen ? "open" : ""}`}
@@ -148,7 +147,7 @@ export function MainLayout() {
                   </div>
                 ))}
 
-                {/* BOTÃO ADICIONAR COLEÇÃO - CONSERVA O BRANCO SÓLIDO PREMIUM */}
+                {/* BOTÃO ADICIONAR COLEÇÃO */}
                 <div
                   className="collection-item add-collection"
                   onClick={() => navigate("/create-collection")}
@@ -164,13 +163,7 @@ export function MainLayout() {
                   <span>+ Nova Coleção</span>
                 </div>
 
-                <div
-                  className="collection-item add-collection"
-                  onClick={() => navigate("/cadastro-jogo")}
-                  style={{ color: "#ff0000", fontWeight: "bold" }}
-                >
-                  <Plus size={16} /> <span>Novo Jogo</span>
-                </div>
+                {/* REMOVIDO: Botão "Novo Jogo" retirado daqui para evitar redundância visual */}
 
                 <div
                   className="collection-item add-collection"
