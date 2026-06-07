@@ -1,5 +1,6 @@
 // frontend/src/pages/Library.tsx
 import React, { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom"; // Importado useSearchParams para capturar a busca
 import {
   Library as LibraryIcon,
   SlidersHorizontal,
@@ -11,14 +12,20 @@ export function Library() {
   const [games, setGames] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Technical filtering and sorting states in English
+  // Connects the library component directly to the global URL search parameters query
+  const [searchParams] = useSearchParams();
+  const query = searchParams.get("q") || "";
+
   const [searchGenre, setSearchGenre] = useState("all");
   const [sortOrder, setSortOrder] = useState("az");
 
+  // Re-fetches database information every time the text query transitions
   useEffect(() => {
     const fetchGames = async () => {
       try {
-        const response = await fetch("http://localhost:8000/games");
+        const response = await fetch(
+          `http://localhost:8000/games?q=${encodeURIComponent(query)}`,
+        );
         const data = await response.json();
         setGames(Array.isArray(data) ? data : []);
       } catch (error) {
@@ -28,7 +35,7 @@ export function Library() {
       }
     };
     fetchGames();
-  }, []);
+  }, [query]); // Adicionado query como dependência estrita para o re-fetching
 
   // Dynamically extracts all unique tags from the games list to populate the filter dropdown
   const uniqueTags = Array.from(
@@ -207,7 +214,7 @@ export function Library() {
                 fontSize: "14px",
               }}
             >
-              Nenhum jogo corresponde ao gênero selecionado.
+              Nenhum jogo corresponde ao termo procurado ou gênero selecionado.
             </p>
           )}
         </div>

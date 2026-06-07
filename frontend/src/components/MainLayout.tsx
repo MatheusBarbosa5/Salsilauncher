@@ -15,7 +15,6 @@ import {
   User,
   Settings,
   Star,
-  Plus,
   Library,
   Folder,
 } from "lucide-react";
@@ -90,7 +89,6 @@ export function MainLayout() {
                 >
                   <HomeIcon size={18} /> <span>Início</span>
                 </div>
-                {/* CORREÇÃO: ABA ATIVADA, REMOVIDO BLOQUEIOS VISUAIS E ADICIONADO NAVEGAÇÃO REAL */}
                 <div
                   className={`menu-item ${location.pathname === "/library" ? "active" : ""}`}
                   onClick={() => navigate("/library")}
@@ -162,7 +160,6 @@ export function MainLayout() {
                     paddingTop: "12px",
                   }}
                 >
-                  <FolderHeart size={16} color="#ff3333" />{" "}
                   <span>+ Nova Coleção</span>
                 </div>
 
@@ -181,15 +178,20 @@ export function MainLayout() {
         {/* Área Principal de Conteúdo */}
         <div className="content-area">
           <header className="topbar">
+            {/* CORREÇÃO DO BUG: CAMPO DE BUSCA CONTEXTUAL REATIVO */}
             <div className="search-container">
               <Search size={18} color="#888" />
               <input
                 type="text"
                 placeholder="Buscar na biblioteca..."
                 value={searchQuery}
-                onChange={(e) =>
-                  navigate(`/?q=${encodeURIComponent(e.target.value)}`)
-                }
+                onChange={(e) => {
+                  const targetPath =
+                    location.pathname === "/library" ? "/library" : "/";
+                  navigate(
+                    `${targetPath}?q=${encodeURIComponent(e.target.value)}`,
+                  );
+                }}
               />
             </div>
 
