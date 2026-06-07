@@ -25,10 +25,10 @@ export function MainLayout() {
   const location = useLocation();
   const [searchParams] = useSearchParams();
 
-  // Track tab state according to active navigation path URL
   const activeTab =
     location.pathname.startsWith("/collections") ||
-    location.pathname.startsWith("/create-collection")
+    location.pathname.startsWith("/create-collection") ||
+    location.pathname.startsWith("/edit-collection")
       ? "collections"
       : "home";
 
@@ -84,13 +84,16 @@ export function MainLayout() {
           <div className="sidebar-content">
             {activeTab === "home" ? (
               <div className="menu-group animate-in">
-                <div className="menu-item active" onClick={() => navigate("/")}>
+                <div
+                  className={`menu-item ${location.pathname === "/" ? "active" : ""}`}
+                  onClick={() => navigate("/")}
+                >
                   <HomeIcon size={18} /> <span>Início</span>
                 </div>
+                {/* CORREÇÃO: ABA ATIVADA, REMOVIDO BLOQUEIOS VISUAIS E ADICIONADO NAVEGAÇÃO REAL */}
                 <div
-                  className="menu-item"
-                  style={{ opacity: 0.5, cursor: "not-allowed" }}
-                  title="Mapeado para Trabalhos Futuros"
+                  className={`menu-item ${location.pathname === "/library" ? "active" : ""}`}
+                  onClick={() => navigate("/library")}
                 >
                   <Library size={18} /> <span>Biblioteca</span>
                 </div>
@@ -147,18 +150,26 @@ export function MainLayout() {
                   </div>
                 ))}
 
-                {/* REMOVIDO: O botão "+ Nova Coleção" foi retirado daqui para evitar redundância visual */}
-
+                {/* BOTÃO ADICIONAR COLEÇÃO */}
                 <div
                   className="collection-item add-collection"
-                  onClick={() => navigate("/escanear-pasta")}
+                  onClick={() => navigate("/create-collection")}
                   style={{
-                    color: "#ff0000",
+                    color: "#ffffff",
                     fontWeight: "bold",
                     borderTop: "1px solid #1a1a1a",
                     marginTop: "10px",
                     paddingTop: "12px",
                   }}
+                >
+                  <FolderHeart size={16} color="#ff3333" />{" "}
+                  <span>+ Nova Coleção</span>
+                </div>
+
+                <div
+                  className="collection-item add-collection"
+                  onClick={() => navigate("/escanear-pasta")}
+                  style={{ color: "#ff0000", fontWeight: "bold" }}
                 >
                   <Folder size={16} /> <span>Escanear Pasta</span>
                 </div>
@@ -199,7 +210,6 @@ export function MainLayout() {
             </div>
           </header>
 
-          {/* Sub-routes Render Outlet */}
           <main className="main-scroll">
             <Outlet />
           </main>

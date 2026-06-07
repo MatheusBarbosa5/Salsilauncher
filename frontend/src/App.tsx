@@ -20,7 +20,8 @@ import { EditarJogo } from "./pages/EditarJogo";
 import { JogoDetalhe } from "./pages/JogoDetalhe";
 import { CreateCollection } from "./pages/CreateCollection";
 import { Collections } from "./pages/Collections";
-import { EditCollection } from "./pages/EditCollection"; // Novo import adicionado
+import { EditCollection } from "./pages/EditCollection";
+import { Library } from "./pages/Library"; // Importando a nova view ativa
 
 function App() {
   return (
@@ -39,10 +40,8 @@ function App() {
           <Route path="/editar-jogo/:id" element={<EditarJogo />} />
           <Route path="/create-collection" element={<CreateCollection />} />
           <Route path="/collections" element={<Collections />} />
-          <Route
-            path="/edit-collection/:id"
-            element={<EditCollection />}
-          />{" "}
+          <Route path="/edit-collection/:id" element={<EditCollection />} />
+          <Route path="/library" element={<Library />} />{" "}
           {/* Nova rota registrada */}
         </Route>
 
