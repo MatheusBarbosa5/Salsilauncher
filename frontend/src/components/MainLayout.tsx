@@ -24,6 +24,7 @@ export function MainLayout() {
   const location = useLocation();
   const [searchParams] = useSearchParams();
 
+  // Track tab state according to active navigation path URL
   const activeTab =
     location.pathname.startsWith("/collections") ||
     location.pathname.startsWith("/create-collection") ||
@@ -31,22 +32,42 @@ export function MainLayout() {
       ? "collections"
       : "home";
 
-  const [isFavoritesOpen, setIsFavoritesOpen] = useState(true);
+  const [isFavoritesOpen, setIsFavoritesOpen] = useState(false);
   const [customCollections, setCustomCollections] = useState<any[]>([]);
+  const [favoriteGames, setFavoriteGames] = useState<any[]>([]); // Tech state in English for DB favorites list
   const searchQuery = searchParams.get("q") || "";
 
   useEffect(() => {
+    // 1. Loads custom collections from browser storage
     const loadCollections = () => {
       const stored = localStorage.getItem("salsilauncher_collections");
       setCustomCollections(stored ? JSON.parse(stored) : []);
     };
+
+    // 2. Fetches database games to filter true system favorites dynamically
+    const fetchFavorites = async () => {
+      try {
+        const response = await fetch("http://localhost:8000/games");
+        const data = await response.json();
+        if (Array.isArray(data)) {
+          setFavoriteGames(data.filter((game: any) => game.favorite));
+        }
+      } catch (error) {
+        console.error("Erro ao sincronizar favoritos da barra lateral:", error);
+      }
+    };
+
     loadCollections();
+    fetchFavorites();
   }, [location.pathname]);
 
   return (
     <ToastProvider>
       <div className="app-layout">
-        <aside className="sidebar">
+        <aside
+          className="sidebar"
+          style={{ display: "flex", flexDirection: "column", height: "100vh" }}
+        >
           {/* Header da Sidebar */}
           <div
             className="sidebar-header"
@@ -79,8 +100,11 @@ export function MainLayout() {
             </div>
           </div>
 
-          {/* Conteúdo da Sidebar conforme a Aba Ativa */}
-          <div className="sidebar-content">
+          {/* Conteúdo Rolável da Sidebar */}
+          <div
+            className="sidebar-content"
+            style={{ flex: 1, overflowY: "auto" }}
+          >
             {activeTab === "home" ? (
               <div className="menu-group animate-in">
                 <div
@@ -98,28 +122,82 @@ export function MainLayout() {
               </div>
             ) : (
               <div className="menu-group animate-in">
-                {/* CATEGORIA DE FAVORITOS PADRÃO */}
+                {/* CATEGORIA DE FAVORITOS TRADUZIDA E TOTALMENTE FUNCIONAL */}
                 <div
                   className="collection-item"
                   onClick={() => setIsFavoritesOpen(!isFavoritesOpen)}
+                  style={{ cursor: "pointer" }}
                 >
                   <Star
                     size={16}
-                    fill={isFavoritesOpen ? "#ff0000" : "none"}
-                    color={isFavoritesOpen ? "#ff0000" : "currentColor"}
+                    fill={favoriteGames.length > 0 ? "#ff0000" : "none"}
+                    color={
+                      favoriteGames.length > 0 ? "#ff0000" : "currentColor"
+                    }
                   />
-                  <span>Favorites</span>
+                  <span>Favoritos</span>
                   <ChevronDown
                     size={16}
                     className={`arrow ${isFavoritesOpen ? "open" : ""}`}
                     style={{
                       marginLeft: "auto",
                       transform: isFavoritesOpen ? "rotate(180deg)" : "none",
+                      transition: "transform 0.2s",
                     }}
                   />
                 </div>
 
-                {/* LISTAGEM DAS COLEÇÕES PERSONALIZADAS */}
+                {/* DROP-DOWN REATIVO COM SUB-ITEMS DE JOGOS FAVORITADOS NO BANCO */}
+                {isFavoritesOpen && (
+                  <div
+                    className="animate-in"
+                    style={{
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: "2px",
+                      paddingLeft: "20px",
+                      marginBottom: "10px",
+                    }}
+                  >
+                    {favoriteGames.length > 0 ? (
+                      favoriteGames.map((game) => (
+                        <div
+                          key={game.id}
+                          className="menu-item"
+                          onClick={() => navigate(`/jogo/${game.id}`)}
+                          style={{
+                            fontSize: "0.85rem",
+                            padding: "8px 12px",
+                            color: "#aaa",
+                          }}
+                        >
+                          <span
+                            style={{
+                              whiteSpace: "nowrap",
+                              overflow: "hidden",
+                              textOverflow: "ellipsis",
+                            }}
+                          >
+                            {game.title}
+                          </span>
+                        </div>
+                      ))
+                    ) : (
+                      <span
+                        style={{
+                          fontSize: "0.8rem",
+                          color: "#555",
+                          padding: "6px 12px",
+                          fontStyle: "italic",
+                        }}
+                      >
+                        Nenhum jogo favoritado
+                      </span>
+                    )}
+                  </div>
+                )}
+
+                {/* LISTAGEM DAS COLEÇÕES PERSONALIZADAS DO USUÁRIO */}
                 {customCollections.map((col) => (
                   <div
                     key={col.id}
@@ -147,24 +225,49 @@ export function MainLayout() {
                     </span>
                   </div>
                 ))}
-
-                {/* ELIMINADO DEFINITIVAMENTE: O botão "+ Nova Coleção" foi retirado para centralizar o fluxo apenas na view */}
-
-                <div
-                  className="collection-item add-collection"
-                  onClick={() => navigate("/escanear-pasta")}
-                  style={{
-                    color: "#ff0000",
-                    fontWeight: "bold",
-                    borderTop: "1px solid #1a1a1a",
-                    marginTop: "15px",
-                    paddingTop: "12px",
-                  }}
-                >
-                  <Folder size={16} /> <span>Escanear Pasta</span>
-                </div>
               </div>
             )}
+          </div>
+
+          {/* RODAPÉ GLOBAL DA SIDEBAR: ÍCONE MINIMALISTA DE ESCANEAR PASTA COM TOOLTIP */}
+          <div
+            className="sidebar-footer"
+            style={{
+              padding: "15px 20px",
+              borderTop: "1px solid var(--border-color)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "flex-start",
+              background: "var(--bg-sidebar)",
+              marginTop: "auto",
+            }}
+          >
+            <button
+              onClick={() => navigate("/escanear-pasta")}
+              title="Escanear Pasta por Jogos"
+              style={{
+                background: "none",
+                border: "none",
+                color: "#555",
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                padding: "8px",
+                borderRadius: "8px",
+                transition: "var(--transition-smooth)",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.color = "var(--accent-red)";
+                e.currentTarget.style.background = "#1a1a1a";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.color = "#555";
+                e.currentTarget.style.background = "none";
+              }}
+            >
+              <Folder size={20} />
+            </button>
           </div>
         </aside>
 
