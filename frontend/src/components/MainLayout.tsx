@@ -148,25 +148,18 @@ export function MainLayout() {
                   </div>
                 ))}
 
-                {/* BOTÃO ADICIONAR COLEÇÃO */}
-                <div
-                  className="collection-item add-collection"
-                  onClick={() => navigate("/create-collection")}
-                  style={{
-                    color: "#ffffff",
-                    fontWeight: "bold",
-                    borderTop: "1px solid #1a1a1a",
-                    marginTop: "10px",
-                    paddingTop: "12px",
-                  }}
-                >
-                  <span>+ Nova Coleção</span>
-                </div>
+                {/* ELIMINADO DEFINITIVAMENTE: O botão "+ Nova Coleção" foi retirado para centralizar o fluxo apenas na view */}
 
                 <div
                   className="collection-item add-collection"
                   onClick={() => navigate("/escanear-pasta")}
-                  style={{ color: "#ff0000", fontWeight: "bold" }}
+                  style={{
+                    color: "#ff0000",
+                    fontWeight: "bold",
+                    borderTop: "1px solid #1a1a1a",
+                    marginTop: "15px",
+                    paddingTop: "12px",
+                  }}
                 >
                   <Folder size={16} /> <span>Escanear Pasta</span>
                 </div>
@@ -178,7 +171,6 @@ export function MainLayout() {
         {/* Área Principal de Conteúdo */}
         <div className="content-area">
           <header className="topbar">
-            {/* CORREÇÃO DO BUG: CAMPO DE BUSCA CONTEXTUAL REATIVO */}
             <div className="search-container">
               <Search size={18} color="#888" />
               <input
