@@ -1,6 +1,8 @@
 from typing import List
 from sqlmodel import Session
 
+from typing import Optional, List
+
 from models.tags import Tag
 from repositories import tagRepository
 
@@ -27,3 +29,8 @@ def post_tags(session: Session, name: str) -> Tag:
 
 def get_tags(session: Session) -> List[Tag]:
     return tagRepository.get_tags(session)
+
+
+def delete_tag(session: Session, tag_id: int) -> bool:
+    return tagRepository.delete_tag(session, tag_id)
+

@@ -105,3 +105,17 @@ def get_collection_games(
     )
 
     return session.exec(stmt).all()
+
+
+# Deletar coleção
+def delete_collection(session: Session, collection_id: int) -> bool:
+    Collection_db = session.get(Collection, collection_id)
+
+    if not Collection_db:
+        return False
+
+    session.delete(Collection_db)
+    session.commit()
+    return True
+
+# Adicionar jogo na coleção

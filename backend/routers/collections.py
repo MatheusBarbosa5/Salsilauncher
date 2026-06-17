@@ -36,7 +36,7 @@ def get_collections(
         offset=offset
     )
 
-# Obter todos os jogos daquela coleção
+# Obter todos os jogos da coleção
 @router.get("/{collection_id}", response_model=list[Game])
 def get_collection_games(
     collection_id: int,
@@ -78,3 +78,21 @@ def update_collection(
         )
 
     return updated_collection
+
+
+# Deletar coleção
+@router.delete("/{collection_id}")
+def delete_collection(
+    collection_id: int,
+    session: Session = Depends(get_session)
+):
+    success = collectionsService.delete_collection(session, collection_id)
+
+    if not success:
+        raise HTTPException(status_code=404, detail="tag não encontrada")
+    
+    return
+
+# Adicionar jogo na coleção
+# @router.post("/{collection_id}/games/{game_id}")
+# def add_game_to_colletion()

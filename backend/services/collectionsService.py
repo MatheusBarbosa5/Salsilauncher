@@ -55,3 +55,6 @@ def update_collection(
         collection_data=collection_update
     )
 
+def delete_collection(session: Session, collection_id: int) -> bool:
+    return collectionRepository.delete_collection(session, collection_id)
+
