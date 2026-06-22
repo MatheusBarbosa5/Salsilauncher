@@ -257,7 +257,6 @@ export function MainLayout() {
             )}
           </div>
 
-          {/* RODAPÉ GLOBAL DA SIDEBAR: TAMANHO DO ÍCONE ATUALIZADO DE 20 PARA 24 */}
           <div
             className="sidebar-footer"
             style={{
@@ -294,7 +293,7 @@ export function MainLayout() {
                 e.currentTarget.style.background = "none";
               }}
             >
-              <FolderPlus size={30} />
+              <FolderPlus size={24} />
             </button>
           </div>
         </aside>
@@ -309,8 +308,12 @@ export function MainLayout() {
                 placeholder="Buscar na biblioteca..."
                 value={searchQuery}
                 onChange={(e) => {
-                  const targetPath =
-                    location.pathname === "/library" ? "/library" : "/";
+                  let targetPath = "/";
+                  if (location.pathname === "/library") {
+                    targetPath = "/library";
+                  } else if (activeTab === "collections") {
+                    targetPath = "/collections";
+                  }
                   navigate(
                     `${targetPath}?q=${encodeURIComponent(e.target.value)}`,
                   );
