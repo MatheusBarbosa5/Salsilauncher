@@ -14,5 +14,5 @@ uv sync
 3. **Rodar o servidor:**
 ```bash
 .venv\Scripts\Activate.ps1
-fastapi dev
+fastapi deva
 ```
