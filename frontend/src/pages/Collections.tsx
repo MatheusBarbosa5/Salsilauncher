@@ -1,14 +1,7 @@
 // frontend/src/pages/Collections.tsx
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import {
-  Folder,
-  FolderHeart,
-  Trash2,
-  Edit3,
-  ArrowLeft,
-  LayoutGrid,
-} from "lucide-react";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { Folder, FolderHeart, Trash2, Edit3, ArrowLeft } from "lucide-react";
 import { useToast } from "../context/ToastContext";
 import { GameCard } from "../components/GameCard";
 
@@ -22,6 +15,10 @@ export function Collections() {
 
   const navigate = useNavigate();
   const { showToast } = useToast();
+
+  // Connects the page state to the global topbar search parameter query
+  const [searchParams] = useSearchParams();
+  const query = searchParams.get("q") || "";
 
   useEffect(() => {
     const loadDashboardData = async () => {
@@ -75,7 +72,6 @@ export function Collections() {
 
   // ENGINE REATIVA DO MOSAICO DE CAPAS (ESTILO SPOTIFY)
   const renderCollectionCover = (col: any) => {
-    // 1. If custom cover URL string is specified, use it directly
     if (col.cover) {
       return (
         <img
@@ -86,7 +82,6 @@ export function Collections() {
       );
     }
 
-    // 2. Fetch cover strings from valid included game references
     const covers: string[] = [];
     if (col.gamesIds && col.gamesIds.length > 0) {
       col.gamesIds.forEach((gameId: number) => {
@@ -97,7 +92,6 @@ export function Collections() {
       });
     }
 
-    // Fallback: If no covers are found, render a nice default dark icon block
     if (covers.length === 0) {
       return (
         <div
@@ -115,7 +109,6 @@ export function Collections() {
       );
     }
 
-    // Layout configuration based on matching game cover array quantity
     if (covers.length === 1) {
       return (
         <img
@@ -185,7 +178,6 @@ export function Collections() {
       );
     }
 
-    // 4 or more games maps to a perfect 2x2 multi-grid split quadrant layout
     return (
       <div
         style={{
@@ -293,6 +285,11 @@ export function Collections() {
     );
   }
 
+  // Tech logical filter mapping for matching text queries locally
+  const filteredCollections = collections.filter((col) =>
+    (col.name || "").toLowerCase().includes(query.toLowerCase()),
+  );
+
   return (
     <div className="page-container animate-in" style={{ padding: "10px 20px" }}>
       <div
@@ -306,11 +303,15 @@ export function Collections() {
       >
         <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
           <FolderHeart size={20} color="#ff0000" />
-          <span>Coleções da sua Biblioteca</span>
+          <span>
+            {query
+              ? `Resultados para: "${query}"`
+              : "Coleções da sua Biblioteca"}
+          </span>
         </div>
       </div>
 
-      {/* DASHBOARD GRID DE EXIBIÇÃO PREMIUM */}
+      {/* GRELHA PRINCIPAL DE EXIBIÇÃO DA INTERFACE */}
       <div
         style={{
           display: "grid",
@@ -318,58 +319,60 @@ export function Collections() {
           gap: "30px",
         }}
       >
-        {/* CARD TRACEJADO: ADICIONAR NOVA COLEÇÃO */}
-        <div
-          onClick={() => navigate("/create-collection")}
-          style={{
-            cursor: "pointer",
-            display: "flex",
-            flexDirection: "column",
-            justifyContent: "center",
-            alignItems: "center",
-            background: "linear-gradient(135deg, #0f0f0f 0%, #151515 100%)",
-            border: "2px dashed #222",
-            borderRadius: "15px",
-            transition: "0.2s",
-            padding: "20px",
-            textAlign: "center",
-            aspectRatio: "1/1",
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.borderColor = "var(--accent-red)";
-            e.currentTarget.style.transform = "translateY(-5px)";
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.borderColor = "#222";
-            e.currentTarget.style.transform = "translateY(0)";
-          }}
-        >
+        {/* CARD TRACEJADO DE CRIAÇÃO: SEMPRE VISÍVEL SE NÃO HOUVER BUSCA EM ANDAMENTO */}
+        {!query && (
           <div
+            onClick={() => navigate("/create-collection")}
             style={{
-              background: "rgba(255, 0, 0, 0.08)",
-              padding: "14px",
-              borderRadius: "50%",
-              marginBottom: "12px",
+              cursor: "pointer",
               display: "flex",
-              alignItems: "center",
+              flexDirection: "column",
               justifyContent: "center",
-              border: "1px solid rgba(255, 0, 0, 0.2)",
+              alignItems: "center",
+              background: "linear-gradient(135deg, #0f0f0f 0%, #151515 100%)",
+              border: "2px dashed #222",
+              borderRadius: "15px",
+              transition: "0.2s",
+              padding: "20px",
+              textAlign: "center",
+              aspectRatio: "1/1",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.borderColor = "var(--accent-red)";
+              e.currentTarget.style.transform = "translateY(-5px)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.borderColor = "#222";
+              e.currentTarget.style.transform = "translateY(0)";
             }}
           >
-            <FolderHeart size={24} color="var(--accent-red)" />
+            <div
+              style={{
+                background: "rgba(255, 0, 0, 0.08)",
+                padding: "14px",
+                borderRadius: "50%",
+                marginBottom: "12px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                border: "1px solid rgba(255, 0, 0, 0.2)",
+              }}
+            >
+              <FolderHeart size={24} color="var(--accent-red)" />
+            </div>
+            <span
+              style={{ color: "#ffffff", fontWeight: "700", fontSize: "14px" }}
+            >
+              Criar Coleção
+            </span>
+            <span style={{ color: "#555", fontSize: "11px", marginTop: "4px" }}>
+              Nova Categoria
+            </span>
           </div>
-          <span
-            style={{ color: "#ffffff", fontWeight: "700", fontSize: "14px" }}
-          >
-            Criar Coleção
-          </span>
-          <span style={{ color: "#555", fontSize: "11px", marginTop: "4px" }}>
-            Nova Categoria
-          </span>
-        </div>
+        )}
 
-        {/* MAP COMPONENT: PASTAS DE COLECÕES COM CAPA INDIVIDUAL OU GRID MOSAICO REATIVO */}
-        {collections.map((col) => (
+        {/* LISTAGEM DAS PASTAS DE COLECÕES */}
+        {filteredCollections.map((col) => (
           <div
             key={col.id}
             onClick={() => setSelectedCollection(col)}
@@ -388,7 +391,6 @@ export function Collections() {
             }
             onMouseLeave={(e) => (e.currentTarget.style.borderColor = "#222")}
           >
-            {/* CONTAINER DA CAPA QUADRADA (MOSAICO OU URL FIXA) */}
             <div
               style={{
                 width: "100%",
@@ -399,8 +401,6 @@ export function Collections() {
               }}
             >
               {renderCollectionCover(col)}
-
-              {/* FLUTUANTE DE CONTAGEM COMPACTO */}
               <span
                 style={{
                   position: "absolute",
@@ -420,7 +420,6 @@ export function Collections() {
               </span>
             </div>
 
-            {/* CONTEÚDO E GERENCIAMENTO DO CARD */}
             <div
               style={{
                 padding: "15px",
@@ -436,6 +435,7 @@ export function Collections() {
                   display: "flex",
                   flexDirection: "column",
                   minWidth: "0",
+                  flex: 1,
                 }}
               >
                 <h3
@@ -502,6 +502,21 @@ export function Collections() {
             </div>
           </div>
         ))}
+
+        {/* FEEDBACK CASO O USUÁRIO PROCURE POR ALGO QUE NÃO EXISTE */}
+        {filteredCollections.length === 0 && query && (
+          <p
+            style={{
+              color: "#555",
+              padding: "20px",
+              gridColumn: "1 / -1",
+              textAlign: "center",
+              fontSize: "14px",
+            }}
+          >
+            Nenhuma coleção corresponde aos termos digitados.
+          </p>
+        )}
       </div>
     </div>
   );

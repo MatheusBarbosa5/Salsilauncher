@@ -17,6 +17,7 @@ import {
   Star,
   Library,
   Folder,
+  FolderPlus,
 } from "lucide-react";
 
 export function MainLayout() {
@@ -207,7 +208,7 @@ export function MainLayout() {
                   </div>
                 )}
 
-                {/* CORREÇÃO DO BUG DO QA: LISTAGEM DAS COLEÇÕES COM RETICÊNCIAS (ELLIPSIS) */}
+                {/* LISTAGEM DAS COLEÇÕES COM RETICÊNCIAS (ELLIPSIS) */}
                 {customCollections.map((col) => (
                   <div
                     key={col.id}
@@ -219,18 +220,15 @@ export function MainLayout() {
                       display: "flex",
                       alignItems: "center",
                       gap: "12px",
-                      minWidth: 0, // Essencial para permitir o encolhimento de filhos Flex
+                      minWidth: 0,
                     }}
                     onClick={() => navigate("/collections")}
                   >
-                    {/* flexShrink: 0 impede o ícone de sumir ou ser esmagado pelo texto longo */}
                     <Folder
                       size={14}
                       color="#ff3333"
                       style={{ flexShrink: 0 }}
                     />
-
-                    {/* Text-overflow restringe a string e aplica reticências se vazar da sidebar */}
                     <span
                       style={{
                         whiteSpace: "nowrap",
@@ -241,8 +239,6 @@ export function MainLayout() {
                     >
                       {col.name}
                     </span>
-
-                    {/* Badge flutuante fixado à direita de forma responsiva */}
                     <span
                       style={{
                         fontSize: "0.75rem",
@@ -261,7 +257,6 @@ export function MainLayout() {
             )}
           </div>
 
-          {/* RODAPÉ GLOBAL DA SIDEBAR: ÍCONE MINIMALISTA DE ESCANEAR PASTA COM TOOLTIP */}
           <div
             className="sidebar-footer"
             style={{
@@ -280,7 +275,7 @@ export function MainLayout() {
               style={{
                 background: "none",
                 border: "none",
-                color: "#555",
+                color: "var(--accent-red)",
                 cursor: "pointer",
                 display: "flex",
                 alignItems: "center",
@@ -290,15 +285,15 @@ export function MainLayout() {
                 transition: "var(--transition-smooth)",
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.color = "var(--accent-red)";
+                e.currentTarget.style.color = "#ff3333";
                 e.currentTarget.style.background = "#1a1a1a";
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.color = "#555";
+                e.currentTarget.style.color = "var(--accent-red)";
                 e.currentTarget.style.background = "none";
               }}
             >
-              <Folder size={20} />
+              <FolderPlus size={24} />
             </button>
           </div>
         </aside>
@@ -313,8 +308,12 @@ export function MainLayout() {
                 placeholder="Buscar na biblioteca..."
                 value={searchQuery}
                 onChange={(e) => {
-                  const targetPath =
-                    location.pathname === "/library" ? "/library" : "/";
+                  let targetPath = "/";
+                  if (location.pathname === "/library") {
+                    targetPath = "/library";
+                  } else if (activeTab === "collections") {
+                    targetPath = "/collections";
+                  }
                   navigate(
                     `${targetPath}?q=${encodeURIComponent(e.target.value)}`,
                   );
