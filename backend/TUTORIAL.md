@@ -19,3 +19,20 @@ uv sync
 .venv\Scripts\Activate.ps1
 fastapi dev
 ```
+
+# Como rodar o contador
+
+1. **Entrar na pasta do backend**
+```bash
+cd backend
+```
+
+2. **Abrir o ambiente virtual**
+```bash
+. .venv\Scripts\activate
+```
+
+3. **Rodar o arquivo python**
+```bash
+python -m services.monitor_service
+```
