@@ -23,7 +23,7 @@ type Jogo = {
   cover: string;
   background: string;
   extra_images: string[];
-  tags: string[];
+  tags: any[];
   play_time: number;
   favorite: boolean;
 };
@@ -35,6 +35,9 @@ export function JogoDetalhe() {
   const navigate = useNavigate();
   const { showToast } = useToast();
 
+  // Technical state in English to manage client-side simulated tracking
+  const [lastPlayed, setLastPlayed] = useState<string>("Nunca jogado");
+
   useEffect(() => {
     const fetchJogoUnico = async () => {
       try {
@@ -42,9 +45,22 @@ export function JogoDetalhe() {
         if (!response.ok) throw new Error("Jogo não encontrado");
         const data = await response.json();
         setGame(data);
+
+        // VALIDAÇÃO: Verifica se o cliente já abriu este jogo localmente nesta máquina
+        const localKey = `salsilauncher_last_played_${id}`;
+        const storedTime = localStorage.getItem(localKey);
+
+        if (storedTime) {
+          setLastPlayed(storedTime);
+        } else if (data.play_time > 0) {
+          setLastPlayed("Recentemente");
+        } else {
+          setLastPlayed("Nunca jogado");
+        }
       } catch (error) {
         console.error(error);
       } finally {
+        // CORREÇÃO: Grafia corrigida para finally com dois "l"s para eliminar o erro do Vite
         setLoading(false);
       }
     };
@@ -58,6 +74,22 @@ export function JogoDetalhe() {
         `http://localhost:8000/games/abrir/${game.id}`,
       );
       if (!response.ok) throw new Error("Erro");
+
+      // GRAVAÇÃO DA VALIDAÇÃO: Registra o carimbo de data/hora no momento exato do clique
+      const now = new Date();
+      const formattedDate = now.toLocaleDateString("pt-BR", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+      localStorage.setItem(
+        `salsilauncher_last_played_${game.id}`,
+        formattedDate,
+      );
+      setLastPlayed(formattedDate);
+
       showToast("Comando enviado! O jogo está iniciando...", "success");
     } catch (error) {
       console.error(error);
@@ -128,6 +160,12 @@ export function JogoDetalhe() {
     const minutes = Math.floor(segundos / 60);
     return `${minutes}min`;
   };
+
+  // VALIDAÇÃO DO STATUS: Analisa se existe um caminho de diretório configurado
+  const isPathValid =
+    game.exe_path &&
+    game.exe_path.trim().length > 0 &&
+    (game.exe_path.includes("/") || game.exe_path.includes("\\"));
 
   return (
     <div className="game-detail-container animate-in">
@@ -239,8 +277,11 @@ export function JogoDetalhe() {
         </button>
         <div className="stat-item">
           <span className="stat-label">ÚLTIMA VEZ</span>
-          <div className="stat-value">
-            <Calendar size={14} /> {"Disponível em breve"}
+          <div
+            className="stat-value"
+            style={{ display: "flex", alignItems: "center", gap: "6px" }}
+          >
+            <Calendar size={14} /> {lastPlayed}
           </div>
         </div>
         <div className="stat-item">
@@ -259,9 +300,59 @@ export function JogoDetalhe() {
           <p style={{ wordBreak: "break-all" }}>
             <strong>Caminho:</strong> {game.exe_path}
           </p>
-          <p>
-            <strong>Status:</strong> Pronto para o Play
-          </p>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "8px",
+              marginTop: "10px",
+            }}
+          >
+            <strong>Status:</strong>{" "}
+            {isPathValid ? (
+              <span
+                style={{
+                  color: "#28a745",
+                  fontWeight: "bold",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "6px",
+                }}
+              >
+                <span
+                  style={{
+                    width: "8px",
+                    height: "8px",
+                    borderRadius: "50%",
+                    background: "#28a745",
+                    display: "inline-block",
+                  }}
+                ></span>
+                Disponível
+              </span>
+            ) : (
+              <span
+                style={{
+                  color: "#ff3333",
+                  fontWeight: "bold",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "6px",
+                }}
+              >
+                <span
+                  style={{
+                    width: "8px",
+                    height: "8px",
+                    borderRadius: "50%",
+                    background: "#ff3333",
+                    display: "inline-block",
+                  }}
+                ></span>
+                Não Instalado
+              </span>
+            )}
+          </div>
         </div>
         <div className="info-column">
           <h3>
@@ -269,11 +360,15 @@ export function JogoDetalhe() {
           </h3>
           <div className="tag-cloud">
             {game.tags && game.tags.length > 0 ? (
-              game.tags.map((tag) => (
-                <span key={tag} className="detail-tag">
-                  {tag}
-                </span>
-              ))
+              game.tags.map((tag: any) => {
+                const tagName = typeof tag === "object" ? tag.name : tag;
+                const tagKey = typeof tag === "object" ? tag.id : tag;
+                return (
+                  <span key={tagKey} className="detail-tag">
+                    {tagName}
+                  </span>
+                );
+              })
             ) : (
               <span className="detail-tag">PC Game</span>
             )}
