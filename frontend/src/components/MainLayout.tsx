@@ -121,7 +121,10 @@ export function MainLayout() {
                 </div>
               </div>
             ) : (
-              <div className="menu-group animate-in">
+              <div
+                className="menu-group animate-in"
+                style={{ display: "flex", flexDirection: "column", gap: "4px" }}
+              >
                 {/* CATEGORIA DE FAVORITOS TRADUZIDA E TOTALMENTE FUNCIONAL */}
                 <div
                   className="collection-item"
@@ -134,6 +137,7 @@ export function MainLayout() {
                     color={
                       favoriteGames.length > 0 ? "#ff0000" : "currentColor"
                     }
+                    style={{ flexShrink: 0 }}
                   />
                   <span>Favoritos</span>
                   <ChevronDown
@@ -143,6 +147,7 @@ export function MainLayout() {
                       marginLeft: "auto",
                       transform: isFavoritesOpen ? "rotate(180deg)" : "none",
                       transition: "transform 0.2s",
+                      flexShrink: 0,
                     }}
                   />
                 </div>
@@ -157,6 +162,7 @@ export function MainLayout() {
                       gap: "2px",
                       paddingLeft: "20px",
                       marginBottom: "10px",
+                      minWidth: 0,
                     }}
                   >
                     {favoriteGames.length > 0 ? (
@@ -169,6 +175,9 @@ export function MainLayout() {
                             fontSize: "0.85rem",
                             padding: "8px 12px",
                             color: "#aaa",
+                            display: "flex",
+                            alignItems: "center",
+                            minWidth: 0,
                           }}
                         >
                           <span
@@ -176,6 +185,7 @@ export function MainLayout() {
                               whiteSpace: "nowrap",
                               overflow: "hidden",
                               textOverflow: "ellipsis",
+                              flex: 1,
                             }}
                           >
                             {game.title}
@@ -197,7 +207,7 @@ export function MainLayout() {
                   </div>
                 )}
 
-                {/* LISTAGEM DAS COLEÇÕES PERSONALIZADAS DO USUÁRIO */}
+                {/* CORREÇÃO DO BUG DO QA: LISTAGEM DAS COLEÇÕES COM RETICÊNCIAS (ELLIPSIS) */}
                 {customCollections.map((col) => (
                   <div
                     key={col.id}
@@ -206,19 +216,41 @@ export function MainLayout() {
                       paddingLeft: "25px",
                       fontSize: "0.9rem",
                       color: "#ccc",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "12px",
+                      minWidth: 0, // Essencial para permitir o encolhimento de filhos Flex
                     }}
                     onClick={() => navigate("/collections")}
                   >
-                    <Folder size={14} color="#ff3333" />
-                    <span>{col.name}</span>
+                    {/* flexShrink: 0 impede o ícone de sumir ou ser esmagado pelo texto longo */}
+                    <Folder
+                      size={14}
+                      color="#ff3333"
+                      style={{ flexShrink: 0 }}
+                    />
+
+                    {/* Text-overflow restringe a string e aplica reticências se vazar da sidebar */}
                     <span
                       style={{
-                        marginLeft: "auto",
+                        whiteSpace: "nowrap",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        flex: 1,
+                      }}
+                    >
+                      {col.name}
+                    </span>
+
+                    {/* Badge flutuante fixado à direita de forma responsiva */}
+                    <span
+                      style={{
                         fontSize: "0.75rem",
                         color: "#666",
                         background: "#181818",
                         padding: "2px 6px",
                         borderRadius: "4px",
+                        flexShrink: 0,
                       }}
                     >
                       {col.gamesCount}
