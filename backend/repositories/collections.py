@@ -119,3 +119,58 @@ def delete_collection(session: Session, collection_id: int) -> bool:
     return True
 
 # Adicionar jogo na coleção
+def add_game_to_collection(session: Session, collection_id: int, game_id: int) -> bool:
+
+    # validação da coleção
+    collection = session.get(Collection, collection_id)
+    if not collection:
+        return False
+
+    # validação do jogo
+    game = session.get(Game, game_id)
+    if not game:
+        return False
+
+    # evita duplicação
+    existing = session.exec(
+        select(CollectionGameLink).where(
+            CollectionGameLink.collection_id == collection_id,
+            CollectionGameLink.game_id == game_id
+        )
+    ).first()
+
+    if existing:
+        return True  # já existe, idempotente
+
+    # Adicionar jogo na coleção
+    link = CollectionGameLink(
+        collection_id=collection_id,
+        game_id=game_id
+    )
+
+    session.add(link)
+    session.commit()
+
+    return True
+
+# remover jogo da coleção
+def remove_game_from_collection(
+    session: Session,
+    collection_id: int,
+    game_id: int
+) -> bool:
+
+    link = session.exec(
+        select(CollectionGameLink).where(
+            CollectionGameLink.collection_id == collection_id,
+            CollectionGameLink.game_id == game_id
+        )
+    ).first()
+
+    if not link:
+        return False
+
+    session.delete(link)
+    session.commit()
+
+    return True

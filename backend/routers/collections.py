@@ -93,6 +93,44 @@ def delete_collection(
     
     return
 
-# Adicionar jogo na coleção
-# @router.post("/{collection_id}/games/{game_id}")
-# def add_game_to_colletion()
+# adicionar jogo na coleção
+@router.post("/{collection_id}/games/{game_id}")
+def add_game_to_collection(
+    collection_id: int,
+    game_id: int,
+    session: Session = Depends(get_session)
+):
+    success = collectionsService.add_game_to_collection(
+        session=session,
+        collection_id=collection_id,
+        game_id=game_id
+    )
+
+    if not success:
+        raise HTTPException(
+            status_code=404,
+            detail="Collection ou Game não encontrado"
+        )
+
+    return {"message": "Game adicionado à coleção"}
+
+# remover jogo da coleção
+@router.delete("/{collection_id}/games/{game_id}")
+def remove_game_from_collection(
+    collection_id: int,
+    game_id: int,
+    session: Session = Depends(get_session)
+):
+    success = collectionsService.remove_game_from_collection(
+        session=session,
+        collection_id=collection_id,
+        game_id=game_id
+    )
+
+    if not success:
+        raise HTTPException(
+            status_code=404,
+            detail="Relação coleção jogo não encontrada"
+        )
+
+    return {"message": "Game removido da coleção"}

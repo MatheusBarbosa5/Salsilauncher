@@ -58,3 +58,23 @@ def update_collection(
 def delete_collection(session: Session, collection_id: int) -> bool:
     return collectionRepository.delete_collection(session, collection_id)
 
+# adicionar jogo na coleção
+def add_game_to_collection(session: Session, collection_id: int, game_id: int) -> bool:
+    return collectionRepository.add_game_to_collection(
+        session=session,
+        collection_id=collection_id,
+        game_id=game_id
+    )
+
+# remover jogo da coleção
+def remove_game_from_collection(
+    session: Session,
+    collection_id: int,
+    game_id: int
+) -> bool:
+
+    return collectionRepository.remove_game_from_collection(
+        session=session,
+        collection_id=collection_id,
+        game_id=game_id
+    )
