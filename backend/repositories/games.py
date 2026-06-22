@@ -22,11 +22,11 @@ def sync_game_tag(session: Session, game: Game, tag_ids: list[int]):
 
 
 def get_games(
-    session: Session,
-    q: Optional[str] = None,
-    tags: Optional[List[str]] = None,
-    limit: int = 25,
-    offset: int = 0
+session: Session,
+q: Optional[str] = None,
+tags: Optional[List[str]] = None,
+limit: int = 25,
+offset: int = 0
 ) -> List[Game]:
 
     stmt = select(Game).options(selectinload(Game.tags))
@@ -41,13 +41,18 @@ def get_games(
         )
 
     stmt = stmt.offset(offset).limit(limit)
+
     games = session.exec(stmt).all()
+
+    print(tags)
 
     if tags:
         tag_set = {t.lower() for t in tags}
         games = [
             game for game in games
-            if tag_set.issubset({t.name.lower() for t in (game.tags or [])})
+            if tag_set.issubset(
+                {t.name.lower() for t in (game.tags or [])}
+            )
         ]
 
     return games

@@ -31,7 +31,7 @@ from services import gameService
 router = APIRouter(prefix="/games", tags=["Games"])
 
 # Buscar todos os jogos, com ou sem filtro
-@router.get("/", response_model=list[Game])
+@router.get("/", response_model=list[dict])
 def get_games(
     q: str | None = Query(None),
     tags: str | None = Query(None),
@@ -39,7 +39,7 @@ def get_games(
     offset: int = Query(0, ge=0),
     session: Session = Depends(get_session)
 ):
-    return gameService.get_games(
+    games = gameService.get_games(
         session=session,
         q=q,
         tags=tags,
@@ -47,8 +47,18 @@ def get_games(
         offset=offset
     )
 
+    print(games[0].tags if games else "sem games")
+
+    return [
+        {
+            **game.model_dump(),
+            "tags": [tag.model_dump() for tag in game.tags]
+        }
+        for game in games
+    ]
+
 # Bucar jogo com base no ID
-@router.get("/{game_id}", response_model=Game)
+@router.get("/{game_id}", response_model=dict)
 def get_game_by_id(
     game_id: int,
     session: Session = Depends(get_session)
@@ -58,7 +68,10 @@ def get_game_by_id(
     if not game:
         raise HTTPException(status_code=404, detail="Game não encontrado")
 
-    return game
+    return {
+        **game.model_dump(),
+        "tags": [tag.model_dump() for tag in game.tags]
+    }
 
 # Cria jogo
 @router.post("/", response_model=Game, status_code=201)
