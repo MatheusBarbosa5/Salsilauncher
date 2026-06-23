@@ -21,7 +21,7 @@ def processo_corresponde(sessao):
 
         criado_em = processo.create_time()
         delta = abs(
-            (criado_em - sessao.pid_criado_em).total_seconds()
+            criado_em - sessao.pid_criado_em
         )
 
 
