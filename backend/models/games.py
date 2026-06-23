@@ -1,7 +1,7 @@
 from sqlmodel import SQLModel, Field, Relationship
 from sqlalchemy import Column, JSON
-
 from typing import TYPE_CHECKING
+
 if TYPE_CHECKING:
     from models.collections import Collection
     from models.game_session import GameSession
@@ -73,7 +73,7 @@ class Game(SQLModel, table=True):
     )
 
     sessions: list["GameSession"] = Relationship(
-        back_populates="game"
+        back_populates="games"
     )
 
 class GameCreate(SQLModel):

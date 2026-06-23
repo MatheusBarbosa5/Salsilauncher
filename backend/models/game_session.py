@@ -20,7 +20,7 @@ class GameSession(SQLModel, table=True):
     ativa: bool = True
     duracao_segundos: int | None = None
     
-    game: "Game" = Relationship(
+    games: "Game" = Relationship(
         back_populates="sessions"
     )
 

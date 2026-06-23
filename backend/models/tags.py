@@ -28,6 +28,3 @@ class Tag(SQLModel, table=True):
         back_populates="tags",
         link_model=GameTagLink
     )
-
-
-    
