@@ -1,3 +1,4 @@
+// frontend/src/pages/CadastroJogo.tsx
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -22,17 +23,34 @@ export function CadastroJogo() {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    const data = {
-      title: title,
-      exe_path: exePath,
-      folder_path: exePath.includes("\\")
-        ? exePath.substring(0, exePath.lastIndexOf("\\"))
-        : "C:\\Games",
-      cover: image,
-      tags: category ? [category] : [],
-    };
-
     try {
+      let tagIds: number[] = [];
+
+      // 1. Resolve o nome da tag em ID numérico através do endpoint existente do backend
+      if (category.trim()) {
+        const tagResponse = await fetch(
+          `http://localhost:8000/tags/?name=${encodeURIComponent(category.trim())}`,
+          { method: "POST" },
+        );
+        if (tagResponse.ok) {
+          const tagData = await tagResponse.json();
+          if (tagData && tagData.id) {
+            tagIds.push(tagData.id); // Captura o ID gerado na tabela SQLite
+          }
+        }
+      }
+
+      // 2. Monta o payload no formato correto esperado pelo banco de dados
+      const data = {
+        title: title,
+        exe_path: exePath,
+        folder_path: exePath.includes("\\")
+          ? exePath.substring(0, exePath.lastIndexOf("\\"))
+          : "C:\\Games",
+        cover: image,
+        tag_ids: tagIds, // CORREÇÃO: Enviando a lista de IDs numéricos obrigatória
+      };
+
       const response = await fetch("http://localhost:8000/games/", {
         method: "POST",
         headers: {

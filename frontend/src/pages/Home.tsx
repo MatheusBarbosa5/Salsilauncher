@@ -17,7 +17,6 @@ export function Home() {
     const isShown = sessionStorage.getItem("salsilauncher_welcome_shown");
     return !isShown; // If it was not shown yet, banner is visible
   });
-
   const [bannerCollapsed, setBannerCollapsed] = useState(() => {
     const isShown = sessionStorage.getItem("salsilauncher_welcome_shown");
     return !!isShown; // If it was already shown, start with banner collapsed
@@ -40,17 +39,14 @@ export function Home() {
 
   // Timers to handle the fluid flash message animation and session storage commit
   useEffect(() => {
-    // If the welcome banner has already been shown in this session, skip animation completely
     if (sessionStorage.getItem("salsilauncher_welcome_shown")) {
       return;
     }
 
-    // 1. Starts the smooth fade-out and collapse transition after 4 seconds
     const fadeTimer = setTimeout(() => {
       setBannerVisible(false);
     }, 4000);
 
-    // 2. Completely unmounts the element from the DOM and commits to sessionStorage (4.6s total)
     const collapseTimer = setTimeout(() => {
       setBannerCollapsed(true);
       sessionStorage.setItem("salsilauncher_welcome_shown", "true");
@@ -88,7 +84,7 @@ export function Home() {
             <img src={logoImg} alt="Salsilauncher" className="hero-logo" />
             <div className="hero-text">
               <h1>Bem-vindo ao Salsilauncher</h1>
-              <p>Sua biblioteca de jogos, organizada e pronta para o play.</p>
+              <p>Sua biblioteca de jogos, organizada and pronta para o play.</p>
             </div>
           </div>
         </section>
@@ -174,7 +170,8 @@ export function Home() {
                 id={game.id}
                 nome={game.title}
                 capa={game.cover}
-                category={game.tags?.[0] || "PC Game"}
+                // CORREÇÃO VISUAL: Acessa estritamente a propriedade '.name' interna do objeto enviado pelo back
+                category={game.tags?.[0]?.name || game.tags?.[0] || "PC Game"}
               />
             ))
           ) : query ? (

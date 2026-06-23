@@ -1,3 +1,4 @@
+// frontend/src/pages/EditarJogo.tsx
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
@@ -34,7 +35,11 @@ export function EditarJogo() {
         setTitle(gameData.title || "");
         setImage(gameData.cover || "");
         setExePath(gameData.exe_path || "");
-        setCategory(gameData.tags?.[0] || "");
+
+        // CORREÇÃO: Extrai o nome de texto de dentro do objeto de tag retornado pelo back
+        const currentTagName =
+          gameData.tags?.[0]?.name || gameData.tags?.[0] || "";
+        setCategory(currentTagName);
       } catch (error) {
         console.error(error);
         showToast("Erro ao carregar as informações do jogo.", "error");
@@ -49,20 +54,38 @@ export function EditarJogo() {
     e.preventDefault();
     if (!originalGame) return;
 
-    const updatedFields: any = {};
-    if (title !== originalGame.title) updatedFields.title = title;
-    if (image !== originalGame.cover) updatedFields.cover = image;
-    if (exePath !== originalGame.exe_path) updatedFields.exe_path = exePath;
-    if (category !== (originalGame.tags?.[0] || ""))
-      updatedFields.tags = [category];
-
-    if (Object.keys(updatedFields).length === 0) {
-      showToast("Nenhuma alteração foi detectada.", "info");
-      navigate("/");
-      return;
-    }
-
     try {
+      const updatedFields: any = {};
+      if (title !== originalGame.title) updatedFields.title = title;
+      if (image !== originalGame.cover) updatedFields.cover = image;
+      if (exePath !== originalGame.exe_path) updatedFields.exe_path = exePath;
+
+      const originalCategoryName =
+        originalGame.tags?.[0]?.name || originalGame.tags?.[0] || "";
+      if (category.trim() !== originalCategoryName) {
+        if (category.trim()) {
+          // Resolve o ID da tag atualizada antes de submeter as alterações do jogo
+          const tagResponse = await fetch(
+            `http://localhost:8000/tags/?name=${encodeURIComponent(category.trim())}`,
+            { method: "POST" },
+          );
+          if (tagResponse.ok) {
+            const tagData = await tagResponse.json();
+            if (tagData && tagData.id) {
+              updatedFields.tag_ids = [tagData.id]; // CORREÇÃO: Vincula a chave técnica correta
+            }
+          }
+        } else {
+          updatedFields.tag_ids = [];
+        }
+      }
+
+      if (Object.keys(updatedFields).length === 0) {
+        showToast("Nenhuma alteração foi detectada.", "info");
+        navigate("/");
+        return;
+      }
+
       const response = await fetch(`http://localhost:8000/games/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
