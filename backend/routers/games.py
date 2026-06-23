@@ -118,7 +118,7 @@ def escanear_pasta_por_games(
     validar_scan_path(scan_path) # Validar objeto Path do DIRETÓRIO
 
     games = game_repo.get_games(session, offset=0, limit=10_000) 
-    pastas_existentes = {j.caminho_pasta for j in games}
+    pastas_existentes = {j.exe_path for j in games}
     novos = []
 
     # Descobrir novas pastas
