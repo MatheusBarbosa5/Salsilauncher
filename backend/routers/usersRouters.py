@@ -103,6 +103,5 @@ def delete_user(
 
     return {"message": "User deleted successfully"}
 
-# Adicionar Amizade
 # Codificação de senha
-# Apenas campos obrigaórios
+# Apenas campos obrigaórios 
