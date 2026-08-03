@@ -25,7 +25,6 @@ export function MainLayout() {
   const location = useLocation();
   const [searchParams] = useSearchParams();
 
-  // Track tab state according to active navigation path URL
   const activeTab =
     location.pathname.startsWith("/collections") ||
     location.pathname.startsWith("/create-collection") ||
@@ -35,17 +34,32 @@ export function MainLayout() {
 
   const [isFavoritesOpen, setIsFavoritesOpen] = useState(false);
   const [customCollections, setCustomCollections] = useState<any[]>([]);
-  const [favoriteGames, setFavoriteGames] = useState<any[]>([]); // Tech state in English for DB favorites list
+  const [favoriteGames, setFavoriteGames] = useState<any[]>([]);
   const searchQuery = searchParams.get("q") || "";
 
   useEffect(() => {
-    // 1. Loads custom collections from browser storage
-    const loadCollections = () => {
-      const stored = localStorage.getItem("salsilauncher_collections");
-      setCustomCollections(stored ? JSON.parse(stored) : []);
+    // INTEGRAÇÃO BANCO: Busca as coleções do backend e enriquece com a contagem de jogos
+    const loadCollectionsFromDB = async () => {
+      try {
+        const res = await fetch("http://localhost:8000/collections/");
+        if (!res.ok) return;
+        const cols = await res.json();
+
+        const enrichedCols = await Promise.all(
+          cols.map(async (c: any) => {
+            const gRes = await fetch(
+              `http://localhost:8000/collections/${c.id}`,
+            );
+            const gamesData = await gRes.json();
+            return { id: c.id, name: c.title, gamesCount: gamesData.length };
+          }),
+        );
+        setCustomCollections(enrichedCols);
+      } catch (error) {
+        console.error("Erro ao carregar coleções:", error);
+      }
     };
 
-    // 2. Fetches database games to filter true system favorites dynamically
     const fetchFavorites = async () => {
       try {
         const response = await fetch("http://localhost:8000/games");
@@ -58,7 +72,7 @@ export function MainLayout() {
       }
     };
 
-    loadCollections();
+    loadCollectionsFromDB();
     fetchFavorites();
   }, [location.pathname]);
 
@@ -69,7 +83,6 @@ export function MainLayout() {
           className="sidebar"
           style={{ display: "flex", flexDirection: "column", height: "100vh" }}
         >
-          {/* Header da Sidebar */}
           <div
             className="sidebar-header"
             onClick={() => navigate("/")}
@@ -85,7 +98,6 @@ export function MainLayout() {
             <h2 className="sidebar-title">SALSILAUNCHER</h2>
           </div>
 
-          {/* Abas de Navegação */}
           <div className="nav-tabs">
             <div
               className={`tab ${activeTab === "home" ? "active" : ""}`}
@@ -101,7 +113,6 @@ export function MainLayout() {
             </div>
           </div>
 
-          {/* Conteúdo Rolável da Sidebar */}
           <div
             className="sidebar-content"
             style={{ flex: 1, overflowY: "auto" }}
@@ -126,7 +137,6 @@ export function MainLayout() {
                 className="menu-group animate-in"
                 style={{ display: "flex", flexDirection: "column", gap: "4px" }}
               >
-                {/* CATEGORIA DE FAVORITOS TRADUZIDA E TOTALMENTE FUNCIONAL */}
                 <div
                   className="collection-item"
                   onClick={() => setIsFavoritesOpen(!isFavoritesOpen)}
@@ -153,7 +163,6 @@ export function MainLayout() {
                   />
                 </div>
 
-                {/* DROP-DOWN REATIVO COM SUB-ITEMS DE JOGOS FAVORITADOS NO BANCO */}
                 {isFavoritesOpen && (
                   <div
                     className="animate-in"
@@ -208,7 +217,6 @@ export function MainLayout() {
                   </div>
                 )}
 
-                {/* LISTAGEM DAS COLEÇÕES COM RETICÊNCIAS (ELLIPSIS) */}
                 {customCollections.map((col) => (
                   <div
                     key={col.id}
@@ -284,21 +292,12 @@ export function MainLayout() {
                 borderRadius: "8px",
                 transition: "var(--transition-smooth)",
               }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.color = "#ff3333";
-                e.currentTarget.style.background = "#1a1a1a";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.color = "var(--accent-red)";
-                e.currentTarget.style.background = "none";
-              }}
             >
               <FolderPlus size={24} />
             </button>
           </div>
         </aside>
 
-        {/* Área Principal de Conteúdo */}
         <div className="content-area">
           <header className="topbar">
             <div className="search-container">
@@ -309,11 +308,9 @@ export function MainLayout() {
                 value={searchQuery}
                 onChange={(e) => {
                   let targetPath = "/";
-                  if (location.pathname === "/library") {
-                    targetPath = "/library";
-                  } else if (activeTab === "collections") {
+                  if (location.pathname === "/library") targetPath = "/library";
+                  else if (activeTab === "collections")
                     targetPath = "/collections";
-                  }
                   navigate(
                     `${targetPath}?q=${encodeURIComponent(e.target.value)}`,
                   );

@@ -8,7 +8,6 @@ import {
   CheckSquare,
   Square,
   Search,
-  Image as ImageIcon,
   Folder,
 } from "lucide-react";
 import { useToast } from "../context/ToastContext";
@@ -19,7 +18,6 @@ export function EditCollection() {
   const { showToast } = useToast();
 
   const [collectionName, setCollectionName] = useState("");
-  const [collectionCover, setCollectionCover] = useState("");
   const [games, setGames] = useState<any[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedGames, setSelectedGames] = useState<number[]>([]);
@@ -32,19 +30,24 @@ export function EditCollection() {
         const gamesData = await response.json();
         setGames(Array.isArray(gamesData) ? gamesData : []);
 
-        const stored = localStorage.getItem("salsilauncher_collections");
-        if (stored) {
-          const collections = JSON.parse(stored);
-          const target = collections.find((col: any) => col.id === Number(id));
+        const colsRes = await fetch("http://localhost:8000/collections/");
+        if (!colsRes.ok) throw new Error("Erro na rede");
+        const collections = await colsRes.json();
+        const target = collections.find((col: any) => col.id === Number(id));
 
-          if (target) {
-            setCollectionName(target.name || "");
-            setCollectionCover(target.cover || "");
-            setSelectedGames(target.gamesIds || []);
-          } else {
-            showToast("Coleção não encontrada.", "error");
-            navigate("/collections");
+        if (target) {
+          setCollectionName(target.title || "");
+
+          const gamesRes = await fetch(
+            `http://localhost:8000/collections/${id}`,
+          );
+          if (gamesRes.ok) {
+            const colGames = await gamesRes.json();
+            setSelectedGames(colGames.map((g: any) => g.id));
           }
+        } else {
+          showToast("Coleção não encontrada no servidor.", "error");
+          navigate("/collections");
         }
       } catch (error) {
         console.error("Failed to restore collection edit state:", error);
@@ -64,7 +67,7 @@ export function EditCollection() {
     }
   };
 
-  const handleUpdate = (e: React.FormEvent) => {
+  const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!collectionName.trim()) {
@@ -72,42 +75,29 @@ export function EditCollection() {
       return;
     }
 
-    const stored = localStorage.getItem("salsilauncher_collections");
-    const collections = stored ? JSON.parse(stored) : [];
+    try {
+      const response = await fetch(`http://localhost:8000/collections/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: collectionName.trim(),
+          game_ids: selectedGames,
+        }),
+      });
 
-    const updatedCollections = collections.map((col: any) => {
-      if (col.id === Number(id)) {
-        return {
-          ...col,
-          name: collectionName,
-          cover: collectionCover.trim() || null,
-          gamesCount: selectedGames.length,
-          gamesIds: selectedGames,
-        };
-      }
-      return col;
-    });
+      if (!response.ok) throw new Error("Falha ao atualizar");
 
-    localStorage.setItem(
-      "salsilauncher_collections",
-      JSON.stringify(updatedCollections),
-    );
-    showToast(`Coleção "${collectionName}" atualizada com sucesso!`, "success");
-    navigate("/collections");
+      showToast(
+        `Coleção "${collectionName}" atualizada com sucesso!`,
+        "success",
+      );
+      navigate("/collections");
+    } catch (error) {
+      showToast("Houve um erro ao atualizar a coleção.", "error");
+    }
   };
 
-  // REAL-TIME COVER PREVIEW ENGINE (SPOTIFY MOSAIC MIX STYLE)
   const renderPreviewCover = () => {
-    if (collectionCover.trim()) {
-      return (
-        <img
-          src={collectionCover.trim()}
-          alt="Prévia da Capa Customizada"
-          style={{ width: "100%", height: "100%", objectFit: "cover" }}
-        />
-      );
-    }
-
     const selectedCovers: string[] = [];
     selectedGames.forEach((gameId) => {
       const matched = games.find((g) => g.id === gameId);
@@ -132,7 +122,6 @@ export function EditCollection() {
         </div>
       );
     }
-
     if (selectedCovers.length === 1) {
       return (
         <img
@@ -142,7 +131,6 @@ export function EditCollection() {
         />
       );
     }
-
     if (selectedCovers.length === 2) {
       return (
         <div
@@ -166,7 +154,6 @@ export function EditCollection() {
         </div>
       );
     }
-
     if (selectedCovers.length === 3) {
       return (
         <div
@@ -201,7 +188,6 @@ export function EditCollection() {
         </div>
       );
     }
-
     return (
       <div
         style={{
@@ -285,8 +271,8 @@ export function EditCollection() {
           style={{ flex: 1 }}
         >
           <p className="form-helper">
-            Modifique o título, gerencie o link da capa ou mude os títulos
-            inclusos.
+            Modifique o título e altere as marcações dos jogos para atualizar a
+            categoria.
           </p>
 
           <div className="input-group">
@@ -303,19 +289,6 @@ export function EditCollection() {
             </div>
           </div>
 
-          <div className="input-group" style={{ marginTop: "20px" }}>
-            <label>URL da Imagem de Capa (Opcional)</label>
-            <div className="input-wrapper">
-              <ImageIcon size={18} className="input-icon" />
-              <input
-                type="text"
-                placeholder="https://linkdaimagem.com/capa.jpg"
-                value={collectionCover}
-                onChange={(e) => setCollectionCover(e.target.value)}
-              />
-            </div>
-          </div>
-
           <div className="input-group" style={{ marginTop: "25px" }}>
             <label>Gerenciar Jogos ({selectedGames.length} selecionados)</label>
 
@@ -326,7 +299,7 @@ export function EditCollection() {
               <Search size={16} className="input-icon" color="#444" />
               <input
                 type="text"
-                placeholder="Filtrar títulos da biblioteca por nome..."
+                placeholder="Filtrar títulos da biblioteca..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 style={{ fontSize: "13px" }}
@@ -345,7 +318,7 @@ export function EditCollection() {
                   border: "1px solid #222",
                 }}
               >
-                Nenhum título corresponde aos termos digitados.
+                Nenhum título corresponde.
               </p>
             ) : (
               <div
@@ -431,7 +404,6 @@ export function EditCollection() {
           </div>
         </form>
 
-        {/* SIDE PREVIEW CONTAINER */}
         <div
           className="preview-section"
           style={{

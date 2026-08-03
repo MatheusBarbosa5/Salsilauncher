@@ -8,14 +8,12 @@ import {
   CheckSquare,
   Square,
   Search,
-  Image as ImageIcon,
   Folder,
 } from "lucide-react";
 import { useToast } from "../context/ToastContext";
 
 export function CreateCollection() {
   const [collectionName, setCollectionName] = useState("");
-  const [collectionCover, setCollectionCover] = useState("");
   const [games, setGames] = useState<any[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedGames, setSelectedGames] = useState<number[]>([]);
@@ -24,7 +22,6 @@ export function CreateCollection() {
   const navigate = useNavigate();
   const { showToast } = useToast();
 
-  // Fetches available games from database
   useEffect(() => {
     const fetchGames = async () => {
       try {
@@ -48,7 +45,7 @@ export function CreateCollection() {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!collectionName.trim()) {
@@ -56,43 +53,26 @@ export function CreateCollection() {
       return;
     }
 
-    const existingCollectionsRaw = localStorage.getItem(
-      "salsilauncher_collections",
-    );
-    const collections = existingCollectionsRaw
-      ? JSON.parse(existingCollectionsRaw)
-      : [];
+    try {
+      const response = await fetch("http://localhost:8000/collections/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: collectionName.trim(),
+          game_ids: selectedGames,
+        }),
+      });
 
-    const newCollection = {
-      id: Date.now(),
-      name: collectionName,
-      cover: collectionCover.trim() || null,
-      gamesCount: selectedGames.length,
-      gamesIds: selectedGames,
-    };
+      if (!response.ok) throw new Error("Erro ao criar coleção no servidor");
 
-    collections.push(newCollection);
-    localStorage.setItem(
-      "salsilauncher_collections",
-      JSON.stringify(collections),
-    );
-
-    showToast(`Coleção "${collectionName}" criada com sucesso!`, "success");
-    navigate("/collections");
+      showToast(`Coleção "${collectionName}" criada com sucesso!`, "success");
+      navigate("/collections");
+    } catch (error) {
+      showToast("Houve um erro ao tentar salvar a coleção.", "error");
+    }
   };
 
-  // REAL-TIME COVER PREVIEW ENGINE (SPOTIFY MOSAIC MIX STYLE)
   const renderPreviewCover = () => {
-    if (collectionCover.trim()) {
-      return (
-        <img
-          src={collectionCover.trim()}
-          alt="Prévia da Capa Customizada"
-          style={{ width: "100%", height: "100%", objectFit: "cover" }}
-        />
-      );
-    }
-
     const selectedCovers: string[] = [];
     selectedGames.forEach((gameId) => {
       const matched = games.find((g) => g.id === gameId);
@@ -117,7 +97,6 @@ export function CreateCollection() {
         </div>
       );
     }
-
     if (selectedCovers.length === 1) {
       return (
         <img
@@ -127,7 +106,6 @@ export function CreateCollection() {
         />
       );
     }
-
     if (selectedCovers.length === 2) {
       return (
         <div
@@ -151,7 +129,6 @@ export function CreateCollection() {
         </div>
       );
     }
-
     if (selectedCovers.length === 3) {
       return (
         <div
@@ -186,7 +163,6 @@ export function CreateCollection() {
         </div>
       );
     }
-
     return (
       <div
         style={{
@@ -259,8 +235,8 @@ export function CreateCollection() {
           style={{ flex: 1 }}
         >
           <p className="form-helper">
-            Escolha um nome e selecione os jogos. Deixe a capa em branco se
-            preferir gerar o mix automático.
+            Escolha um nome e selecione os jogos. A capa do agrupamento será
+            gerada automaticamente.
           </p>
 
           <div className="input-group">
@@ -277,19 +253,6 @@ export function CreateCollection() {
             </div>
           </div>
 
-          <div className="input-group" style={{ marginTop: "20px" }}>
-            <label>URL da Imagem de Capa (Opcional)</label>
-            <div className="input-wrapper">
-              <ImageIcon size={18} className="input-icon" />
-              <input
-                type="text"
-                placeholder="https://linkdaimagem.com/capa.jpg"
-                value={collectionCover}
-                onChange={(e) => setCollectionCover(e.target.value)}
-              />
-            </div>
-          </div>
-
           <div className="input-group" style={{ marginTop: "25px" }}>
             <label>
               Selecionar Jogos ({selectedGames.length} selecionados)
@@ -302,7 +265,7 @@ export function CreateCollection() {
               <Search size={16} className="input-icon" color="#444" />
               <input
                 type="text"
-                placeholder="Filtrar títulos da biblioteca por nome..."
+                placeholder="Filtrar títulos da biblioteca..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 style={{ fontSize: "13px" }}
@@ -325,7 +288,7 @@ export function CreateCollection() {
                   border: "1px solid #222",
                 }}
               >
-                Nenhum título corresponde aos termos digitados.
+                Nenhum título corresponde.
               </p>
             ) : (
               <div
@@ -411,7 +374,6 @@ export function CreateCollection() {
           </div>
         </form>
 
-        {/* SIDE PREVIEW CONTAINER */}
         <div
           className="preview-section"
           style={{

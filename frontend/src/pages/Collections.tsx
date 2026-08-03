@@ -15,36 +15,46 @@ export function Collections() {
 
   const navigate = useNavigate();
   const { showToast } = useToast();
-
-  // Connects the page state to the global topbar search parameter query
   const [searchParams] = useSearchParams();
   const query = searchParams.get("q") || "";
 
   useEffect(() => {
     const loadDashboardData = async () => {
       try {
-        const storedCollections = localStorage.getItem(
-          "salsilauncher_collections",
-        );
-        const parsedCollections = storedCollections
-          ? JSON.parse(storedCollections)
-          : [];
-        setCollections(parsedCollections);
+        const responseGames = await fetch("http://localhost:8000/games");
+        const dataGames = await responseGames.json();
+        setGames(Array.isArray(dataGames) ? dataGames : []);
 
-        const response = await fetch("http://localhost:8000/games");
-        const data = await response.json();
-        setGames(Array.isArray(data) ? data : []);
+        // INTEGRAÇÃO BANCO: Fetch coleções oficiais do SQLite e resolve jogos vinculados
+        const resCols = await fetch("http://localhost:8000/collections/");
+        if (resCols.ok) {
+          const colsData = await resCols.json();
+          const enrichedCols = await Promise.all(
+            colsData.map(async (c: any) => {
+              const gRes = await fetch(
+                `http://localhost:8000/collections/${c.id}`,
+              );
+              const colGames = await gRes.json();
+              return {
+                id: c.id,
+                name: c.title,
+                gamesCount: colGames.length,
+                gamesData: colGames, // Guardamos os objetos Game diretamente
+              };
+            }),
+          );
+          setCollections(enrichedCols);
+        }
       } catch (error) {
-        console.error("Error loading collections dashboard data:", error);
+        console.error("Error loading collections from DB:", error);
       } finally {
         setLoading(false);
       }
     };
-
     loadDashboardData();
   }, []);
 
-  const handleDeleteCollection = (
+  const handleDeleteCollection = async (
     collectionId: number,
     collectionName: string,
     e: React.MouseEvent,
@@ -55,40 +65,33 @@ export function Collections() {
     );
     if (!confirmed) return;
 
-    const updatedCollections = collections.filter(
-      (col) => col.id !== collectionId,
-    );
-    localStorage.setItem(
-      "salsilauncher_collections",
-      JSON.stringify(updatedCollections),
-    );
-    setCollections(updatedCollections);
-    showToast(`Coleção "${collectionName}" foi removida com sucesso.`, "error");
+    try {
+      const response = await fetch(
+        `http://localhost:8000/collections/${collectionId}`,
+        {
+          method: "DELETE",
+        },
+      );
+      if (!response.ok) throw new Error("Erro ao deletar");
 
-    if (selectedCollection?.id === collectionId) {
-      setSelectedCollection(null);
+      setCollections(collections.filter((col) => col.id !== collectionId));
+      showToast(
+        `Coleção "${collectionName}" foi removida com sucesso.`,
+        "error",
+      );
+
+      if (selectedCollection?.id === collectionId) setSelectedCollection(null);
+    } catch (error) {
+      showToast("Erro ao excluir coleção no servidor.", "error");
     }
   };
 
-  // ENGINE REATIVA DO MOSAICO DE CAPAS (ESTILO SPOTIFY)
+  // ENGINE DO MOSAICO DE CAPAS
   const renderCollectionCover = (col: any) => {
-    if (col.cover) {
-      return (
-        <img
-          src={col.cover}
-          alt={col.name}
-          style={{ width: "100%", height: "100%", objectFit: "cover" }}
-        />
-      );
-    }
-
     const covers: string[] = [];
-    if (col.gamesIds && col.gamesIds.length > 0) {
-      col.gamesIds.forEach((gameId: number) => {
-        const matched = games.find((g) => g.id === gameId);
-        if (matched && matched.cover) {
-          covers.push(matched.cover);
-        }
+    if (col.gamesData && col.gamesData.length > 0) {
+      col.gamesData.forEach((g: any) => {
+        if (g.cover) covers.push(g.cover);
       });
     }
 
@@ -108,7 +111,6 @@ export function Collections() {
         </div>
       );
     }
-
     if (covers.length === 1) {
       return (
         <img
@@ -118,7 +120,6 @@ export function Collections() {
         />
       );
     }
-
     if (covers.length === 2) {
       return (
         <div
@@ -142,7 +143,6 @@ export function Collections() {
         </div>
       );
     }
-
     if (covers.length === 3) {
       return (
         <div
@@ -177,7 +177,6 @@ export function Collections() {
         </div>
       );
     }
-
     return (
       <div
         style={{
@@ -222,7 +221,7 @@ export function Collections() {
           alignItems: "center",
         }}
       >
-        <p style={{ color: "#888" }}>Carregando coleções...</p>
+        <p style={{ color: "#888" }}>Carregando coleções do servidor...</p>
       </div>
     );
   }
@@ -260,21 +259,18 @@ export function Collections() {
         </div>
 
         <div className="game-row">
-          {selectedCollection.gamesIds &&
-          selectedCollection.gamesIds.length > 0 ? (
-            selectedCollection.gamesIds.map((gameId: number) => {
-              const matchedGame = games.find((g) => g.id === gameId);
-              if (!matchedGame) return null;
-              return (
-                <GameCard
-                  key={matchedGame.id}
-                  id={matchedGame.id}
-                  nome={matchedGame.title}
-                  capa={matchedGame.cover}
-                  category={matchedGame.tags?.[0]?.name || "PC Game"}
-                />
-              );
-            })
+          {selectedCollection.gamesData &&
+          selectedCollection.gamesData.length > 0 ? (
+            selectedCollection.gamesData.map((game: any) => (
+              <GameCard
+                key={game.id}
+                id={game.id}
+                nome={game.title}
+                capa={game.cover}
+                category={game.tags?.[0]?.name || game.tags?.[0] || "PC Game"}
+                playTime={game.play_time}
+              />
+            ))
           ) : (
             <p style={{ color: "#888", padding: "20px" }}>
               Nenhum jogo adicionado a esta coleção ainda.
@@ -285,7 +281,6 @@ export function Collections() {
     );
   }
 
-  // Tech logical filter mapping for matching text queries locally
   const filteredCollections = collections.filter((col) =>
     (col.name || "").toLowerCase().includes(query.toLowerCase()),
   );
@@ -311,7 +306,6 @@ export function Collections() {
         </div>
       </div>
 
-      {/* GRELHA PRINCIPAL DE EXIBIÇÃO DA INTERFACE */}
       <div
         style={{
           display: "grid",
@@ -319,7 +313,6 @@ export function Collections() {
           gap: "30px",
         }}
       >
-        {/* CARD TRACEJADO DE CRIAÇÃO: SEMPRE VISÍVEL SE NÃO HOUVER BUSCA EM ANDAMENTO */}
         {!query && (
           <div
             onClick={() => navigate("/create-collection")}
@@ -371,7 +364,6 @@ export function Collections() {
           </div>
         )}
 
-        {/* LISTAGEM DAS PASTAS DE COLECÕES */}
         {filteredCollections.map((col) => (
           <div
             key={col.id}
@@ -503,7 +495,6 @@ export function Collections() {
           </div>
         ))}
 
-        {/* FEEDBACK CASO O USUÁRIO PROCURE POR ALGO QUE NÃO EXISTE */}
         {filteredCollections.length === 0 && query && (
           <p
             style={{
