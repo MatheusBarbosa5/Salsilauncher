@@ -63,7 +63,8 @@ export function CreateCollection() {
         }),
       });
 
-      if (!response.ok) throw new Error("Erro ao criar coleção no servidor");
+      if (!response.ok)
+        throw new Error("Error creating collection on the server");
 
       showToast(`Coleção "${collectionName}" criada com sucesso!`, "success");
       navigate("/collections");

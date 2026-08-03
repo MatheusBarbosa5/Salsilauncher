@@ -1,4 +1,4 @@
-// frontend/src/pages/CadastroJogo.tsx
+// frontend/src/pages/CreateGame.tsx
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 import { useToast } from "../context/ToastContext";
 
-export function CadastroJogo() {
+export function CreateGame() {
   const [title, setTitle] = useState("");
   const [category, setCategory] = useState("");
   const [image, setImage] = useState("");
@@ -20,13 +20,12 @@ export function CadastroJogo() {
   const navigate = useNavigate();
   const { showToast } = useToast();
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleFormSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     try {
       let tagIds: number[] = [];
 
-      // 1. Resolve o nome da tag em ID numérico através do endpoint existente do backend
       if (category.trim()) {
         const tagResponse = await fetch(
           `http://localhost:8000/tags/?name=${encodeURIComponent(category.trim())}`,
@@ -35,20 +34,19 @@ export function CadastroJogo() {
         if (tagResponse.ok) {
           const tagData = await tagResponse.json();
           if (tagData && tagData.id) {
-            tagIds.push(tagData.id); // Captura o ID gerado na tabela SQLite
+            tagIds.push(tagData.id);
           }
         }
       }
 
-      // 2. Monta o payload no formato correto esperado pelo banco de dados
-      const data = {
+      const payload = {
         title: title,
         exe_path: exePath,
         folder_path: exePath.includes("\\")
           ? exePath.substring(0, exePath.lastIndexOf("\\"))
           : "C:\\Games",
         cover: image,
-        tag_ids: tagIds, // CORREÇÃO: Enviando a lista de IDs numéricos obrigatória
+        tag_ids: tagIds,
       };
 
       const response = await fetch("http://localhost:8000/games/", {
@@ -56,18 +54,16 @@ export function CadastroJogo() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(data),
+        body: JSON.stringify(payload),
       });
 
-      if (!response.ok) {
-        throw new Error("Erro ao cadastrar jogo no servidor.");
-      }
+      if (!response.ok) throw new Error("Error adding game to server.");
 
       const result = await response.json();
       showToast(`Jogo "${result.title}" cadastrado com sucesso!`, "success");
       navigate("/");
     } catch (error) {
-      console.error("Erro no cadastro:", error);
+      console.error("Error creating game:", error);
       showToast("Houve um erro ao tentar salvar o jogo.", "error");
     }
   };
@@ -100,9 +96,10 @@ export function CadastroJogo() {
       </div>
 
       <div className="cadastro-layout">
-        <form className="cadastro-form" onSubmit={handleSubmit}>
+        <form className="cadastro-form" onSubmit={handleFormSubmit}>
           <p className="form-helper">
-            Use esta opção para jogos que não estão na Steam.
+            Use esta opção para jogos que não estão na Steam ou em outras
+            plataformas.
           </p>
 
           <div className="input-group">

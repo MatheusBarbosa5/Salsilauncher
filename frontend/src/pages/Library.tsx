@@ -1,6 +1,6 @@
 // frontend/src/pages/Library.tsx
 import React, { useState, useEffect } from "react";
-import { useSearchParams } from "react-router-dom"; // Importado useSearchParams para capturar a busca
+import { useSearchParams } from "react-router-dom";
 import {
   Library as LibraryIcon,
   SlidersHorizontal,
@@ -12,14 +12,12 @@ export function Library() {
   const [games, setGames] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Connects the library component directly to the global URL search parameters query
   const [searchParams] = useSearchParams();
   const query = searchParams.get("q") || "";
 
   const [searchGenre, setSearchGenre] = useState("all");
   const [sortOrder, setSortOrder] = useState("az");
 
-  // Re-fetches database information every time the text query transitions
   useEffect(() => {
     const fetchGames = async () => {
       try {
@@ -35,9 +33,8 @@ export function Library() {
       }
     };
     fetchGames();
-  }, [query]); // Adicionado query como dependência estrita para o re-fetching
+  }, [query]);
 
-  // Dynamically extracts all unique tags from the games list to populate the filter dropdown
   const uniqueTags = Array.from(
     new Set(
       games.flatMap((game) =>
@@ -48,7 +45,6 @@ export function Library() {
     ),
   );
 
-  // Filters games by selected genre/tag
   const filteredGames = games.filter((game) => {
     if (searchGenre === "all") return true;
     const gameTags = Array.isArray(game.tags)
@@ -57,7 +53,6 @@ export function Library() {
     return gameTags.includes(searchGenre);
   });
 
-  // Sorts games alphabetically based on select state
   const sortedGames = [...filteredGames].sort((a, b) => {
     const titleA = a.title || "";
     const titleB = b.title || "";
@@ -85,10 +80,8 @@ export function Library() {
 
   return (
     <div className="home-container animate-in">
-      {/* CABEÇALHO DA BIBLIOTECA */}
       <section className="section-container" style={{ marginTop: 0 }}>
         <div
-          className="section-title"
           style={{
             display: "flex",
             justifyContent: "space-between",
@@ -96,6 +89,7 @@ export function Library() {
             marginBottom: "20px",
             width: "100%",
           }}
+          className="section-title"
         >
           <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
             <LibraryIcon size={20} color="#ff0000" />
@@ -116,7 +110,6 @@ export function Library() {
           </span>
         </div>
 
-        {/* BARRA DE FILTROS AVANÇADOS (UI EM PORTUGUÊS) */}
         <div
           style={{
             display: "flex",
@@ -129,7 +122,6 @@ export function Library() {
             alignItems: "center",
           }}
         >
-          {/* Filtro por Gênero */}
           <div
             style={{
               display: "flex",
@@ -162,7 +154,6 @@ export function Library() {
             </select>
           </div>
 
-          {/* Ordenação Alfabética */}
           <div
             style={{
               display: "flex",
@@ -192,7 +183,6 @@ export function Library() {
           </div>
         </div>
 
-        {/* GRADE PURA DE JOGOS */}
         <div className="game-row">
           {sortedGames.length > 0 ? (
             sortedGames.map((game) => (
@@ -202,6 +192,7 @@ export function Library() {
                 nome={game.title}
                 capa={game.cover}
                 category={game.tags?.[0]?.name || game.tags?.[0] || "PC Game"}
+                playTime={game.play_time}
               />
             ))
           ) : (

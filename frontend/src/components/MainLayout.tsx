@@ -38,7 +38,6 @@ export function MainLayout() {
   const searchQuery = searchParams.get("q") || "";
 
   useEffect(() => {
-    // INTEGRAÇÃO BANCO: Busca as coleções do backend e enriquece com a contagem de jogos
     const loadCollectionsFromDB = async () => {
       try {
         const res = await fetch("http://localhost:8000/collections/");
@@ -56,7 +55,7 @@ export function MainLayout() {
         );
         setCustomCollections(enrichedCols);
       } catch (error) {
-        console.error("Erro ao carregar coleções:", error);
+        console.error("Failed to load collections:", error);
       }
     };
 
@@ -68,7 +67,7 @@ export function MainLayout() {
           setFavoriteGames(data.filter((game: any) => game.favorite));
         }
       } catch (error) {
-        console.error("Erro ao sincronizar favoritos da barra lateral:", error);
+        console.error("Failed to sync favorite games:", error);
       }
     };
 
@@ -103,7 +102,7 @@ export function MainLayout() {
               className={`tab ${activeTab === "home" ? "active" : ""}`}
               onClick={() => navigate("/")}
             >
-              Home
+              Início
             </div>
             <div
               className={`tab ${activeTab === "collections" ? "active" : ""}`}
@@ -180,7 +179,7 @@ export function MainLayout() {
                         <div
                           key={game.id}
                           className="menu-item"
-                          onClick={() => navigate(`/jogo/${game.id}`)}
+                          onClick={() => navigate(`/game/${game.id}`)}
                           style={{
                             fontSize: "0.85rem",
                             padding: "8px 12px",
@@ -278,7 +277,7 @@ export function MainLayout() {
             }}
           >
             <button
-              onClick={() => navigate("/escanear-pasta")}
+              onClick={() => navigate("/scan-folder")}
               title="Escanear Pasta por Jogos"
               style={{
                 background: "none",

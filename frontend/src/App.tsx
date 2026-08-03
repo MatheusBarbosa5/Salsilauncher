@@ -13,39 +13,38 @@ import "./styles/games.css";
 import { MainLayout } from "./components/MainLayout";
 import { Home } from "./pages/Home";
 import { Login } from "./pages/Login";
-import { CadastroUsuario } from "./pages/CadastroUsuario";
-import { CadastroJogo } from "./pages/CadastroJogo";
-import { EscanearPasta } from "./pages/EscanearPasta";
-import { EditarJogo } from "./pages/EditarJogo";
-import { JogoDetalhe } from "./pages/JogoDetalhe";
+import { Register } from "./pages/Register";
+import { CreateGame } from "./pages/CreateGame";
+import { ScanFolder } from "./pages/ScanFolder";
+import { EditGame } from "./pages/EditGame";
+import { GameDetails } from "./pages/GameDetails";
 import { CreateCollection } from "./pages/CreateCollection";
 import { Collections } from "./pages/Collections";
 import { EditCollection } from "./pages/EditCollection";
-import { Library } from "./pages/Library"; // Importando a nova view ativa
+import { Library } from "./pages/Library";
 
 function App() {
   return (
     <Router>
       <Routes>
-        {/* Rotas Externas */}
+        {/* External Routes */}
         <Route path="/login" element={<Login />} />
-        <Route path="/cadastro" element={<CadastroUsuario />} />
+        <Route path="/register" element={<Register />} />
 
-        {/* Rotas Internas com Sidebar */}
+        {/* Internal Routes with Sidebar */}
         <Route element={<MainLayout />}>
           <Route path="/" element={<Home />} />
-          <Route path="/cadastro-jogo" element={<CadastroJogo />} />
-          <Route path="/escanear-pasta" element={<EscanearPasta />} />
-          <Route path="/jogo/:id" element={<JogoDetalhe />} />
-          <Route path="/editar-jogo/:id" element={<EditarJogo />} />
+          <Route path="/add-game" element={<CreateGame />} />
+          <Route path="/scan-folder" element={<ScanFolder />} />
+          <Route path="/game/:id" element={<GameDetails />} />
+          <Route path="/edit-game/:id" element={<EditGame />} />
           <Route path="/create-collection" element={<CreateCollection />} />
           <Route path="/collections" element={<Collections />} />
           <Route path="/edit-collection/:id" element={<EditCollection />} />
-          <Route path="/library" element={<Library />} />{" "}
-          {/* Nova rota registrada */}
+          <Route path="/library" element={<Library />} />
         </Route>
 
-        {/* Redirecionamento de segurança */}
+        {/* Security Redirect */}
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>
     </Router>

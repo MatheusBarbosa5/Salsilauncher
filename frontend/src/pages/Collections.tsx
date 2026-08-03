@@ -25,7 +25,6 @@ export function Collections() {
         const dataGames = await responseGames.json();
         setGames(Array.isArray(dataGames) ? dataGames : []);
 
-        // INTEGRAÇÃO BANCO: Fetch coleções oficiais do SQLite e resolve jogos vinculados
         const resCols = await fetch("http://localhost:8000/collections/");
         if (resCols.ok) {
           const colsData = await resCols.json();
@@ -39,7 +38,7 @@ export function Collections() {
                 id: c.id,
                 name: c.title,
                 gamesCount: colGames.length,
-                gamesData: colGames, // Guardamos os objetos Game diretamente
+                gamesData: colGames,
               };
             }),
           );
@@ -72,7 +71,7 @@ export function Collections() {
           method: "DELETE",
         },
       );
-      if (!response.ok) throw new Error("Erro ao deletar");
+      if (!response.ok) throw new Error("Error deleting");
 
       setCollections(collections.filter((col) => col.id !== collectionId));
       showToast(
@@ -86,7 +85,6 @@ export function Collections() {
     }
   };
 
-  // ENGINE DO MOSAICO DE CAPAS
   const renderCollectionCover = (col: any) => {
     const covers: string[] = [];
     if (col.gamesData && col.gamesData.length > 0) {

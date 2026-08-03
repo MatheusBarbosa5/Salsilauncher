@@ -7,19 +7,18 @@ import logoImg from "../assets/logo.png";
 import "../styles/home.css";
 
 export function Home() {
-  const [games, setGames] = useState<any[]>([]); // Padrão técnico em inglês
+  const [games, setGames] = useState<any[]>([]);
   const [searchParams] = useSearchParams();
   const query = searchParams.get("q") || "";
   const navigate = useNavigate();
 
-  // Technical session checking to prevent banner re-animation when changing tabs
   const [bannerVisible, setBannerVisible] = useState(() => {
     const isShown = sessionStorage.getItem("salsilauncher_welcome_shown");
-    return !isShown; // If it was not shown yet, banner is visible
+    return !isShown;
   });
   const [bannerCollapsed, setBannerCollapsed] = useState(() => {
     const isShown = sessionStorage.getItem("salsilauncher_welcome_shown");
-    return !!isShown; // If it was already shown, start with banner collapsed
+    return !!isShown;
   });
 
   useEffect(() => {
@@ -31,13 +30,12 @@ export function Home() {
         const data = await response.json();
         setGames(Array.isArray(data) ? data : []);
       } catch (error) {
-        console.error("Erro ao buscar jogos:", error);
+        console.error("Error fetching games:", error);
       }
     };
     fetchGames();
   }, [query]);
 
-  // Timers to handle the fluid flash message animation and session storage commit
   useEffect(() => {
     if (sessionStorage.getItem("salsilauncher_welcome_shown")) {
       return;
@@ -60,7 +58,6 @@ export function Home() {
 
   return (
     <div className="home-container animate-in">
-      {/* SEÇÃO HERO/BANNER: SÓ APARECE SE NÃO TIVER SIDO DISPARADO NESSA SESSÃO DO LAUNCHER */}
       {!bannerCollapsed && (
         <section
           className="home-hero"
@@ -84,13 +81,12 @@ export function Home() {
             <img src={logoImg} alt="Salsilauncher" className="hero-logo" />
             <div className="hero-text">
               <h1>Bem-vindo ao Salsilauncher</h1>
-              <p>Sua biblioteca de jogos, organizada and pronta para o play.</p>
+              <p>Sua biblioteca de jogos, organizada e pronta para o play.</p>
             </div>
           </div>
         </section>
       )}
 
-      {/* GRADE DE JOGOS */}
       <section className="section-container">
         <div className="section-title">
           <LayoutGrid size={20} color="#ff0000" />
@@ -99,11 +95,10 @@ export function Home() {
           </span>
         </div>
         <div className="game-row">
-          {/* CARD DE ATALHO EXCLUSIVO: ADICIONAR NOVO JOGO (FIXADO COMO PRIMEIRO CARD) */}
           {!query && (
             <div
               className="game-card"
-              onClick={() => navigate("/cadastro-jogo")}
+              onClick={() => navigate("/add-game")}
               style={{
                 cursor: "pointer",
                 display: "flex",
@@ -162,7 +157,6 @@ export function Home() {
             </div>
           )}
 
-          {/* LISTAGEM DOS JOGOS EXISTENTES NO BANCO */}
           {games && games.length > 0 ? (
             games.map((game) => (
               <GameCard
@@ -170,8 +164,8 @@ export function Home() {
                 id={game.id}
                 nome={game.title}
                 capa={game.cover}
-                // CORREÇÃO VISUAL: Acessa estritamente a propriedade '.name' interna do objeto enviado pelo back
                 category={game.tags?.[0]?.name || game.tags?.[0] || "PC Game"}
+                playTime={game.play_time}
               />
             ))
           ) : query ? (

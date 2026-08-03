@@ -24,14 +24,14 @@ export function EditCollection() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const loadCollectionData = async () => {
+    const fetchCollectionData = async () => {
       try {
         const response = await fetch("http://localhost:8000/games");
         const gamesData = await response.json();
         setGames(Array.isArray(gamesData) ? gamesData : []);
 
         const colsRes = await fetch("http://localhost:8000/collections/");
-        if (!colsRes.ok) throw new Error("Erro na rede");
+        if (!colsRes.ok) throw new Error("Network error");
         const collections = await colsRes.json();
         const target = collections.find((col: any) => col.id === Number(id));
 
@@ -56,7 +56,7 @@ export function EditCollection() {
       }
     };
 
-    loadCollectionData();
+    fetchCollectionData();
   }, [id, navigate, showToast]);
 
   const toggleGameSelection = (gameId: number) => {
@@ -67,7 +67,7 @@ export function EditCollection() {
     }
   };
 
-  const handleUpdate = async (e: React.FormEvent) => {
+  const handleUpdateSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!collectionName.trim()) {
@@ -85,7 +85,7 @@ export function EditCollection() {
         }),
       });
 
-      if (!response.ok) throw new Error("Falha ao atualizar");
+      if (!response.ok) throw new Error("Failed to update");
 
       showToast(
         `Coleção "${collectionName}" atualizada com sucesso!`,
@@ -267,7 +267,7 @@ export function EditCollection() {
       <div className="cadastro-layout">
         <form
           className="cadastro-form"
-          onSubmit={handleUpdate}
+          onSubmit={handleUpdateSubmit}
           style={{ flex: 1 }}
         >
           <p className="form-helper">

@@ -1,4 +1,4 @@
-// frontend/src/pages/EditarJogo.tsx
+// frontend/src/pages/EditGame.tsx
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 import { useToast } from "../context/ToastContext";
 
-export function EditarJogo() {
+export function EditGame() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { showToast } = useToast();
@@ -22,13 +22,13 @@ export function EditarJogo() {
   const [exePath, setExePath] = useState("");
 
   const [originalGame, setOriginalGame] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const fetchJogo = async () => {
+    const fetchGameData = async () => {
       try {
         const response = await fetch(`http://localhost:8000/games/${id}`);
-        if (!response.ok) throw new Error("Erro ao carregar");
+        if (!response.ok) throw new Error("Load error");
         const gameData = await response.json();
 
         setOriginalGame(gameData);
@@ -36,7 +36,6 @@ export function EditarJogo() {
         setImage(gameData.cover || "");
         setExePath(gameData.exe_path || "");
 
-        // CORREÇÃO: Extrai o nome de texto de dentro do objeto de tag retornado pelo back
         const currentTagName =
           gameData.tags?.[0]?.name || gameData.tags?.[0] || "";
         setCategory(currentTagName);
@@ -44,13 +43,13 @@ export function EditarJogo() {
         console.error(error);
         showToast("Erro ao carregar as informações do jogo.", "error");
       } finally {
-        setLoading(false);
+        setIsLoading(false);
       }
     };
-    fetchJogo();
+    fetchGameData();
   }, [id, showToast]);
 
-  const handleSave = async (e: React.FormEvent) => {
+  const handleUpdateSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!originalGame) return;
 
@@ -64,7 +63,6 @@ export function EditarJogo() {
         originalGame.tags?.[0]?.name || originalGame.tags?.[0] || "";
       if (category.trim() !== originalCategoryName) {
         if (category.trim()) {
-          // Resolve o ID da tag atualizada antes de submeter as alterações do jogo
           const tagResponse = await fetch(
             `http://localhost:8000/tags/?name=${encodeURIComponent(category.trim())}`,
             { method: "POST" },
@@ -72,7 +70,7 @@ export function EditarJogo() {
           if (tagResponse.ok) {
             const tagData = await tagResponse.json();
             if (tagData && tagData.id) {
-              updatedFields.tag_ids = [tagData.id]; // CORREÇÃO: Vincula a chave técnica correta
+              updatedFields.tag_ids = [tagData.id];
             }
           }
         } else {
@@ -92,7 +90,7 @@ export function EditarJogo() {
         body: JSON.stringify(updatedFields),
       });
 
-      if (!response.ok) throw new Error("Erro ao atualizar");
+      if (!response.ok) throw new Error("Update error");
 
       showToast(`Alterações em "${title}" salvas com sucesso!`, "success");
       navigate("/");
@@ -102,7 +100,7 @@ export function EditarJogo() {
     }
   };
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div
         className="page-container"
@@ -141,7 +139,7 @@ export function EditarJogo() {
       </div>
 
       <div className="cadastro-layout">
-        <form className="cadastro-form" onSubmit={handleSave}>
+        <form className="cadastro-form" onSubmit={handleUpdateSubmit}>
           <div className="input-group">
             <label>Título do Jogo</label>
             <div className="input-wrapper">

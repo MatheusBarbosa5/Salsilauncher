@@ -1,4 +1,4 @@
-// frontend/src/pages/JogoDetalhe.tsx
+// frontend/src/pages/GameDetails.tsx
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 import { useToast } from "../context/ToastContext";
 
-type Jogo = {
+type Game = {
   id: number;
   title: string;
   description: string;
@@ -28,25 +28,23 @@ type Jogo = {
   favorite: boolean;
 };
 
-export function JogoDetalhe() {
-  const [game, setGame] = useState<Jogo | null>(null);
+export function GameDetails() {
+  const [game, setGame] = useState<Game | null>(null);
   const [loading, setLoading] = useState(true);
   const { id } = useParams();
   const navigate = useNavigate();
   const { showToast } = useToast();
 
-  // Technical state in English to manage client-side simulated tracking
   const [lastPlayed, setLastPlayed] = useState<string>("Nunca jogado");
 
   useEffect(() => {
-    const fetchJogoUnico = async () => {
+    const fetchSingleGame = async () => {
       try {
         const response = await fetch(`http://localhost:8000/games/${id}`);
-        if (!response.ok) throw new Error("Jogo não encontrado");
+        if (!response.ok) throw new Error("Game not found");
         const data = await response.json();
         setGame(data);
 
-        // VALIDAÇÃO: Verifica se o cliente já abriu este jogo localmente nesta máquina
         const localKey = `salsilauncher_last_played_${id}`;
         const storedTime = localStorage.getItem(localKey);
 
@@ -60,22 +58,20 @@ export function JogoDetalhe() {
       } catch (error) {
         console.error(error);
       } finally {
-        // CORREÇÃO: Grafia corrigida para finally com dois "l"s para eliminar o erro do Vite
         setLoading(false);
       }
     };
-    fetchJogoUnico();
+    fetchSingleGame();
   }, [id]);
 
-  const AbrirJogo = async () => {
+  const handlePlayGame = async () => {
     if (!game?.id) return;
     try {
       const response = await fetch(
         `http://localhost:8000/games/abrir/${game.id}`,
       );
-      if (!response.ok) throw new Error("Erro");
+      if (!response.ok) throw new Error("Error starting game");
 
-      // GRAVAÇÃO DA VALIDAÇÃO: Registra o carimbo de data/hora no momento exato do clique
       const now = new Date();
       const formattedDate = now.toLocaleDateString("pt-BR", {
         day: "2-digit",
@@ -97,18 +93,18 @@ export function JogoDetalhe() {
     }
   };
 
-  const DeletarJogo = async () => {
+  const handleDeleteGame = async () => {
     if (!game) return;
-    const confirmou = window.confirm(
+    const isConfirmed = window.confirm(
       `Tem certeza absoluta que deseja remover "${game.title}" da sua biblioteca?`,
     );
-    if (!confirmou) return;
+    if (!isConfirmed) return;
 
     try {
       const response = await fetch(`http://localhost:8000/games/${id}`, {
         method: "DELETE",
       });
-      if (!response.ok) throw new Error("Erro ao deletar");
+      if (!response.ok) throw new Error("Error deleting game");
 
       showToast(`Jogo "${game.title}" foi removido com sucesso!`, "error");
       navigate("/");
@@ -147,21 +143,21 @@ export function JogoDetalhe() {
           onClick={() => navigate("/")}
           style={{ marginTop: "20px" }}
         >
-          Voltar para Início
+          Voltar para o Início
         </button>
       </div>
     );
   }
 
-  const formatarTempoJogo = (segundos: number) => {
-    if (!segundos) return "0h";
-    const horas = Math.floor(segundos / 3600);
-    if (horas > 0) return `${horas}h`;
-    const minutes = Math.floor(segundos / 60);
+  const formatPlayTime = (seconds: number) => {
+    if (!seconds || seconds <= 0) return "0h 0min";
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+
+    if (hours > 0) return `${hours}h ${minutes}min`;
     return `${minutes}min`;
   };
 
-  // VALIDAÇÃO DO STATUS: Analisa se existe um caminho de diretório configurado
   const isPathValid =
     game.exe_path &&
     game.exe_path.trim().length > 0 &&
@@ -214,7 +210,7 @@ export function JogoDetalhe() {
             <div style={{ display: "flex", gap: "12px", marginBottom: "10px" }}>
               <button
                 type="button"
-                onClick={() => navigate(`/editar-jogo/${game.id}`)}
+                onClick={() => navigate(`/edit-game/${game.id}`)}
                 style={{
                   background: "rgba(255,255,255,0.1)",
                   border: "1px solid rgba(255,255,255,0.2)",
@@ -240,7 +236,7 @@ export function JogoDetalhe() {
               </button>
               <button
                 type="button"
-                onClick={DeletarJogo}
+                onClick={handleDeleteGame}
                 style={{
                   background: "rgba(255, 0, 0, 0.2)",
                   border: "1px solid rgba(255, 0, 0, 0.3)",
@@ -272,7 +268,11 @@ export function JogoDetalhe() {
       </header>
 
       <section className="play-bar">
-        <button type="button" className="btn-play-large" onClick={AbrirJogo}>
+        <button
+          type="button"
+          className="btn-play-large"
+          onClick={handlePlayGame}
+        >
           <Play size={24} fill="white" /> JOGAR AGORA
         </button>
         <div className="stat-item">
@@ -287,7 +287,7 @@ export function JogoDetalhe() {
         <div className="stat-item">
           <span className="stat-label">TEMPO DE JOGO</span>
           <div className="stat-value">
-            <Clock size={14} /> {formatarTempoJogo(game.play_time)}
+            <Clock size={14} /> {formatPlayTime(game.play_time)}
           </div>
         </div>
       </section>

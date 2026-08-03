@@ -1,31 +1,30 @@
+// frontend/src/pages/ScanFolder.tsx
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { Plus, FolderIcon } from "lucide-react";
 import { useToast } from "../context/ToastContext";
 
-export function EscanearPasta() {
+export function ScanFolder() {
   const navigate = useNavigate();
   const { showToast } = useToast();
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleScanSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     try {
       const formData = new FormData(e.currentTarget);
 
-      // CORREÇÃO: Endpoint atualizado para inglês (/games/scan) em vez de /jogos/scan
       const response = await fetch("http://localhost:8000/games/scan", {
         method: "POST",
         body: formData,
       });
 
       if (!response.ok) {
-        throw new Error("Erro na requisição de varredura.");
+        throw new Error("Scan request error.");
       }
 
       const data = await response.json();
 
-      // SUBSTITUIÇÃO: alert() nativo trocado pela notificação estilizada do sistema
       showToast(`Pasta escaneada com sucesso! ${data.status}`, "success");
       navigate("/");
     } catch (error) {
@@ -42,7 +41,7 @@ export function EscanearPasta() {
       </div>
 
       <div className="cadastro-layout">
-        <form className="cadastro-form" onSubmit={handleSubmit}>
+        <form className="cadastro-form" onSubmit={handleScanSubmit}>
           <p className="form-helper">
             Use esta opção para encontrar jogos automaticamente em uma pasta
             específica do seu computador.
