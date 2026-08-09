@@ -1,12 +1,24 @@
 from fastapi import FastAPI
 from contextlib import asynccontextmanager
+
 from database import create_db_and_tables
-from routers import games, collections, tagsRouters, usersRouters, friendshipsRouters
+
+from routers import (
+    games,
+    collections,
+    tagsRouters,
+    usersRouters,
+    friendshipsRouters,
+    userRouters
+)
+
 from models import games as game_models
 from models import collections as collection_models
 from models import tags as tag_models
 from models import users as user_models
 from models import friendships as friendship_models
+from models import userGame as user_game_models
+
 from fastapi.middleware.cors import CORSMiddleware
 
 
@@ -36,6 +48,7 @@ app.include_router(collections.router)
 app.include_router(tagsRouters.router)
 app.include_router(usersRouters.router)
 app.include_router(friendshipsRouters.router)
+app.include_router(userRouters.router)
 
 @app.get("/")
 def root():

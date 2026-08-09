@@ -8,7 +8,9 @@ connect_args = {"check_same_thread": False}
 engine = create_engine(sqlite_url, echo=True, connect_args=connect_args)
 
 def create_db_and_tables():
-# Lê todos os modelos e cria as tabelas no banco de dados
+    print("Tabela No Banco: ")
+    print(SQLModel.metadata.tables.keys())
+
     SQLModel.metadata.create_all(engine)
 
 def get_session():
