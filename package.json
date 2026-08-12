@@ -1,0 +1,8 @@
+{
+    "main": "electron/main.js",
+    "scripts": {
+        "electron": "electron .",
+        "start": "electron ."
+
+    }
+}
