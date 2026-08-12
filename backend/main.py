@@ -9,7 +9,8 @@ from routers import (
     tagsRouters,
     usersRouters,
     friendshipsRouters,
-    userRouters
+    userRouters,
+    messagesRouters
 )
 
 from models import games as game_models
@@ -18,6 +19,7 @@ from models import tags as tag_models
 from models import users as user_models
 from models import friendships as friendship_models
 from models import userGame as user_game_models
+from models import messages as messages_models
 
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -49,6 +51,7 @@ app.include_router(tagsRouters.router)
 app.include_router(usersRouters.router)
 app.include_router(friendshipsRouters.router)
 app.include_router(userRouters.router)
+app.include_router(messagesRouters.router)
 
 @app.get("/")
 def root():
