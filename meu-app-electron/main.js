@@ -1,41 +1,18 @@
-const { app, BrowserWindow, ipcMain, dialog } = require('electron');
-const path = require('path');
-const fs = require('fs/promises');
+const { app, BrowserWindow } = require('electron')
 
-function createWindow() {
+
+const createWindow = () => {
   const win = new BrowserWindow({
-    webPreferences: {
-      preload: path.join(__dirname, 'preload.js'),
-      contextIsolation: true,
-      nodeIntegration: false
-    }
-  });
+    width: 800,
+    height: 600
+  })
+  
 
-  win.loadFile('index.html');
+  win.loadURL("http://localhost:5173")
 }
 
-ipcMain.handle('selecionar-arquivo', async () => {
-  const resultado = await dialog.showOpenDialog({
-    properties: ['openFile'],
-    filters: [
-      { name: 'Arquivos de texto', extensions: ['txt', 'json', 'csv'] },
-      { name: 'Todos os arquivos', extensions: ['*'] }
-    ]
-  });
+app.whenReady().then(() => {
+  createWindow()
+})
 
-  if (resultado.canceled || resultado.filePaths.length === 0) {
-    return null;
-  }
 
-  const caminho = resultado.filePaths[0];
-
-  const conteudo = await fs.readFile(caminho, 'utf8');
-
-  return {
-    caminho,
-    nome: path.basename(caminho),
-    conteudo
-  };
-});
-
-app.whenReady().then(createWindow);
