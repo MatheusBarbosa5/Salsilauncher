@@ -1,6 +1,11 @@
 from datetime import datetime
+from typing import TYPE_CHECKING
 
-from sqlmodel import SQLModel, Field
+from sqlmodel import SQLModel, Field, Relationship
+
+
+if TYPE_CHECKING:
+    from models.userRatings import UserRating
 
 
 class User(SQLModel, table=True):
@@ -73,6 +78,10 @@ class User(SQLModel, table=True):
 
     updated_at: datetime = Field(
         default_factory=datetime.utcnow
+    )
+
+    ratings: list["UserRating"] = Relationship(
+        back_populates="user"
     )
 
 

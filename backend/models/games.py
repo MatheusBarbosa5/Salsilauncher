@@ -6,6 +6,7 @@ if TYPE_CHECKING:
     from models.collections import Collection
     from models.game_session import GameSession
     from models.tags import Tag
+    from models.userRatings import UserRating
 
 # Relacionamento com coleção
 class CollectionGameLink(SQLModel, table=True):
@@ -74,6 +75,10 @@ class Game(SQLModel, table=True):
 
     sessions: list["GameSession"] = Relationship(
         back_populates="games"
+    )
+
+    ratings: list["UserRating"] = Relationship(
+    back_populates="game"
     )
 
 class GameCreate(SQLModel):
