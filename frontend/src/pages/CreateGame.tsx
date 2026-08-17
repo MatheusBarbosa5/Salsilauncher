@@ -1,5 +1,5 @@
 // frontend/src/pages/CreateGame.tsx
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Gamepad2,
@@ -8,6 +8,8 @@ import {
   FileCode,
   Plus,
   ArrowLeft,
+  UploadCloud,
+  FolderSearch,
 } from "lucide-react";
 import { useToast } from "../context/ToastContext";
 
@@ -19,6 +21,46 @@ export function CreateGame() {
 
   const navigate = useNavigate();
   const { showToast } = useToast();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      showToast("Enviando imagem...", "info");
+      const response = await fetch("http://localhost:8000/games/upload-cover", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) throw new Error("Upload failed");
+
+      const data = await response.json();
+      setImage(data.url);
+      showToast("Imagem do PC enviada com sucesso!", "success");
+    } catch (error) {
+      console.error("Upload error:", error);
+      showToast("Erro ao fazer upload da imagem.", "error");
+    }
+  };
+
+  const handleBrowseExe = async () => {
+    try {
+      const res = await fetch("http://localhost:8000/games/browse");
+      if (!res.ok) throw new Error("Failed to open file browser");
+      const data = await res.json();
+      if (data.path) {
+        setExePath(data.path);
+      }
+    } catch (error) {
+      console.error(error);
+      showToast("Erro ao abrir explorador de arquivos do sistema.", "error");
+    }
+  };
 
   const handleFormSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -44,8 +86,10 @@ export function CreateGame() {
         exe_path: exePath,
         folder_path: exePath.includes("\\")
           ? exePath.substring(0, exePath.lastIndexOf("\\"))
-          : "C:\\Games",
-        cover: image,
+          : exePath.includes("/")
+            ? exePath.substring(0, exePath.lastIndexOf("/"))
+            : "C:\\Games",
+        cover: image.trim() || null,
         tag_ids: tagIds,
       };
 
@@ -131,30 +175,99 @@ export function CreateGame() {
           </div>
 
           <div className="input-group">
-            <label>URL da Imagem de Capa</label>
-            <div className="input-wrapper">
-              <ImageIcon size={18} className="input-icon" />
+            <label>URL da Imagem de Capa (Opcional)</label>
+            <div
+              style={{ display: "flex", gap: "10px", alignItems: "stretch" }}
+            >
+              <div className="input-wrapper" style={{ flex: 1 }}>
+                <ImageIcon size={18} className="input-icon" />
+                <input
+                  type="text"
+                  placeholder="https://linkdaimagem.com/capa.jpg"
+                  value={image}
+                  onChange={(e) => setImage(e.target.value)}
+                />
+              </div>
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                style={{
+                  background: "#1a1a1a",
+                  border: "1px solid #333",
+                  color: "#ccc",
+                  padding: "0 20px",
+                  borderRadius: "10px",
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px",
+                  fontWeight: "bold",
+                  transition: "0.2s",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.borderColor = "var(--accent-red)";
+                  e.currentTarget.style.color = "white";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.borderColor = "#333";
+                  e.currentTarget.style.color = "#ccc";
+                }}
+              >
+                <UploadCloud size={18} /> Upload do PC
+              </button>
               <input
-                type="text"
-                placeholder="https://linkdaimagem.com/capa.jpg"
-                value={image}
-                onChange={(e) => setImage(e.target.value)}
-                required
+                type="file"
+                ref={fileInputRef}
+                style={{ display: "none" }}
+                accept="image/*"
+                onChange={handleFileUpload}
               />
             </div>
           </div>
 
           <div className="input-group">
             <label>Caminho do Executável (.exe)</label>
-            <div className="input-wrapper">
-              <FileCode size={18} className="input-icon" />
-              <input
-                type="text"
-                placeholder="D:\Games\Minecraft\minecraft.exe"
-                value={exePath}
-                onChange={(e) => setExePath(e.target.value)}
-                required
-              />
+            <div
+              style={{ display: "flex", gap: "10px", alignItems: "stretch" }}
+            >
+              <div className="input-wrapper" style={{ flex: 1 }}>
+                <FileCode size={18} className="input-icon" />
+                <input
+                  type="text"
+                  placeholder="D:\Games\Minecraft\minecraft.exe"
+                  value={exePath}
+                  onChange={(e) => setExePath(e.target.value)}
+                  required
+                />
+              </div>
+              <button
+                type="button"
+                onClick={handleBrowseExe}
+                style={{
+                  background: "#1a1a1a",
+                  border: "1px solid #333",
+                  color: "#ccc",
+                  padding: "0 20px",
+                  borderRadius: "10px",
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px",
+                  fontWeight: "bold",
+                  transition: "0.2s",
+                  whiteSpace: "nowrap",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.borderColor = "var(--accent-red)";
+                  e.currentTarget.style.color = "white";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.borderColor = "#333";
+                  e.currentTarget.style.color = "#ccc";
+                }}
+              >
+                <FolderSearch size={18} /> Procurar...
+              </button>
             </div>
           </div>
 

@@ -1,5 +1,7 @@
+import os
 from fastapi import FastAPI
 from contextlib import asynccontextmanager
+from fastapi.staticfiles import StaticFiles
 
 from database import create_db_and_tables
 
@@ -14,17 +16,11 @@ from routers import (
     userRatingsRouters
 )
 
-from models import games as game_models
-from models import collections as collection_models
-from models import tags as tag_models
-from models import users as user_models
-from models import friendships as friendship_models
-from models import userGame as user_game_models
-from models import messages as messages_models
-from models import userRatings as user_ratings_models
-
 from fastapi.middleware.cors import CORSMiddleware
 
+# CORREÇÃO: Garante que a pasta física exista logo na leitura do arquivo
+# antes do StaticFiles tentar montá-la.
+os.makedirs("uploads", exist_ok=True)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -41,11 +37,14 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # ou ["http://localhost:5173"]
+    allow_origins=["*"],  
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Servindo os arquivos estáticos da pasta uploads para o frontend consumir as imagens
+app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 
 app.include_router(games.router)
 app.include_router(collections.router)

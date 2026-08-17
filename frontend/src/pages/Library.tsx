@@ -1,16 +1,17 @@
 // frontend/src/pages/Library.tsx
 import React, { useState, useEffect } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import {
   Library as LibraryIcon,
   SlidersHorizontal,
   ArrowUpDown,
+  Plus,
 } from "lucide-react";
 import { GameCard } from "../components/GameCard";
 
 export function Library() {
   const [games, setGames] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   const [searchParams] = useSearchParams();
   const query = searchParams.get("q") || "";
@@ -28,8 +29,6 @@ export function Library() {
         setGames(Array.isArray(data) ? data : []);
       } catch (error) {
         console.error("Failed to load library inventory:", error);
-      } finally {
-        setLoading(false);
       }
     };
     fetchGames();
@@ -62,21 +61,6 @@ export function Library() {
       return titleB.localeCompare(titleA);
     }
   });
-
-  if (loading) {
-    return (
-      <div
-        className="main-scroll"
-        style={{
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-        }}
-      >
-        <p style={{ color: "#888" }}>Carregando sua biblioteca...</p>
-      </div>
-    );
-  }
 
   return (
     <div className="home-container animate-in">
@@ -184,6 +168,70 @@ export function Library() {
         </div>
 
         <div className="game-row">
+          {/* CARD DE ATALHO FIXO: SEMPRE VISÍVEL SE NÃO HOUVER BUSCA ATIVA */}
+          {!query && (
+            <div
+              className="game-card"
+              onClick={() => navigate("/add-game")}
+              style={{
+                cursor: "pointer",
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "center",
+                alignItems: "center",
+                aspectRatio: "2/3",
+                background: "linear-gradient(135deg, #0f0f0f 0%, #151515 100%)",
+                border: "2px dashed #222",
+                borderRadius: "15px",
+                transition: "var(--transition-smooth)",
+                padding: "20px",
+                textAlign: "center",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.borderColor = "var(--accent-red)";
+                e.currentTarget.style.transform = "translateY(-10px)";
+                e.currentTarget.style.boxShadow =
+                  "0 15px 30px rgba(0, 0, 0, 0.6)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.borderColor = "#222";
+                e.currentTarget.style.transform = "translateY(0)";
+                e.currentTarget.style.boxShadow = "none";
+              }}
+            >
+              <div
+                style={{
+                  background: "rgba(255, 0, 0, 0.08)",
+                  padding: "18px",
+                  borderRadius: "50%",
+                  marginBottom: "15px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  border: "1px solid rgba(255, 0, 0, 0.2)",
+                }}
+              >
+                <Plus size={28} color="var(--accent-red)" />
+              </div>
+              <span
+                style={{
+                  color: "#ffffff",
+                  fontWeight: "700",
+                  fontSize: "14px",
+                  letterSpacing: "0.5px",
+                }}
+              >
+                Adicionar Jogo
+              </span>
+              <span
+                style={{ color: "#555", fontSize: "11px", marginTop: "4px" }}
+              >
+                Cadastro Manual
+              </span>
+            </div>
+          )}
+
+          {/* LISTAGEM DOS JOGOS DA BIBLIOTECA */}
           {sortedGames.length > 0 ? (
             sortedGames.map((game) => (
               <GameCard
@@ -195,19 +243,19 @@ export function Library() {
                 playTime={game.play_time}
               />
             ))
-          ) : (
+          ) : query ? (
             <p
               style={{
-                color: "#555",
+                color: "#888",
                 padding: "20px",
                 gridColumn: "1 / -1",
                 textAlign: "center",
                 fontSize: "14px",
               }}
             >
-              Nenhum jogo corresponde ao termo procurado ou gênero selecionado.
+              Nenhum jogo corresponde à sua busca.
             </p>
-          )}
+          ) : null}
         </div>
       </section>
     </div>

@@ -1,5 +1,5 @@
 // frontend/src/pages/EditCollection.tsx
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   FolderPlus,
@@ -9,6 +9,8 @@ import {
   Square,
   Search,
   Folder,
+  Image as ImageIcon,
+  UploadCloud,
 } from "lucide-react";
 import { useToast } from "../context/ToastContext";
 
@@ -18,10 +20,13 @@ export function EditCollection() {
   const { showToast } = useToast();
 
   const [collectionName, setCollectionName] = useState("");
+  const [collectionCover, setCollectionCover] = useState("");
   const [games, setGames] = useState<any[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedGames, setSelectedGames] = useState<number[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const fetchCollectionData = async () => {
@@ -37,6 +42,7 @@ export function EditCollection() {
 
         if (target) {
           setCollectionName(target.title || "");
+          setCollectionCover(target.cover || "");
 
           const gamesRes = await fetch(
             `http://localhost:8000/collections/${id}`,
@@ -52,7 +58,7 @@ export function EditCollection() {
       } catch (error) {
         console.error("Failed to restore collection edit state:", error);
       } finally {
-        setLoading(false);
+        setIsLoading(false);
       }
     };
 
@@ -64,6 +70,34 @@ export function EditCollection() {
       setSelectedGames(selectedGames.filter((gId) => gId !== gameId));
     } else {
       setSelectedGames([...selectedGames, gameId]);
+    }
+  };
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      showToast("Enviando imagem...", "info");
+      const response = await fetch(
+        "http://localhost:8000/collections/upload-cover",
+        {
+          method: "POST",
+          body: formData,
+        },
+      );
+
+      if (!response.ok) throw new Error("Upload failed");
+
+      const data = await response.json();
+      setCollectionCover(data.url);
+      showToast("Imagem do PC enviada com sucesso!", "success");
+    } catch (error) {
+      console.error("Upload error:", error);
+      showToast("Erro ao fazer upload da imagem.", "error");
     }
   };
 
@@ -81,6 +115,7 @@ export function EditCollection() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           title: collectionName.trim(),
+          cover: collectionCover.trim() || null,
           game_ids: selectedGames,
         }),
       });
@@ -98,6 +133,16 @@ export function EditCollection() {
   };
 
   const renderPreviewCover = () => {
+    if (collectionCover.trim()) {
+      return (
+        <img
+          src={collectionCover.trim()}
+          alt="Custom Cover Preview"
+          style={{ width: "100%", height: "100%", objectFit: "cover" }}
+        />
+      );
+    }
+
     const selectedCovers: string[] = [];
     selectedGames.forEach((gameId) => {
       const matched = games.find((g) => g.id === gameId);
@@ -226,7 +271,7 @@ export function EditCollection() {
     (game.title || "").toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div
         className="page-container"
@@ -271,8 +316,8 @@ export function EditCollection() {
           style={{ flex: 1 }}
         >
           <p className="form-helper">
-            Modifique o título e altere as marcações dos jogos para atualizar a
-            categoria.
+            Modifique o título, gerencie o link da capa ou altere as marcações
+            dos jogos para atualizar a categoria.
           </p>
 
           <div className="input-group">
@@ -285,6 +330,57 @@ export function EditCollection() {
                 value={collectionName}
                 onChange={(e) => setCollectionName(e.target.value)}
                 required
+              />
+            </div>
+          </div>
+
+          <div className="input-group" style={{ marginTop: "20px" }}>
+            <label>URL da Imagem de Capa (Opcional)</label>
+            <div
+              style={{ display: "flex", gap: "10px", alignItems: "stretch" }}
+            >
+              <div className="input-wrapper" style={{ flex: 1 }}>
+                <ImageIcon size={18} className="input-icon" />
+                <input
+                  type="text"
+                  placeholder="https://linkdaimagem.com/capa.jpg"
+                  value={collectionCover}
+                  onChange={(e) => setCollectionCover(e.target.value)}
+                />
+              </div>
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                style={{
+                  background: "#1a1a1a",
+                  border: "1px solid #333",
+                  color: "#ccc",
+                  padding: "0 20px",
+                  borderRadius: "10px",
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px",
+                  fontWeight: "bold",
+                  transition: "0.2s",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.borderColor = "var(--accent-red)";
+                  e.currentTarget.style.color = "white";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.borderColor = "#333";
+                  e.currentTarget.style.color = "#ccc";
+                }}
+              >
+                <UploadCloud size={18} /> Upload do PC
+              </button>
+              <input
+                type="file"
+                ref={fileInputRef}
+                style={{ display: "none" }}
+                accept="image/*"
+                onChange={handleFileUpload}
               />
             </div>
           </div>
