@@ -67,6 +67,7 @@ class Game(SQLModel, table=True):
 
     play_time: int = Field(default=0, ge=0)
     favorite: bool = False
+    is_active: bool = True
 
     collections: list["Collection"] = Relationship(
         back_populates="games",
@@ -92,7 +93,8 @@ class GameCreate(SQLModel):
     tag_ids: list[int] = Field(default_factory=list)
     play_time: int = Field(default=0)
     favorite: bool = False
-
+    is_active: bool = True
+    
 class GameUpdate(SQLModel):
     title: str | None = None
     description: str | None = None

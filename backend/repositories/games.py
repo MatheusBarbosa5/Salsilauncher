@@ -107,6 +107,6 @@ def delete_game(session: Session, game_id: int) -> bool:
     if not game_db:
         return False
 
-    session.delete(game_db)
+    game_db.is_active = False
     session.commit()
     return True

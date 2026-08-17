@@ -78,6 +78,7 @@ def get_collection_games(
             "tags": [tag.model_dump() for tag in game.tags]
         }
         for game in games
+        if game.is_active  # Filtra apenas jogos ativos
     ]
 
 # Retorna dict no POST para evitar referência circular e crash
