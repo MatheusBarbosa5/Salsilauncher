@@ -16,12 +16,7 @@ def get_collections(
 
     if q:
         q_like = f"%{q.lower()}%"
-        stmt = stmt.where(
-            or_(
-                Collection.title.ilike(q_like),
-                Collection.description.ilike(q_like)
-            )
-        )
+        stmt = stmt.where(Collection.title.ilike(q_like))
 
     stmt = stmt.offset(offset).limit(limit)
 
@@ -41,11 +36,12 @@ def create_collection(
 
     if len(games) != len(collection_data.game_ids):
         raise ValueError(
-            "Um ou mais jogos informados não existem. (rafapi: bl)"
+            "Um ou mais jogos informados não existem."
         )
 
     new_collection = Collection(
         title=collection_data.title,
+        cover=collection_data.cover,
         games=games
     )
 
@@ -55,7 +51,7 @@ def create_collection(
 
     return new_collection
 
-# Atualzair coleção
+# Atualizar coleção
 def update_collection(
     session: Session,
     collection_id: int,
@@ -78,10 +74,11 @@ def update_collection(
 
     if len(games) != len(collection_data.game_ids):
         raise ValueError(
-            "Um ou mais jogos informados não existem. (rafapi: blz)"
+            "Um ou mais jogos informados não existem."
         )
 
     collection_db.title = collection_data.title
+    collection_db.cover = collection_data.cover
     collection_db.games = games
 
     session.add(collection_db)
@@ -121,17 +118,14 @@ def delete_collection(session: Session, collection_id: int) -> bool:
 # Adicionar jogo na coleção
 def add_game_to_collection(session: Session, collection_id: int, game_id: int) -> bool:
 
-    # validação da coleção
     collection = session.get(Collection, collection_id)
     if not collection:
         return False
 
-    # validação do jogo
     game = session.get(Game, game_id)
     if not game:
         return False
 
-    # evita duplicação
     existing = session.exec(
         select(CollectionGameLink).where(
             CollectionGameLink.collection_id == collection_id,
@@ -140,9 +134,8 @@ def add_game_to_collection(session: Session, collection_id: int, game_id: int) -
     ).first()
 
     if existing:
-        return True  # já existe, idempotente
+        return True 
 
-    # Adicionar jogo na coleção
     link = CollectionGameLink(
         collection_id=collection_id,
         game_id=game_id

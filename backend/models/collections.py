@@ -12,8 +12,9 @@ class Collection(SQLModel, table=True):
     id: int | None = Field(
         default=None,
         primary_key=True
-        )
+    )
     title: str
+    cover: str | None = None
     games: list["Game"] = Relationship(
         back_populates="collections",
         link_model=CollectionGameLink
@@ -21,12 +22,14 @@ class Collection(SQLModel, table=True):
 
 class CollectionCreate(SQLModel):
     title: str
+    cover: str | None = None
     game_ids: list[int] = Field(
         default_factory=list
     )
 
 class CollectionUpdate(SQLModel):
     title: str | None = None
+    cover: str | None = None
     game_ids: list[int] | None = Field(
         default_factory=list
     )

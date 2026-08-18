@@ -1,5 +1,5 @@
 // frontend/src/pages/CreateCollection.tsx
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   FolderPlus,
@@ -9,16 +9,20 @@ import {
   Square,
   Search,
   Folder,
+  Image as ImageIcon,
+  UploadCloud,
 } from "lucide-react";
 import { useToast } from "../context/ToastContext";
 
 export function CreateCollection() {
   const [collectionName, setCollectionName] = useState("");
+  const [collectionCover, setCollectionCover] = useState("");
   const [games, setGames] = useState<any[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedGames, setSelectedGames] = useState<number[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
 
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
   const { showToast } = useToast();
 
@@ -31,7 +35,7 @@ export function CreateCollection() {
       } catch (error) {
         console.error("Failed to load games for collection storage:", error);
       } finally {
-        setLoading(false);
+        setIsLoading(false);
       }
     };
     fetchGames();
@@ -45,7 +49,35 @@ export function CreateCollection() {
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      showToast("Enviando imagem...", "info");
+      const response = await fetch(
+        "http://localhost:8000/collections/upload-cover",
+        {
+          method: "POST",
+          body: formData,
+        },
+      );
+
+      if (!response.ok) throw new Error("Upload failed");
+
+      const data = await response.json();
+      setCollectionCover(data.url);
+      showToast("Imagem do PC enviada com sucesso!", "success");
+    } catch (error) {
+      console.error("Upload error:", error);
+      showToast("Erro ao fazer upload da imagem.", "error");
+    }
+  };
+
+  const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!collectionName.trim()) {
@@ -59,6 +91,7 @@ export function CreateCollection() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           title: collectionName.trim(),
+          cover: collectionCover.trim() || null,
           game_ids: selectedGames,
         }),
       });
@@ -74,6 +107,16 @@ export function CreateCollection() {
   };
 
   const renderPreviewCover = () => {
+    if (collectionCover.trim()) {
+      return (
+        <img
+          src={collectionCover.trim()}
+          alt="Custom Cover Preview"
+          style={{ width: "100%", height: "100%", objectFit: "cover" }}
+        />
+      );
+    }
+
     const selectedCovers: string[] = [];
     selectedGames.forEach((gameId) => {
       const matched = games.find((g) => g.id === gameId);
@@ -232,12 +275,12 @@ export function CreateCollection() {
       <div className="cadastro-layout">
         <form
           className="cadastro-form"
-          onSubmit={handleSubmit}
+          onSubmit={handleFormSubmit}
           style={{ flex: 1 }}
         >
           <p className="form-helper">
-            Escolha um nome e selecione os jogos. A capa do agrupamento será
-            gerada automaticamente.
+            Escolha um nome e selecione os jogos. Deixe a capa em branco se
+            preferir gerar o mix automático.
           </p>
 
           <div className="input-group">
@@ -250,6 +293,57 @@ export function CreateCollection() {
                 value={collectionName}
                 onChange={(e) => setCollectionName(e.target.value)}
                 required
+              />
+            </div>
+          </div>
+
+          <div className="input-group" style={{ marginTop: "20px" }}>
+            <label>URL da Imagem de Capa (Opcional)</label>
+            <div
+              style={{ display: "flex", gap: "10px", alignItems: "stretch" }}
+            >
+              <div className="input-wrapper" style={{ flex: 1 }}>
+                <ImageIcon size={18} className="input-icon" />
+                <input
+                  type="text"
+                  placeholder="https://linkdaimagem.com/capa.jpg"
+                  value={collectionCover}
+                  onChange={(e) => setCollectionCover(e.target.value)}
+                />
+              </div>
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                style={{
+                  background: "#1a1a1a",
+                  border: "1px solid #333",
+                  color: "#ccc",
+                  padding: "0 20px",
+                  borderRadius: "10px",
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px",
+                  fontWeight: "bold",
+                  transition: "0.2s",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.borderColor = "var(--accent-red)";
+                  e.currentTarget.style.color = "white";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.borderColor = "#333";
+                  e.currentTarget.style.color = "#ccc";
+                }}
+              >
+                <UploadCloud size={18} /> Upload do PC
+              </button>
+              <input
+                type="file"
+                ref={fileInputRef}
+                style={{ display: "none" }}
+                accept="image/*"
+                onChange={handleFileUpload}
               />
             </div>
           </div>
@@ -273,7 +367,7 @@ export function CreateCollection() {
               />
             </div>
 
-            {loading ? (
+            {isLoading ? (
               <p style={{ color: "#888", fontSize: "14px" }}>
                 Buscando catálogo...
               </p>

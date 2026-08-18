@@ -4,11 +4,15 @@ from fastapi import (
     HTTPException, 
     Query, 
     Depends,
-    Form
+    Form,
+    UploadFile,
+    File
     )
 
 import os
 import subprocess
+import shutil
+import uuid
 
 import psutil
 from sqlmodel import Session
@@ -30,7 +34,41 @@ from services import gameService
 
 router = APIRouter(prefix="/games", tags=["Games"])
 
-# Buscar todos os jogos, com ou sem filtro
+# Funcionalidade nativa do OS para buscar arquivo
+@router.get("/browse")
+def browse_file():
+    import tkinter as tk
+    from tkinter import filedialog
+    
+    try:
+        root = tk.Tk()
+        root.withdraw()
+        root.wm_attributes('-topmost', 1)
+        file_path = filedialog.askopenfilename(
+            title="Selecione o executável do jogo",
+            filetypes=[("Arquivos Executáveis", "*.exe"), ("Todos os Arquivos", "*.*")]
+        )
+        root.destroy()
+        
+        return {"path": file_path}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/upload-cover")
+def upload_cover_image(file: UploadFile = File(...)):
+    try:
+        os.makedirs("uploads", exist_ok=True)
+        file_extension = file.filename.split(".")[-1] if "." in file.filename else "jpg"
+        unique_filename = f"{uuid.uuid4()}.{file_extension}"
+        file_path = os.path.join("uploads", unique_filename)
+        
+        with open(file_path, "wb") as buffer:
+            shutil.copyfileobj(file.file, buffer)
+            
+        return {"url": f"http://localhost:8000/uploads/{unique_filename}"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Erro ao salvar imagem: {str(e)}")
+
 @router.get("/", response_model=list[dict])
 def get_games(
     q: str | None = Query(None),
@@ -47,17 +85,15 @@ def get_games(
         offset=offset
     )
 
-    print(games[0].tags if games else "sem games")
-
     return [
         {
             **game.model_dump(),
             "tags": [tag.model_dump() for tag in game.tags]
         }
         for game in games
+        if game.is_active  # Filtra apenas jogos ativos
     ]
 
-# Bucar jogo com base no ID
 @router.get("/{game_id}", response_model=dict)
 def get_game_by_id(
     game_id: int,
@@ -73,16 +109,18 @@ def get_game_by_id(
         "tags": [tag.model_dump() for tag in game.tags]
     }
 
-# Cria jogo
-@router.post("/", response_model=Game, status_code=201)
+@router.post("/", response_model=dict, status_code=201)
 def create_game(
     game: GameCreate,
     session: Session = Depends(get_session)
 ):
-    return gameService.create_game(session, game)
+    new_game = gameService.create_game(session, game)
+    return {
+        **new_game.model_dump(),
+        "tags": [tag.model_dump() for tag in new_game.tags]
+    }
 
-# Atualizar Jogo
-@router.put("/{game_id}", response_model=Game)
+@router.put("/{game_id}", response_model=dict)
 def update_game(
     game_id: int,
     game_update: GameUpdate,
@@ -93,7 +131,10 @@ def update_game(
     if not updated_game:
         raise HTTPException(status_code=404, detail="Game not found")
 
-    return updated_game
+    return {
+        **updated_game.model_dump(),
+        "tags": [tag.model_dump() for tag in updated_game.tags]
+    }
 
 @router.delete("/{game_id}", status_code=204)
 def deletar_game(game_id: int, session: Session = Depends(get_session)):
@@ -107,28 +148,21 @@ def escanear_pasta_por_games(
     caminho: str = Form(...),
     session: Session = Depends(get_session)
 ):
-    """
-    Varre um diretório em busca de novas pastas contendo executáveis .exe.
-    Cria games automaticamente para qualquer pasta nova detectada.
-    """
-    
     logger.info("POST /scan chamado (caminho=%s)", caminho)
     
-    scan_path = Path(caminho) # Objeto Path do caminho do DIRETÓRIO
-    validar_scan_path(scan_path) # Validar objeto Path do DIRETÓRIO
+    scan_path = Path(caminho) 
+    validar_scan_path(scan_path) 
 
     games = game_repo.get_games(session, offset=0, limit=10_000) 
     pastas_existentes = {j.exe_path for j in games}
     novos = []
 
-    # Descobrir novas pastas
     def descobrir_pastas_validas():
         for nome in os.listdir(caminho):
             pasta = os.path.join(caminho, nome)
             if os.path.isdir(pasta) and pasta not in pastas_existentes:
                 yield pasta
 
-    # Encontrar executável na pasta
     def encontrar_executavel(pasta):
         for root, _, files in os.walk(pasta):
             for f in files:
@@ -136,7 +170,6 @@ def escanear_pasta_por_games(
                     return os.path.join(root, f)
         return None
 
-    # Criar o objeto Game a partir da pasta
     def criar_game_para_pasta(pasta, executavel):
         nome = os.path.basename(pasta)
         return GameCreate(
@@ -145,17 +178,15 @@ def escanear_pasta_por_games(
             folder_path=pasta
         )
 
-    # Processar pastas novas
-    for pasta in descobrir_pastas_validas(): # Pasta valida (em algum sentido)
+    for pasta in descobrir_pastas_validas(): 
         exe = encontrar_executavel(pasta)
         if not exe:
             logger.warning("Pasta ignorada (sem executável): %s", pasta)
-            continue  # ignorar pastas sem executável
+            continue  
         game = criar_game_para_pasta(pasta, exe)
         criado = game_repo.create_game(session, game)
         novos.append(criado)
 
-    # salvar se mudou
     if novos:
         logger.info("%d novos games adicionados via scan", len(novos))
 

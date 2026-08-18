@@ -6,6 +6,7 @@ if TYPE_CHECKING:
     from models.collections import Collection
     from models.game_session import GameSession
     from models.tags import Tag
+    from models.userRatings import UserRating
 
 # Relacionamento com coleção
 class CollectionGameLink(SQLModel, table=True):
@@ -66,6 +67,7 @@ class Game(SQLModel, table=True):
 
     play_time: int = Field(default=0, ge=0)
     favorite: bool = False
+    is_active: bool = True
 
     collections: list["Collection"] = Relationship(
         back_populates="games",
@@ -75,6 +77,14 @@ class Game(SQLModel, table=True):
     sessions: list["GameSession"] = Relationship(
         back_populates="games"
     )
+
+    ratings: list["UserRating"] = Relationship(
+    back_populates="game"
+    )
+
+# Import tardio para garantir que o SQLAlchemy encontre a classe no namespace
+# durante a inicialização dos mapeamentos.
+from models.userRatings import UserRating
 
 class GameCreate(SQLModel):
     title: str
@@ -87,7 +97,8 @@ class GameCreate(SQLModel):
     tag_ids: list[int] = Field(default_factory=list)
     play_time: int = Field(default=0)
     favorite: bool = False
-
+    is_active: bool = True
+    
 class GameUpdate(SQLModel):
     title: str | None = None
     description: str | None = None

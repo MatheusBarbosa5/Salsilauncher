@@ -8,7 +8,6 @@ import { GameCard } from "../components/GameCard";
 export function Collections() {
   const [collections, setCollections] = useState<any[]>([]);
   const [games, setGames] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
   const [selectedCollection, setSelectedCollection] = useState<any | null>(
     null,
   );
@@ -19,7 +18,7 @@ export function Collections() {
   const query = searchParams.get("q") || "";
 
   useEffect(() => {
-    const loadDashboardData = async () => {
+    const fetchDashboardData = async () => {
       try {
         const responseGames = await fetch("http://localhost:8000/games");
         const dataGames = await responseGames.json();
@@ -37,6 +36,7 @@ export function Collections() {
               return {
                 id: c.id,
                 name: c.title,
+                cover: c.cover,
                 gamesCount: colGames.length,
                 gamesData: colGames,
               };
@@ -46,11 +46,9 @@ export function Collections() {
         }
       } catch (error) {
         console.error("Error loading collections from DB:", error);
-      } finally {
-        setLoading(false);
       }
     };
-    loadDashboardData();
+    fetchDashboardData();
   }, []);
 
   const handleDeleteCollection = async (
@@ -86,6 +84,16 @@ export function Collections() {
   };
 
   const renderCollectionCover = (col: any) => {
+    if (col.cover) {
+      return (
+        <img
+          src={col.cover}
+          alt={col.name}
+          style={{ width: "100%", height: "100%", objectFit: "cover" }}
+        />
+      );
+    }
+
     const covers: string[] = [];
     if (col.gamesData && col.gamesData.length > 0) {
       col.gamesData.forEach((g: any) => {
@@ -209,21 +217,6 @@ export function Collections() {
     );
   };
 
-  if (loading) {
-    return (
-      <div
-        className="main-scroll"
-        style={{
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-        }}
-      >
-        <p style={{ color: "#888" }}>Carregando coleções do servidor...</p>
-      </div>
-    );
-  }
-
   if (selectedCollection) {
     return (
       <div
@@ -311,6 +304,7 @@ export function Collections() {
           gap: "30px",
         }}
       >
+        {/* CARD TRACEJADO FIXO: SEMPRE VISÍVEL SE NÃO HOUVER BUSCA ATIVA */}
         {!query && (
           <div
             onClick={() => navigate("/create-collection")}
@@ -362,6 +356,7 @@ export function Collections() {
           </div>
         )}
 
+        {/* LISTAGEM DAS COLEÇÕES */}
         {filteredCollections.map((col) => (
           <div
             key={col.id}
