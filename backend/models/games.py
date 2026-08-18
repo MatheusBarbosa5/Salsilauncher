@@ -82,6 +82,10 @@ class Game(SQLModel, table=True):
     back_populates="game"
     )
 
+# Import tardio para garantir que o SQLAlchemy encontre a classe no namespace
+# durante a inicialização dos mapeamentos.
+from models.userRatings import UserRating
+
 class GameCreate(SQLModel):
     title: str
     description: str | None = None

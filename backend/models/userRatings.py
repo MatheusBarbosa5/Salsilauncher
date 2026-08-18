@@ -79,6 +79,11 @@ class UserRating(SQLModel, table=True):
         back_populates="ratings"
     )
 
+# Import tardio para garantir que os nomes usados nas relationships existam
+# no namespace do módulo durante a montagem dos mapeamentos.
+from models.games import Game  # noqa: F401
+from models.users import User  # noqa: F401
+
 
 class UserRatingCreate(SQLModel):
     game_id: int
