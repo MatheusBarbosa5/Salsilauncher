@@ -15,6 +15,7 @@ import { Home } from "./pages/Home";
 import { Login } from "./pages/Login";
 import { Register } from "./pages/Register";
 import { CreateGame } from "./pages/CreateGame";
+import { CreateSteamGame } from "./pages/CreateSteamGame";
 import { ScanFolder } from "./pages/ScanFolder";
 import { EditGame } from "./pages/EditGame";
 import { GameDetails } from "./pages/GameDetails";
@@ -35,6 +36,7 @@ function App() {
         <Route element={<MainLayout />}>
           <Route path="/" element={<Home />} />
           <Route path="/add-game" element={<CreateGame />} />
+          <Route path="/add-game/steam" element={<CreateSteamGame />} />
           <Route path="/scan-folder" element={<ScanFolder />} />
           <Route path="/game/:id" element={<GameDetails />} />
           <Route path="/edit-game/:id" element={<EditGame />} />

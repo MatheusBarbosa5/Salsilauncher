@@ -49,6 +49,10 @@ class Game(SQLModel, table=True):
         index=True
     )
     title: str = Field(index=True)
+    steam_appid: int | None = Field(
+        default=None,
+        index=True
+    )
     description: str | None = None
     exe_path: str
     folder_path: str = Field(index=True)
@@ -88,6 +92,7 @@ from models.userRatings import UserRating
 
 class GameCreate(SQLModel):
     title: str
+    steam_appid: int | None = None
     description: str | None = None
     exe_path: str
     folder_path: str

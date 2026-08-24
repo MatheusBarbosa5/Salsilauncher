@@ -209,10 +209,87 @@
   display: grid;
   grid-template-columns: 1fr 350px;
   gap: 40px;
+  min-width: 0;
   background: #121212;
   padding: 40px;
   border-radius: 20px;
   border: 1px solid var(--border-color);
+}
+
+.steam-results {
+  display: grid;
+  gap: 0;
+  margin: 12px 0 22px;
+  max-height: 240px;
+  overflow-y: auto;
+  background: #080808;
+  border: 1px solid #222;
+  border-radius: 10px;
+}
+
+.steam-search-input {
+  display: flex;
+  gap: 10px;
+}
+
+.steam-result {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 10px 14px;
+  color: #ddd;
+  text-align: left;
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid #161616;
+  cursor: pointer;
+  transition: var(--transition-smooth);
+}
+
+.steam-result:hover,
+.steam-result.selected {
+  color: white;
+  border-color: var(--accent-red);
+  background: #241010;
+}
+
+.steam-result span {
+  flex: 1;
+  font-weight: 600;
+}
+
+.steam-result-cover {
+  width: 64px;
+  height: 36px;
+  object-fit: cover;
+  border-radius: 4px;
+  background: #161616;
+}
+
+@media (max-width: 900px) {
+  .cadastro-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .preview-section {
+    display: none;
+  }
+}
+
+@media (max-width: 600px) {
+  .steam-search-input {
+    width: 100%;
+  }
+
+  .steam-results {
+    grid-template-columns: 1fr;
+  }
+
+  .steam-result-cover {
+    width: 52px;
+    height: 30px;
+  }
 }
 
 /* CORREÇÃO 1: ALTA VISIBILIDADE PARA OS TEXTOS (LABELS) ACIMA DOS INPUTS */

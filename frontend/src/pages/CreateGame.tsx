@@ -145,6 +145,14 @@ export function CreateGame() {
             Use esta opção para jogos que não estão na Steam ou em outras
             plataformas.
           </p>
+          <button
+            type="button"
+            className="btn-secondary"
+            onClick={() => navigate("/add-game/steam")}
+            style={{ marginBottom: "20px", padding: "10px 14px", borderRadius: "8px", cursor: "pointer" }}
+          >
+            <Gamepad2 size={16} /> Buscar este jogo na Steam
+          </button>
 
           <div className="input-group">
             <label>Título do Jogo</label>

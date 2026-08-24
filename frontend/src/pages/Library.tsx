@@ -172,7 +172,7 @@ export function Library() {
           {!query && (
             <div
               className="game-card"
-              onClick={() => navigate("/add-game")}
+              onClick={() => navigate("/add-game/steam")}
               style={{
                 cursor: "pointer",
                 display: "flex",
@@ -226,7 +226,7 @@ export function Library() {
               <span
                 style={{ color: "#555", fontSize: "11px", marginTop: "4px" }}
               >
-                Cadastro Manual
+                Buscar na Steam
               </span>
             </div>
           )}

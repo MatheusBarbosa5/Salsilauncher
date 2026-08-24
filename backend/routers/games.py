@@ -30,6 +30,8 @@ from database import get_session
 from sqlmodel import Session
 from datetime import datetime, timezone
 from services import gameService
+from services.steamService import get_game_details
+from fastapi import APIRouter, Depends, HTTPException
 
 
 router = APIRouter(prefix="/games", tags=["Games"])
@@ -110,11 +112,26 @@ def get_game_by_id(
     }
 
 @router.post("/", response_model=dict, status_code=201)
-def create_game(
+async def create_game(
     game: GameCreate,
     session: Session = Depends(get_session)
 ):
+    if game.steam_appid:
+        steam_game = await get_game_details(game.steam_appid)
+
+        if steam_game is None:
+            raise HTTPException(
+                status_code=404,
+                detail="Jogo não encontrado na Steam"
+            )
+
+        game.title = steam_game["title"]
+        game.description = steam_game["description"]
+        game.cover = steam_game["cover"]
+        game.background = steam_game["background"]
+
     new_game = gameService.create_game(session, game)
+
     return {
         **new_game.model_dump(),
         "tags": [tag.model_dump() for tag in new_game.tags]
