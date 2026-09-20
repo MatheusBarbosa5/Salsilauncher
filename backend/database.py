@@ -1,19 +1,18 @@
+import os
 from sqlmodel import SQLModel, create_engine, Session
 
-# Nome do arquivo do banco de dados que será criado
-sqlite_file_name = "salsilauncher.db"
-sqlite_url = f"sqlite:///{sqlite_file_name}"
+DATABASE_URL = os.getenv(
+    "DATABASE_URL",
+    "postgresql://salsi:salsi123@localhost:5432/salsilauncher"
+)
 
-connect_args = {"check_same_thread": False}
-engine = create_engine(sqlite_url, echo=True, connect_args=connect_args)
+engine = create_engine(DATABASE_URL, echo=True)
 
 def create_db_and_tables():
-    print("Tabela No Banco: ")
+    print("Tabelas no banco:")
     print(SQLModel.metadata.tables.keys())
-
     SQLModel.metadata.create_all(engine)
 
 def get_session():
-# Gera uma sessão do banco para ser injetada nos endpoints
     with Session(engine) as session:
         yield session
