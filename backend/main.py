@@ -2,7 +2,6 @@ import os
 from fastapi import FastAPI
 from contextlib import asynccontextmanager
 from fastapi.staticfiles import StaticFiles
-from steam import router as steam_router
 
 from database import create_db_and_tables
 
@@ -14,7 +13,8 @@ from routers import (
     friendshipsRouters,
     userRouters,
     messagesRouters,
-    userRatingsRouters
+    userRatingsRouters,
+    steamRouter
 )
 
 from fastapi.middleware.cors import CORSMiddleware
@@ -55,7 +55,7 @@ app.include_router(friendshipsRouters.router)
 app.include_router(userRouters.router)
 app.include_router(messagesRouters.router)
 app.include_router(userRatingsRouters.router)
-app.include_router(steam_router)
+app.include_router(steamRouter.router)
 
 @app.get("/")
 def root():

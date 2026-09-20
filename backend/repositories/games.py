@@ -110,3 +110,13 @@ def delete_game(session: Session, game_id: int) -> bool:
     game_db.is_active = False
     session.commit()
     return True
+
+# Buscar jogo pelo steam_appid
+def get_game_by_steam_appid(
+    session: Session,
+    steam_appid: int
+) -> Game | None:
+    statement = select(Game).where(
+        Game.steam_appid == steam_appid
+    )
+    return session.exec(statement).first()

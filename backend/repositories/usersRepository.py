@@ -102,3 +102,44 @@ def delete_user(
     session.commit()
 
     return True
+
+
+def get_user_by_steam_id(
+    session: Session,
+    steam_id: str
+) -> User | None:
+    statement = select(User).where(
+        User.steam_id == steam_id
+    )
+    return session.exec(statement).first()
+
+# Vincular ID da Steam a um usuário
+def link_steam_id(
+    session: Session,
+    user_id: int,
+    steam_id: str
+) -> User | None:
+    user = session.get(User, user_id)
+    if not user:
+        return None
+
+    user.steam_id = steam_id
+    session.add(user)
+    session.commit()
+    session.refresh(user)
+    return user
+
+# Desvincular ID da Steam de um usuário
+def unlink_steam_id(
+    session: Session,
+    user_id: int
+) -> User | None:
+    user = session.get(User, user_id)
+    if not user:
+        return None
+
+    user.steam_id = None
+    session.add(user)
+    session.commit()
+    session.refresh(user)
+    return user

@@ -51,11 +51,15 @@ class Game(SQLModel, table=True):
     title: str = Field(index=True)
     steam_appid: int | None = Field(
         default=None,
+        unique=True,
         index=True
     )
     description: str | None = None
-    exe_path: str
-    folder_path: str = Field(index=True)
+    exe_path: str | None = None
+    folder_path: str | None = Field(
+        default=None,
+        index=True
+    )
     cover: str | None = None
     background: str | None = None
 
@@ -94,8 +98,11 @@ class GameCreate(SQLModel):
     title: str
     steam_appid: int | None = None
     description: str | None = None
-    exe_path: str
-    folder_path: str
+    exe_path: str | None = None
+    folder_path: str | None = Field(     
+        default=None,
+        index=True
+    )
     cover: str | None = None
     background: str | None = None
     extra_images: list[str] = Field(default_factory=list)

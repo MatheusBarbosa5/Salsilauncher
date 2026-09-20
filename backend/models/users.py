@@ -45,6 +45,7 @@ class User(SQLModel, table=True):
         unique=True,
         max_length=30
     )
+    
 
     is_active: bool = Field(
         default=True

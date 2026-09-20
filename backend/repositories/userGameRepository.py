@@ -125,3 +125,24 @@ def delete_user_game(
     session.commit()
 
     return True
+
+
+# Upsert: cria ou atualiza a relação UserGame
+def upsert_user_game(
+    session: Session,
+    user_id: int,
+    game_id: int
+) -> UserGame:
+    existing = get_user_game(session, user_id, game_id)
+
+    if existing:
+        return existing
+
+    new_user_game = UserGame(
+        user_id=user_id,
+        game_id=game_id
+    )
+    session.add(new_user_game)
+    session.commit()
+    session.refresh(new_user_game)
+    return new_user_game
