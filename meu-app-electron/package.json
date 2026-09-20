@@ -4,6 +4,11 @@
   "description": "",
   "main": "main.js",
   "scripts": {
+    "backend": "cd ../backend && .venv\\Scripts\\python.exe -X utf8 -m fastapi dev",
+    "frontend": "cd ../frontend && npm run dev",
+    "worker": "cd ../backend && .venv\\Scripts\\python.exe -m services.monitor_service",
+    "electron": "electron .",
+    "dev": "concurrently \"npm run backend\" \"npm run frontend\" \"npm run worker\" \"npm run electron\"",
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "electron ."
   },
@@ -11,6 +16,7 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "concurrently": "^10.0.5",
     "electron": "^43.4.0"
   }
 }
