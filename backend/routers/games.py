@@ -4,11 +4,15 @@ from fastapi import (
     HTTPException, 
     Query, 
     Depends,
-    Form
+    Form,
+    UploadFile,
+    File
     )
 
 import os
 import subprocess
+import shutil
+import uuid
 
 import psutil
 from sqlmodel import Session
@@ -17,7 +21,7 @@ from pathlib import Path
 from core.logging import logger
 from utils.scan_validation import validar_scan_path
 from models.games import Game, GameCreate, GameUpdate
-from models.game_session import SessaoGame, SessaoGameCreate
+from models.game_session import GameSession, GameSessionCreate
 from repositories import (
     games as game_repo,
     game_session as game_session_repo
@@ -25,37 +29,129 @@ from repositories import (
 from database import get_session
 from sqlmodel import Session
 from datetime import datetime, timezone
+from services import gameService
+from services.steamService import get_game_details
+from fastapi import APIRouter, Depends, HTTPException
+
 
 router = APIRouter(prefix="/games", tags=["Games"])
 
+# Funcionalidade nativa do OS para buscar arquivo
+@router.get("/browse")
+def browse_file():
+    import tkinter as tk
+    from tkinter import filedialog
+    
+    try:
+        root = tk.Tk()
+        root.withdraw()
+        root.wm_attributes('-topmost', 1)
+        file_path = filedialog.askopenfilename(
+            title="Selecione o executável do jogo",
+            filetypes=[("Arquivos Executáveis", "*.exe"), ("Todos os Arquivos", "*.*")]
+        )
+        root.destroy()
+        
+        return {"path": file_path}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
-@router.get("/", response_model=List[Game])
-def listar_games(
-    q: Optional[str] = Query(None, description="Busca por nome ou descrição"),
-    tags: Optional[str] = Query(None, description="Tags separadas por vírgula (ex: fps,rpg)"),
+@router.post("/upload-cover")
+def upload_cover_image(file: UploadFile = File(...)):
+    try:
+        os.makedirs("uploads", exist_ok=True)
+        file_extension = file.filename.split(".")[-1] if "." in file.filename else "jpg"
+        unique_filename = f"{uuid.uuid4()}.{file_extension}"
+        file_path = os.path.join("uploads", unique_filename)
+        
+        with open(file_path, "wb") as buffer:
+            shutil.copyfileobj(file.file, buffer)
+            
+        return {"url": f"http://localhost:8000/uploads/{unique_filename}"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Erro ao salvar imagem: {str(e)}")
+
+@router.get("/", response_model=list[dict])
+def get_games(
+    q: str | None = Query(None),
+    tags: str | None = Query(None),
     limit: int = Query(25, ge=1, le=100),
     offset: int = Query(0, ge=0),
     session: Session = Depends(get_session)
 ):
-    return game_repo.get_all_games(session, q=q, tags=tags, limit=limit, offset=offset)
+    games = gameService.get_games(
+        session=session,
+        q=q,
+        tags=tags,
+        limit=limit,
+        offset=offset
+    )
 
-@router.get("/{game_id}", response_model=Game)
-def obter_game(game_id: int, session: Session = Depends(get_session)):
-    game = game_repo.get_game_by_id(session, game_id)
+    return [
+        {
+            **game.model_dump(),
+            "tags": [tag.model_dump() for tag in game.tags]
+        }
+        for game in games
+        if game.is_active  # Filtra apenas jogos ativos
+    ]
+
+@router.get("/{game_id}", response_model=dict)
+def get_game_by_id(
+    game_id: int,
+    session: Session = Depends(get_session)
+):
+    game = gameService.get_game_by_id(session, game_id)
+
     if not game:
         raise HTTPException(status_code=404, detail="Game não encontrado")
-    return game
 
-@router.post("/", response_model=Game, status_code=201)
-def criar_game(game: GameCreate, session: Session = Depends(get_session)):
-    return game_repo.create_game(session, game)
+    return {
+        **game.model_dump(),
+        "tags": [tag.model_dump() for tag in game.tags]
+    }
 
-@router.put("/{game_id}", response_model=Game)
-def atualizar_game(game_id: int, game_update: GameUpdate, session: Session = Depends(get_session)):
-    game_atualizado = game_repo.update_game(session, game_id, game_update)
-    if not game_atualizado:
-        raise HTTPException(status_code=404, detail="Game não encontrado")
-    return game_atualizado
+@router.post("/", response_model=dict, status_code=201)
+async def create_game(
+    game: GameCreate,
+    session: Session = Depends(get_session)
+):
+    if game.steam_appid:
+        steam_game = await get_game_details(game.steam_appid)
+
+        if steam_game is None:
+            raise HTTPException(
+                status_code=404,
+                detail="Jogo não encontrado na Steam"
+            )
+
+        game.title = steam_game["title"]
+        game.description = steam_game["description"]
+        game.cover = steam_game["cover"]
+        game.background = steam_game["background"]
+
+    new_game = gameService.create_game(session, game)
+
+    return {
+        **new_game.model_dump(),
+        "tags": [tag.model_dump() for tag in new_game.tags]
+    }
+
+@router.put("/{game_id}", response_model=dict)
+def update_game(
+    game_id: int,
+    game_update: GameUpdate,
+    session: Session = Depends(get_session)
+):
+    updated_game = gameService.update_game(session, game_id, game_update)
+
+    if not updated_game:
+        raise HTTPException(status_code=404, detail="Game not found")
+
+    return {
+        **updated_game.model_dump(),
+        "tags": [tag.model_dump() for tag in updated_game.tags]
+    }
 
 @router.delete("/{game_id}", status_code=204)
 def deletar_game(game_id: int, session: Session = Depends(get_session)):
@@ -69,28 +165,21 @@ def escanear_pasta_por_games(
     caminho: str = Form(...),
     session: Session = Depends(get_session)
 ):
-    """
-    Varre um diretório em busca de novas pastas contendo executáveis .exe.
-    Cria games automaticamente para qualquer pasta nova detectada.
-    """
-    
     logger.info("POST /scan chamado (caminho=%s)", caminho)
     
-    scan_path = Path(caminho) # Objeto Path do caminho do DIRETÓRIO
-    validar_scan_path(scan_path) # Validar objeto Path do DIRETÓRIO
+    scan_path = Path(caminho) 
+    validar_scan_path(scan_path) 
 
-    games = game_repo.get_all_games(session, offset=0, limit=10_000) 
-    pastas_existentes = {j.caminho_pasta for j in games}
+    games = game_repo.get_games(session, offset=0, limit=10_000) 
+    pastas_existentes = {j.exe_path for j in games}
     novos = []
 
-    # Descobrir novas pastas
     def descobrir_pastas_validas():
         for nome in os.listdir(caminho):
             pasta = os.path.join(caminho, nome)
             if os.path.isdir(pasta) and pasta not in pastas_existentes:
                 yield pasta
 
-    # Encontrar executável na pasta
     def encontrar_executavel(pasta):
         for root, _, files in os.walk(pasta):
             for f in files:
@@ -98,26 +187,23 @@ def escanear_pasta_por_games(
                     return os.path.join(root, f)
         return None
 
-    # Criar o objeto Game a partir da pasta
     def criar_game_para_pasta(pasta, executavel):
         nome = os.path.basename(pasta)
-        return Game(
-            nome=nome,
-            caminho_executavel=executavel,
-            caminho_pasta=pasta
+        return GameCreate(
+            title=nome,
+            exe_path=executavel,
+            folder_path=pasta
         )
 
-    # Processar pastas novas
-    for pasta in descobrir_pastas_validas(): # Pasta valida (em algum sentido)
+    for pasta in descobrir_pastas_validas(): 
         exe = encontrar_executavel(pasta)
         if not exe:
             logger.warning("Pasta ignorada (sem executável): %s", pasta)
-            continue  # ignorar pastas sem executável
+            continue  
         game = criar_game_para_pasta(pasta, exe)
         criado = game_repo.create_game(session, game)
         novos.append(criado)
 
-    # salvar se mudou
     if novos:
         logger.info("%d novos games adicionados via scan", len(novos))
 
@@ -155,10 +241,10 @@ def abrir_game(
         )
 
     try:
-        processo = subprocess.Popen(game.caminho_executavel, shell=True)
+        processo = subprocess.Popen(game.exe_path, shell=True)
         proc = psutil.Process(processo.pid)
 
-        sessao_game = SessaoGameCreate(
+        sessao_game = GameSessionCreate(
             game_id = game.id,
             pid = processo.pid,
             pid_criado_em = proc.create_time(),

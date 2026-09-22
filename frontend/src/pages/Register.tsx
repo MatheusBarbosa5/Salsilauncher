@@ -1,19 +1,17 @@
+// frontend/src/pages/Register.tsx
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import logoImg from "../assets/logo.png";
-import {
-  User,
-  Mail,
-  Lock,
-  Eye,
-  EyeOff,
-  Gamepad2,
-  ArrowLeft,
-} from "lucide-react";
+import { User, Mail, Lock, Eye, EyeOff, ArrowLeft } from "lucide-react";
 
-export function CadastroUsuario() {
+export function Register() {
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
+
+  const handleRegisterSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    navigate("/login");
+  };
 
   return (
     <div className="auth-container">
@@ -32,13 +30,7 @@ export function CadastroUsuario() {
           <h1>CRIAR CONTA</h1>
           <p>Cadastre-se para começar</p>
         </div>
-        <form
-          className="auth-form"
-          onSubmit={(e) => {
-            e.preventDefault();
-            navigate("/login");
-          }}
-        >
+        <form className="auth-form" onSubmit={handleRegisterSubmit}>
           <div className="input-group">
             <label>Nome</label>
             <div className="input-wrapper">

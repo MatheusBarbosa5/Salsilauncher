@@ -1,13 +1,14 @@
+// frontend/src/pages/Login.tsx
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { Mail, Lock, Eye, EyeOff, Gamepad2 } from "lucide-react";
+import { Mail, Lock, Eye, EyeOff } from "lucide-react";
 import logoImg from "../assets/logo.png";
 
 export function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLoginSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     navigate("/");
   };
@@ -27,7 +28,7 @@ export function Login() {
           <p>Entre com sua conta para jogar</p>
         </div>
 
-        <form className="auth-form" onSubmit={handleLogin}>
+        <form className="auth-form" onSubmit={handleLoginSubmit}>
           <div className="input-group">
             <label>E-mail</label>
             <div className="input-wrapper">
@@ -62,7 +63,7 @@ export function Login() {
 
         <div className="auth-footer">
           <span>Não tem uma conta? </span>
-          <Link to="/cadastro" className="red-link">
+          <Link to="/register" className="red-link">
             Crie uma agora
           </Link>
         </div>
