@@ -3,11 +3,7 @@ from sqlmodel import Field, SQLModel
 
 
 class Game(SQLModel, table=True):
-    """Metadados persistidos de um jogo.
 
-    O servidor não armazena caminhos locais nem controla a execução do jogo.
-    Essas responsabilidades pertencem ao launcher/Electron no computador do usuário.
-    """
 
     __tablename__ = "game"
 
