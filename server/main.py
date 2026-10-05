@@ -13,6 +13,7 @@ from sqlmodel import Session
 
 from database import engine, create_db_and_tables
 from routers.gameRouters import router as game_router
+from routers.userServices import router as user_router
 
 # Iniciar tempo do servidor
 START_TIME = time.time()
@@ -50,6 +51,7 @@ app.add_middleware(
 
 # rotas no swagger
 app.include_router(game_router)
+app.include_router(user_router)
 
 # Validação de conexão com o banco de dados
 def check_db_connection() -> bool:

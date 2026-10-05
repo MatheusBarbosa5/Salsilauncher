@@ -78,3 +78,19 @@ class UserResponse(BaseModel):
     last_activity_at: datetime | None
     created_at: datetime
     updated_at: datetime
+
+
+class UserRead(BaseModel):
+    id: int
+    username: str
+    email: str
+    display_name: str | None
+    avatar_url: str | None
+    is_active: bool
+    is_banned: bool
+    language: str
+    theme: str
+    last_login_at: datetime | None
+    last_activity_at: datetime | None
+    created_at: datetime
+    updated_at: datetime

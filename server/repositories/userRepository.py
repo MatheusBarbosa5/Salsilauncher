@@ -23,6 +23,28 @@ def get_user_by_id(
 
     return session.exec(statement).first()
 
+# Obter usuário por email
+def get_user_by_email(
+    session: Session,
+    email: str,
+) -> User | None:
+    statement = select(User).where(
+        User.email == email
+    )
+
+    return session.exec(statement).first()
+
+# Obter usuário por username
+def get_user_by_username(
+    session: Session,
+    username: str,
+) -> User | None:
+    statement = select(User).where(
+        User.username == username
+    )
+
+    return session.exec(statement).first()
+
 # Obter todos os usuários
 def get_users(
         session: Session,
