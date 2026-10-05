@@ -1,19 +1,16 @@
-from sqlmodel import SQLModel, create_engine, Session
+from sqlalchemy import event
+from sqlmodel import Session, create_engine
+from fastapi import Request
 
-# Nome do arquivo do banco de dados que será criado
-sqlite_file_name = "salsilauncher-server.db"
-sqlite_url = f"sqlite:///{sqlite_file_name}"
+def make_engine(url: str):
+    sqlite = url.startswith("sqlite")
+    engine = create_engine(url, connect_args={"check_same_thread": False} if sqlite else {}, pool_pre_ping=True)
+    if sqlite:
+        @event.listens_for(engine, "connect")
+        def enable_foreign_keys(connection, _):
+            connection.execute("PRAGMA foreign_keys=ON")
+    return engine
 
-connect_args = {"check_same_thread": False}
-engine = create_engine(sqlite_url, echo=True, connect_args=connect_args)
-
-def create_db_and_tables():
-    print("Tabela No Banco: ")
-    print(SQLModel.metadata.tables.keys())
-
-    SQLModel.metadata.create_all(engine)
-
-def get_session():
-# Gera uma sessão do banco para ser injetada nos endpoints
-    with Session(engine) as session:
+def get_session(request: Request):
+    with Session(request.app.state.engine) as session:
         yield session

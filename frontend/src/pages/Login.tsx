@@ -2,15 +2,30 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Mail, Lock, Eye, EyeOff } from "lucide-react";
+import { login } from "../services/remoteApi";
 import logoImg from "../assets/logo.png";
 
 export function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
 
-  const handleLoginSubmit = (e: React.FormEvent) => {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    navigate("/");
+    setError("");
+    setBusy(true);
+    try {
+      await login(email, password);
+      navigate("/");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Não foi possível conectar ao servidor");
+    } finally {
+      setBusy(false);
+    }
   };
 
   return (
@@ -33,7 +48,7 @@ export function Login() {
             <label>E-mail</label>
             <div className="input-wrapper">
               <Mail size={18} className="input-icon" />
-              <input type="email" placeholder="seu@email.com" required />
+              <input value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="email" type="email" placeholder="seu@email.com" required />
             </div>
           </div>
 
@@ -42,6 +57,10 @@ export function Login() {
             <div className="input-wrapper">
               <Lock size={18} className="input-icon" />
               <input
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                maxLength={128}
+                autoComplete="current-password"
                 type={showPassword ? "text" : "password"}
                 placeholder="••••••••"
                 required
@@ -56,8 +75,9 @@ export function Login() {
             </div>
           </div>
 
-          <button type="submit" className="btn-primary">
-            ENTRAR AGORA
+          {error && <p role="alert" style={{ color: "#ff7b7b" }}>{error}</p>}
+          <button type="submit" className="btn-primary" disabled={busy}>
+            {busy ? "ENTRANDO..." : "ENTRAR AGORA"}
           </button>
         </form>
 

@@ -12,3 +12,5 @@ dependencies = [
     "python-dotenv>=1.2.2",
     "sqlmodel>=0.0.38",
 ]
+[tool.uv]
+link-mode = "copy"
