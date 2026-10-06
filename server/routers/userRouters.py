@@ -12,7 +12,7 @@ from services.userService import (
     create_user_service,
     delete_user_service,
     get_user_by_id_service,
-    list_users_service,
+    get_users_service,
     update_user_service,
 )
 
@@ -30,9 +30,10 @@ def create_user(
     data: UserCreate, 
     session: Session = Depends(get_session)
 ):
+    
     return create_user_service(
-        data, 
-        session
+        session, 
+        data
     )
 
 # Obter todos os usuários
@@ -45,7 +46,7 @@ def get_users(
     limit: int = 100,
     session: Session = Depends(get_session),
 ):
-    return list_users_service(
+    return get_users_service(
         session,
         offset,
         limit,

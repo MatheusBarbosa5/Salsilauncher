@@ -13,7 +13,7 @@ from sqlmodel import Session
 
 from database import engine, create_db_and_tables
 from routers.gameRouters import router as game_router
-from routers.userServices import router as user_router
+from routers.userRouters import router as user_router
 
 # Iniciar tempo do servidor
 START_TIME = time.time()
