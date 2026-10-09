@@ -128,6 +128,7 @@ async def create_game(
         game.title = steam_game["title"]
         game.description = steam_game["description"]
         game.cover = steam_game["cover"]
+        game.vertical_cover = steam_game["vertical_cover"]
         game.background = steam_game["background"]
 
     new_game = gameService.create_game(session, game)

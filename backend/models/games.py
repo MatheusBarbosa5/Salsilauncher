@@ -58,6 +58,7 @@ class Game(SQLModel, table=True):
     exe_path: str
     folder_path: str = Field(index=True)
     cover: str | None = None
+    vertical_cover: str | None = None
     background: str | None = None
 
     extra_images: list[str] = Field(
@@ -98,6 +99,7 @@ class GameCreate(SQLModel):
     exe_path: str
     folder_path: str
     cover: str | None = None
+    vertical_cover: str | None = None
     background: str | None = None
     extra_images: list[str] = Field(default_factory=list)
     tag_ids: list[int] = Field(default_factory=list)
@@ -111,6 +113,7 @@ class GameUpdate(SQLModel):
     exe_path: str | None = None
     folder_path: str | None = None
     cover: str | None = None
+    vertical_cover: str | None = None
     background: str | None = None
     extra_images: list[str] | None = None
     tag_ids: list[int] | None = None
