@@ -1,4 +1,10 @@
 import React from "react";
+import { AuthProvider, RequireAuth } from "./context/AuthContext";
+import { Account } from "./pages/Account";
+import { Community } from "./pages/Community";
+import { OnlineCollections } from "./pages/OnlineCollections";
+import { Sessions } from "./pages/Sessions";
+import "./styles/online.css";
 import {
   BrowserRouter as Router,
   Routes,
@@ -27,28 +33,39 @@ import { Library } from "./pages/Library";
 function App() {
   return (
     <Router>
-      <Routes>
-        {/* External Routes */}
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
+      <AuthProvider>
+        <Routes>
+          {/* External Routes */}
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
 
-        {/* Internal Routes with Sidebar */}
-        <Route element={<MainLayout />}>
-          <Route path="/" element={<Home />} />
-          <Route path="/add-game" element={<CreateGame />} />
-          <Route path="/add-game/steam" element={<CreateSteamGame />} />
-          <Route path="/scan-folder" element={<ScanFolder />} />
-          <Route path="/game/:id" element={<GameDetails />} />
-          <Route path="/edit-game/:id" element={<EditGame />} />
-          <Route path="/create-collection" element={<CreateCollection />} />
-          <Route path="/collections" element={<Collections />} />
-          <Route path="/edit-collection/:id" element={<EditCollection />} />
-          <Route path="/library" element={<Library />} />
-        </Route>
+          {/* Internal Routes with Sidebar */}
+          <Route element={<MainLayout />}>
+            <Route element={<RequireAuth />}>
+              <Route path="/account" element={<Account />} />
+              <Route path="/community" element={<Community />} />
+              <Route
+                path="/online-collections"
+                element={<OnlineCollections />}
+              />
+              <Route path="/sessions" element={<Sessions />} />
+            </Route>
+            <Route path="/" element={<Home />} />
+            <Route path="/add-game" element={<CreateGame />} />
+            <Route path="/add-game/steam" element={<CreateSteamGame />} />
+            <Route path="/scan-folder" element={<ScanFolder />} />
+            <Route path="/game/:id" element={<GameDetails />} />
+            <Route path="/edit-game/:id" element={<EditGame />} />
+            <Route path="/create-collection" element={<CreateCollection />} />
+            <Route path="/collections" element={<Collections />} />
+            <Route path="/edit-collection/:id" element={<EditCollection />} />
+            <Route path="/library" element={<Library />} />
+          </Route>
 
-        {/* Security Redirect */}
-        <Route path="*" element={<Navigate to="/" />} />
-      </Routes>
+          {/* Security Redirect */}
+          <Route path="*" element={<Navigate to="/" />} />
+        </Routes>
+      </AuthProvider>
     </Router>
   );
 }

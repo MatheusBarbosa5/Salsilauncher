@@ -1,3 +1,4 @@
+import { LOCAL_API_URL } from "../services/api";
 // frontend/src/pages/Collections.tsx
 import React, { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
@@ -20,17 +21,17 @@ export function Collections() {
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
-        const responseGames = await fetch("http://localhost:8000/games");
+        const responseGames = await fetch(`${LOCAL_API_URL}/games`);
         const dataGames = await responseGames.json();
         setGames(Array.isArray(dataGames) ? dataGames : []);
 
-        const resCols = await fetch("http://localhost:8000/collections/");
+        const resCols = await fetch(`${LOCAL_API_URL}/collections/`);
         if (resCols.ok) {
           const colsData = await resCols.json();
           const enrichedCols = await Promise.all(
             colsData.map(async (c: any) => {
               const gRes = await fetch(
-                `http://localhost:8000/collections/${c.id}`,
+                `${LOCAL_API_URL}/collections/${c.id}`,
               );
               const colGames = await gRes.json();
               return {
@@ -64,7 +65,7 @@ export function Collections() {
 
     try {
       const response = await fetch(
-        `http://localhost:8000/collections/${collectionId}`,
+        `${LOCAL_API_URL}/collections/${collectionId}`,
         {
           method: "DELETE",
         },

@@ -1,3 +1,4 @@
+import { LOCAL_API_URL } from "../services/api";
 // frontend/src/pages/EditCollection.tsx
 import React, { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
@@ -31,11 +32,11 @@ export function EditCollection() {
   useEffect(() => {
     const fetchCollectionData = async () => {
       try {
-        const response = await fetch("http://localhost:8000/games");
+        const response = await fetch(`${LOCAL_API_URL}/games`);
         const gamesData = await response.json();
         setGames(Array.isArray(gamesData) ? gamesData : []);
 
-        const colsRes = await fetch("http://localhost:8000/collections/");
+        const colsRes = await fetch(`${LOCAL_API_URL}/collections/`);
         if (!colsRes.ok) throw new Error("Network error");
         const collections = await colsRes.json();
         const target = collections.find((col: any) => col.id === Number(id));
@@ -45,7 +46,7 @@ export function EditCollection() {
           setCollectionCover(target.cover || "");
 
           const gamesRes = await fetch(
-            `http://localhost:8000/collections/${id}`,
+            `${LOCAL_API_URL}/collections/${id}`,
           );
           if (gamesRes.ok) {
             const colGames = await gamesRes.json();
@@ -83,7 +84,7 @@ export function EditCollection() {
     try {
       showToast("Enviando imagem...", "info");
       const response = await fetch(
-        "http://localhost:8000/collections/upload-cover",
+        `${LOCAL_API_URL}/collections/upload-cover`,
         {
           method: "POST",
           body: formData,
@@ -110,7 +111,7 @@ export function EditCollection() {
     }
 
     try {
-      const response = await fetch(`http://localhost:8000/collections/${id}`, {
+      const response = await fetch(`${LOCAL_API_URL}/collections/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

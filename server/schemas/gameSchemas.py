@@ -1,4 +1,5 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict, computed_field
+from datetime import datetime, date
 
 # Resultado de pesquisa: candidato, não entidade persistida necessariamente
 class GameSearchResult(BaseModel):
@@ -19,6 +20,28 @@ class GameResolveRequest(BaseModel):
 
 # Response natural do jogo
 class GameResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    developer: str | None = None
+    publisher: str | None = None
+    release_date: date | None = None
+    created_at: datetime
+    updated_at: datetime
+
+    @computed_field
+    @property
+    def name(self) -> str:
+        return self.title
+
+    @computed_field
+    @property
+    def cover_url(self) -> str | None:
+        return self.cover
+
+    @computed_field
+    @property
+    def header_url(self) -> str | None:
+        return self.background
+
     id: int
     title: str
     steam_appid: int | None = None

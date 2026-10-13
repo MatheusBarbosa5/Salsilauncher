@@ -11,7 +11,10 @@ from fastapi.responses import JSONResponse
 from sqlalchemy import text
 from sqlmodel import Session
 
-from database import engine, create_db_and_tables
+from database import engine
+import models
+from core.security import get_secret
+from routers import authRouters, friendshipRouters, messageRouters, collectionRouters, ratingRouters, playSessionRouters
 from routers.gameRouters import router as game_router
 from routers.userRouters import router as user_router
 
@@ -22,7 +25,7 @@ START_TIME = time.time()
 @asynccontextmanager
 async def lifespan(app: FastAPI):
 
-    create_db_and_tables()
+    get_secret()  # valida configuração; schema atualizado com Alembic
 
     yield
 
@@ -33,7 +36,7 @@ app = FastAPI(
         "Servidor global de entidades e metadados de jogos, "
         "com integração com a Steam."
     ),
-    version="0.3.0",
+    version="0.4.0",
     lifespan=lifespan,
 )
 
@@ -41,8 +44,8 @@ app = FastAPI(
 # middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
+    allow_origins=[x.strip() for x in os.getenv("CORS_ORIGINS", "http://localhost:5173,http://127.0.0.1:5173").split(",") if x.strip()],
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -52,6 +55,8 @@ app.add_middleware(
 # rotas no swagger
 app.include_router(game_router)
 app.include_router(user_router)
+for module in (authRouters, friendshipRouters, messageRouters, collectionRouters, ratingRouters, playSessionRouters):
+    app.include_router(module.router)
 
 # Validação de conexão com o banco de dados
 def check_db_connection() -> bool:

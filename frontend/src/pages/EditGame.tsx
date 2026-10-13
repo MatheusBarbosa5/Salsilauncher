@@ -1,3 +1,4 @@
+import { LOCAL_API_URL } from "../services/api";
 // frontend/src/pages/EditGame.tsx
 import React, { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
@@ -30,7 +31,7 @@ export function EditGame() {
   useEffect(() => {
     const fetchGameData = async () => {
       try {
-        const response = await fetch(`http://localhost:8000/games/${id}`);
+        const response = await fetch(`${LOCAL_API_URL}/games/${id}`);
         if (!response.ok) throw new Error("Load error");
         const gameData = await response.json();
 
@@ -61,7 +62,7 @@ export function EditGame() {
 
     try {
       showToast("Enviando imagem...", "info");
-      const response = await fetch("http://localhost:8000/games/upload-cover", {
+      const response = await fetch(`${LOCAL_API_URL}/games/upload-cover`, {
         method: "POST",
         body: formData,
       });
@@ -79,7 +80,7 @@ export function EditGame() {
 
   const handleBrowseExe = async () => {
     try {
-      const res = await fetch("http://localhost:8000/games/browse");
+      const res = await fetch(`${LOCAL_API_URL}/games/browse`);
       if (!res.ok) throw new Error("Failed to open file browser");
       const data = await res.json();
       if (data.path) {
@@ -107,7 +108,7 @@ export function EditGame() {
       if (category.trim() !== originalCategoryName) {
         if (category.trim()) {
           const tagResponse = await fetch(
-            `http://localhost:8000/tags/?name=${encodeURIComponent(category.trim())}`,
+            `${LOCAL_API_URL}/tags/?name=${encodeURIComponent(category.trim())}`,
             { method: "POST" },
           );
           if (tagResponse.ok) {
@@ -127,7 +128,7 @@ export function EditGame() {
         return;
       }
 
-      const response = await fetch(`http://localhost:8000/games/${id}`, {
+      const response = await fetch(`${LOCAL_API_URL}/games/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(updatedFields),

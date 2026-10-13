@@ -1,0 +1,578 @@
+.online-page {
+  max-width: 1180px;
+  margin: auto;
+  padding: 28px;
+  color: #eee;
+}
+.online-page h1 {
+  margin-bottom: 10px;
+}
+.online-page h2,
+.online-game h2 {
+  margin: 0 0 16px;
+}
+.online-page h3,
+.online-game h3 {
+  margin: 14px 0 10px;
+}
+.online-card {
+  background: #18181c;
+  border: 1px solid #34343b;
+  border-radius: 14px;
+  padding: 22px;
+  margin: 18px 0;
+  color: #eee;
+}
+.online-columns {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 22px;
+  align-items: start;
+}
+.online-columns > .online-card {
+  margin: 0;
+}
+.online-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.online-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  color: #ccc;
+}
+.online-card input,
+.online-card textarea,
+.online-card select {
+  box-sizing: border-box;
+  max-width: 100%;
+  width: 100%;
+  padding: 11px 12px;
+  border: 1px solid #494952;
+  border-radius: 8px;
+  background: #101014;
+  color: #eee;
+  font: inherit;
+}
+.online-card textarea {
+  min-height: 96px;
+  resize: vertical;
+}
+.online-page button,
+.online-game button,
+.online-notice button {
+  padding: 9px 14px;
+  border: 1px solid #55515b;
+  border-radius: 8px;
+  background: #30222a;
+  color: #fff;
+  cursor: pointer;
+  font: inherit;
+}
+.online-page button:hover,
+.online-game button:hover {
+  background: #56222d;
+}
+.online-page button:disabled,
+.online-game button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+.online-page button:focus-visible,
+.online-card input:focus-visible,
+.online-card textarea:focus-visible,
+.online-card select:focus-visible,
+.online-game button:focus-visible {
+  outline: 2px solid #f55;
+  outline-offset: 2px;
+}
+.online-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin: 12px 0;
+}
+.online-row label {
+  flex: 1;
+  min-width: 140px;
+}
+.online-muted {
+  color: #b3afb9;
+  line-height: 1.6;
+}
+.online-error {
+  color: #ffb5b5;
+  padding: 12px;
+  border: 1px solid #81414a;
+  border-radius: 8px;
+  background: #37191e;
+  overflow-wrap: anywhere;
+}
+.online-success {
+  color: #a5ecc1;
+  padding: 12px;
+  border-radius: 8px;
+  background: #143325;
+}
+.online-list-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid #34343b;
+}
+.online-list-item small,
+.online-friend small {
+  display: block;
+  color: #aaa;
+  margin-top: 6px;
+}
+.online-friend {
+  padding: 15px 0;
+  border-bottom: 1px solid #34343b;
+}
+.online-friend p {
+  margin: 8px 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.online-messages {
+  max-height: 480px;
+  overflow-y: auto;
+  padding: 4px;
+}
+.online-message {
+  padding: 14px;
+  border-radius: 10px;
+  background: #24242d;
+  margin: 12px 0;
+  border-left: 3px solid #707080;
+}
+.online-message.mine {
+  background: #342029;
+  border-left-color: #ec445c;
+}
+.online-message p {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  margin: 10px 0;
+  line-height: 1.5;
+}
+.online-message small {
+  color: #b9b4be;
+}
+.online-check {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center;
+  gap: 10px !important;
+}
+.online-check input {
+  width: auto;
+}
+.online-page a,
+.online-card a {
+  color: #ff929e;
+}
+.online-notice {
+  padding: 30px;
+  color: #ccc;
+}
+.online-game {
+  margin: 24px;
+  position: relative;
+}
+.online-menu {
+  border-top: 1px solid #333;
+  padding-top: 12px;
+  margin-top: 14px;
+}
+.online-danger {
+  color: #ffadad !important;
+}
+.auth-form button:disabled {
+  opacity: 0.5;
+}
+@media (max-width: 850px) {
+  .online-columns {
+    grid-template-columns: 1fr;
+  }
+  .online-page {
+    padding: 18px;
+  }
+  .online-card {
+    padding: 16px;
+  }
+  .online-game {
+    margin: 16px;
+  }
+  .online-list-item {
+    flex-wrap: wrap;
+  }
+}
+
+.community-page {
+  max-width: 1320px;
+  padding: 10px 8px 36px;
+}
+
+.community-heading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 28px;
+  margin: 0 0 28px;
+  padding: 28px 30px;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 18px;
+  background:
+    radial-gradient(ellipse at 95% 0%, rgba(255, 52, 75, 0.18), transparent 48%),
+    linear-gradient(120deg, #17171c, #111115 72%);
+}
+
+.community-eyebrow {
+  color: #ff737f;
+  font-size: 0.7rem;
+  font-weight: 750;
+  letter-spacing: 0.16em;
+}
+
+.community-heading h1 {
+  margin: 8px 0 5px;
+  font-size: clamp(1.8rem, 3vw, 2.4rem);
+  letter-spacing: -0.04em;
+}
+
+.community-heading .online-muted {
+  margin: 0;
+}
+
+.community-stats {
+  display: flex;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.community-stat {
+  min-width: 114px;
+  display: grid;
+  grid-template-columns: 22px 1fr;
+  align-items: center;
+  column-gap: 8px;
+  padding: 11px 13px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  background: rgba(10, 10, 12, 0.45);
+}
+
+.community-stat svg {
+  grid-row: span 2;
+  color: #ff6573;
+}
+
+.community-stat strong {
+  font-size: 1.05rem;
+}
+
+.community-stat span {
+  color: #a7a4ad;
+  font-size: 0.72rem;
+}
+
+.community-page .online-columns {
+  grid-template-columns: minmax(310px, 0.9fr) minmax(0, 1.35fr);
+  gap: 18px;
+}
+
+.community-card {
+  min-width: 0;
+  padding: 22px;
+  border-color: #2b2b32;
+  border-radius: 16px;
+  background: linear-gradient(155deg, #19191f, #141418 78%);
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.16);
+}
+
+.community-card-heading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0 0 18px;
+}
+
+.community-card-icon {
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  border: 1px solid rgba(255, 88, 106, 0.2);
+  border-radius: 12px;
+  background: rgba(255, 48, 70, 0.09);
+  color: #ff6979;
+}
+
+.community-card-heading h2 {
+  margin: 0 0 3px;
+  font-size: 1rem;
+}
+
+.community-card-heading p {
+  margin: 0;
+  color: #9996a0;
+  font-size: 0.78rem;
+  line-height: 1.4;
+}
+
+.community-search {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center;
+  gap: 10px !important;
+  margin-bottom: 10px;
+  padding: 0 12px;
+  border: 1px solid #393941;
+  border-radius: 10px;
+  background: #101014;
+  color: #85838e;
+}
+
+.community-search:focus-within {
+  border-color: rgba(255, 87, 103, 0.75);
+  box-shadow: 0 0 0 3px rgba(255, 55, 74, 0.1);
+}
+
+.community-card .community-search input {
+  min-width: 0;
+  padding: 12px 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.community-card .community-search input:focus-visible {
+  outline: 0;
+}
+
+.community-profile {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+}
+
+.community-avatar {
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  overflow: hidden;
+  border: 1px solid #42414a;
+  border-radius: 13px;
+  background: linear-gradient(145deg, #3a2029, #211a22);
+  color: #ffd9dd;
+  font-weight: 750;
+  text-transform: uppercase;
+}
+
+.community-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.community-profile-details {
+  min-width: 0;
+}
+
+.community-profile-details strong {
+  display: block;
+  overflow: hidden;
+  color: #f1eff4;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.community-profile-details small {
+  display: block;
+  margin-top: 3px;
+  color: #918e99;
+}
+
+.community-page .online-list-item {
+  min-height: 64px;
+  padding: 10px 0;
+  border-color: #2e2d35;
+}
+
+.community-page .online-list-item > button,
+.community-page .online-row button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+}
+
+.community-status {
+  padding: 6px 9px;
+  border: 1px solid #393943;
+  border-radius: 999px;
+  color: #c0bdc7;
+  font-size: 0.7rem;
+  white-space: nowrap;
+}
+
+.community-status-pending {
+  border-color: rgba(246, 190, 92, 0.25);
+  background: rgba(246, 190, 92, 0.08);
+  color: #f0c775;
+}
+
+.community-status-accepted {
+  border-color: rgba(112, 215, 157, 0.22);
+  background: rgba(112, 215, 157, 0.08);
+  color: #91ddb0;
+}
+
+.community-status-blocked,
+.community-status-rejected {
+  color: #aaa6b0;
+}
+
+.community-empty {
+  margin: 12px 0;
+  padding: 18px 14px;
+  border: 1px dashed #37363f;
+  border-radius: 12px;
+  color: #a5a2ad;
+  font-size: 0.88rem;
+  line-height: 1.5;
+  text-align: center;
+}
+
+.community-page .online-friend {
+  padding: 14px 0;
+  border-color: #2e2d35;
+}
+
+.community-page .online-friend > strong {
+  color: #f1eff4;
+}
+
+.community-page .online-friend p {
+  color: #a7a4ad;
+  font-size: 0.84rem;
+}
+
+.community-page .online-friend .online-row {
+  gap: 7px;
+  margin: 10px 0 0;
+}
+
+.community-page .online-row button {
+  padding: 7px 10px;
+  font-size: 0.8rem;
+}
+
+.community-chat-empty {
+  min-height: 230px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 30px;
+  border: 1px dashed #37363f;
+  border-radius: 14px;
+  color: #8e8b96;
+  text-align: center;
+}
+
+.community-chat-empty svg {
+  margin-bottom: 3px;
+  color: #fa6677;
+}
+
+.community-chat-empty strong {
+  color: #dedbe2;
+}
+
+.community-chat-empty span {
+  max-width: 270px;
+  font-size: 0.84rem;
+  line-height: 1.5;
+}
+
+.community-page .online-messages {
+  min-height: 170px;
+  max-height: min(48vh, 480px);
+  padding: 8px 10px;
+  border: 1px solid #2e2d35;
+  border-radius: 13px;
+  background: rgba(9, 9, 12, 0.3);
+}
+
+.community-page .online-message {
+  max-width: 88%;
+  border: 1px solid #34333c;
+  border-left: 3px solid #77727f;
+  background: #202027;
+}
+
+.community-page .online-message.mine {
+  margin-left: auto;
+  border-color: #512731;
+  border-left-color: #f15c70;
+  background: #2b1c24;
+}
+
+.community-page .online-form {
+  margin-top: 12px;
+}
+
+.community-page .online-form textarea {
+  min-height: 84px;
+}
+
+@media (max-width: 900px) {
+  .community-page .online-columns {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  .community-heading {
+    align-items: flex-start;
+    flex-direction: column;
+    padding: 22px;
+  }
+
+  .community-stats {
+    width: 100%;
+  }
+
+  .community-stat {
+    flex: 1;
+  }
+
+  .community-page {
+    padding: 4px 0 24px;
+  }
+
+  .community-card {
+    padding: 17px;
+  }
+
+  .community-page .online-list-item {
+    align-items: flex-start;
+  }
+
+  .community-page .online-message {
+    max-width: 100%;
+  }
+}

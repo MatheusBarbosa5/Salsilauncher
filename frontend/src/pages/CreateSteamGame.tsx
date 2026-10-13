@@ -1,3 +1,4 @@
+import { LOCAL_API_URL } from "../services/api";
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -18,7 +19,7 @@ type SteamResult = {
   header_image: string;
 };
 
-const API_URL = "http://localhost:8000";
+const API_URL = LOCAL_API_URL;
 
 export function CreateSteamGame() {
   const [query, setQuery] = useState("");

@@ -1,3 +1,4 @@
+import { LOCAL_API_URL } from "../services/api";
 // frontend/src/pages/Home.tsx
 import React, { useState, useEffect } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
@@ -25,7 +26,7 @@ export function Home() {
     const fetchGames = async () => {
       try {
         const response = await fetch(
-          `http://localhost:8000/games?q=${encodeURIComponent(query)}`,
+          `${LOCAL_API_URL}/games?q=${encodeURIComponent(query)}`,
         );
         const data = await response.json();
         setGames(Array.isArray(data) ? data : []);

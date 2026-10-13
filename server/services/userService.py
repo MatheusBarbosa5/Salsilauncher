@@ -1,161 +1,57 @@
-from datetime import datetime, timezone
+from fastapi import HTTPException
+from sqlalchemy.exc import IntegrityError
+from sqlmodel import select
+from models.UsersModels import User, get_utc_now
+from core.security import hash_password, verify_password, DUMMY_HASH, unauthorized
 
-from fastapi import HTTPException, status
-from sqlmodel import Session
+def commit_user(session, user):
+    session.add(user)
+    try:
+        session.commit()
+    except IntegrityError:
+        session.rollback()
+        raise HTTPException(409, "Email ou nome de usuário já cadastrado")
+    session.refresh(user)
+    return user
 
-from core.security import hash_password, verify_password
-from models.UsersModels import User
-from repositories.userRepository import (
-    create_user,
-    delete_user,
-    get_user_by_email,
-    get_user_by_id,
-    get_user_by_username,
-    get_users,
-    update_user,
-)
-from schemas.userSchemas import UserCreate, UserUpdate
+def create_user_service(session, data):
+    fields = data.model_dump(exclude={"password"})
+    fields['email'] = str(data.email).lower()
+    fields['username'] = data.username.lower()
+    return commit_user(session, User(**fields, password_hash=hash_password(data.password)))
 
+def get_user_by_id_service(session, user_id):
+    user = session.get(User, user_id)
+    if user is None:
+        raise HTTPException(404, "Usuário não encontrado")
+    return user
 
-# Criar usuário
-def create_user_service(session: Session, data: UserCreate) -> User:
-  # verificar se user existe pelo email
-  if get_user_by_email(session, data.email):
-    raise HTTPException(
-        status_code=status.HTTP_409_CONFLICT,
-        detail="Email ja vinculado",
-    )
+def get_users_service(session, offset=0, limit=25):
+    return session.exec(select(User).where(User.is_active == True, User.is_banned == False).order_by(User.id).offset(offset).limit(limit)).all()
 
-  now = datetime.now(timezone.utc)
+def update_user_service(session, user_id, data):
+    user = get_user_by_id_service(session, user_id)
+    for key, value in data.model_dump(exclude_unset=True).items():
+        if key == 'password':
+            user.password_hash = hash_password(value)
+        else:
+            if key in ('email', 'username'):
+                value = str(value).lower()
+            setattr(user, key, value)
+    user.updated_at = get_utc_now()
+    return commit_user(session, user)
 
-  user = User(
-      username=data.username,
-      email=data.email,
-      password_hash=data.password,
-      created_at=now,
-      updated_at=now,
-  )
+def autenticate_user(session, email, password):
+    user = session.exec(select(User).where(User.email == str(email).lower())).first()
+    valid = verify_password(password, user.password_hash if user else DUMMY_HASH)
+    if not user or not valid or not user.is_active or user.is_banned:
+        raise unauthorized()
+    user.last_login_at = user.last_activity_at = get_utc_now()
+    return commit_user(session, user)
 
-  return create_user(session, user)
-
-
-# Obter usuário pelo ID
-def get_user_by_id_service(session: Session, user_id: int) -> User:
-  user = get_user_by_id(session, user_id)
-
-  if not user:
-    raise HTTPException(
-        status_code=status.HTTP_404_NOT_FOUND,
-        detail="Usuario nao encontrado",
-    )
-
-  return user
-
-
-# Obter todos os usuários
-def get_users_service(
-    session: Session, offset: int = 0, limit: int = 100
-) -> list[User]:
-  return get_users(session, offset=offset, limit=limit)
-
-
-# Atualizar usuário
-def update_user_service(
-    session: Session,
-    user_id: int,
-    data: UserUpdate,
-) -> User:
-  user = get_user_by_id_service(
-      session,
-      user_id,
-  )
-
-  if data.username is not None:
-    existing_user = get_user_by_username(
-        session,
-        data.username,
-    )
-
-    if existing_user and existing_user.id != user.id:
-      raise HTTPException(
-          status_code=status.HTTP_409_CONFLICT,
-          detail="Username already exists",
-      )
-
-    user.username = data.username
-
-  if data.email is not None:
-    existing_user = get_user_by_email(
-        session,
-        data.email,
-    )
-
-    if existing_user and existing_user.id != user.id:
-      raise HTTPException(
-          status_code=status.HTTP_409_CONFLICT,
-          detail="Email already exists",
-      )
-
-    user.email = data.email
-
-  if data.display_name is not None:
-    user.display_name = data.display_name
-
-  if data.avatar_url is not None:
-    user.avatar_url = data.avatar_url
-
-  if data.language is not None:
-    user.language = data.language
-
-  if data.theme is not None:
-    user.theme = data.theme
-
-  user.updated_at = datetime.now(timezone.utc)
-
-  return update_user(session, user)
-
-
-# autenticar usuário
-def autenticate_user(session: Session, email: str, password: str) -> User:
-  user = get_user_by_email(session, email)
-
-  # Usuário existente
-  if not user:
-    raise HTTPException(
-        status_code=status.HTTP_404_NOT_FOUND,
-        detail="Usuario nao encontrado",
-    )
-
-  # Validar senha
-  if not verify_password(password, user.password_hash):
-    raise HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Senha incorreta",
-    )
-
-  # Validar usuário ativo
-  if not user.is_active:
-    raise HTTPException(
-        status_code=status.HTTP_403_FORBIDDEN,
-        detail="Usuario inativo",
-    )
-
-  # Validar banimento
-  if not user.is_banned:
-    raise HTTPException(
-        status_code=status.HTTP_403_FORBIDDEN,
-        detail="Usuario banido",
-    )
-
-  now = datetime.now(timezone.utc)
-  user.last_login_at = now
-  user.last_activity_at = now
-
-  return update_user(session, user)
-
-
-# Deletar usuário
-def delete_user_service(session: Session, user_id: int) -> None:
-  user = get_user_by_id_service(session, user_id)
-
-  delete_user(session, user)
+def delete_user_service(session, user_id):
+    # Desativação preserva o histórico e impede login e uso dos tokens existentes.
+    user = get_user_by_id_service(session, user_id)
+    user.is_active = False
+    user.updated_at = get_utc_now()
+    commit_user(session, user)

@@ -2,15 +2,40 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Mail, Lock, Eye, EyeOff } from "lucide-react";
+import { useAuth } from "../context/AuthContext";
+import { remote, body, errorText } from "../services/api";
+import { useLocation } from "react-router-dom";
 import logoImg from "../assets/logo.png";
 
 export function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
 
-  const handleLoginSubmit = (e: React.FormEvent) => {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [busy, setBusy] = useState(false);
+  const { login } = useAuth();
+  const location = useLocation();
+  const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    navigate("/");
+    setError("");
+    setBusy(true);
+    try {
+      await login(email, password);
+      const from = location.state?.from;
+      navigate(
+        typeof from === "string" &&
+          from.startsWith("/") &&
+          !from.startsWith("//")
+          ? from
+          : "/",
+      );
+    } catch (err) {
+      setError(errorText(err));
+    } finally {
+      setBusy(false);
+    }
   };
 
   return (
@@ -28,12 +53,22 @@ export function Login() {
           <p>Entre com sua conta para jogar</p>
         </div>
 
+        {location.state?.registered && (
+          <p role="status">Conta criada! Entre com seu email e senha.</p>
+        )}
         <form className="auth-form" onSubmit={handleLoginSubmit}>
           <div className="input-group">
             <label>E-mail</label>
             <div className="input-wrapper">
               <Mail size={18} className="input-icon" />
-              <input type="email" placeholder="seu@email.com" required />
+              <input
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                autoComplete="email"
+                type="email"
+                placeholder="seu@email.com"
+                required
+              />
             </div>
           </div>
 
@@ -42,6 +77,10 @@ export function Login() {
             <div className="input-wrapper">
               <Lock size={18} className="input-icon" />
               <input
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                maxLength={128}
+                autoComplete="current-password"
                 type={showPassword ? "text" : "password"}
                 placeholder="••••••••"
                 required
@@ -56,8 +95,13 @@ export function Login() {
             </div>
           </div>
 
-          <button type="submit" className="btn-primary">
-            ENTRAR AGORA
+          {error && (
+            <p role="alert" className="online-error">
+              {error}
+            </p>
+          )}
+          <button type="submit" className="btn-primary" disabled={busy}>
+            {busy ? "ENTRANDO..." : "ENTRAR AGORA"}
           </button>
         </form>
 

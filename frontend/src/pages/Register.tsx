@@ -1,6 +1,9 @@
 // frontend/src/pages/Register.tsx
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
+import { remote, body, errorText } from "../services/api";
+import { useLocation } from "react-router-dom";
 import logoImg from "../assets/logo.png";
 import { User, Mail, Lock, Eye, EyeOff, ArrowLeft } from "lucide-react";
 
@@ -8,9 +11,28 @@ export function Register() {
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
 
-  const handleRegisterSubmit = (e: React.FormEvent) => {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [busy, setBusy] = useState(false);
+  const { login } = useAuth();
+  const location = useLocation();
+  const [username, setUsername] = useState("");
+  const handleRegisterSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    navigate("/login");
+    setError("");
+    setBusy(true);
+    try {
+      await remote("/auth/register", {
+        method: "POST",
+        body: body({ username, email, password }),
+      });
+      navigate("/login", { state: { registered: true } });
+    } catch (err) {
+      setError(errorText(err));
+    } finally {
+      setBusy(false);
+    }
   };
 
   return (
@@ -35,14 +57,31 @@ export function Register() {
             <label>Nome</label>
             <div className="input-wrapper">
               <User size={18} className="input-icon" />
-              <input type="text" placeholder="Seu nome" required />
+              <input
+                type="text"
+                placeholder="Nome de usuário"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                pattern="[A-Za-z0-9_.-]+"
+                minLength={3}
+                maxLength={80}
+                autoComplete="username"
+                required
+              />
             </div>
           </div>
           <div className="input-group">
             <label>E-mail</label>
             <div className="input-wrapper">
               <Mail size={18} className="input-icon" />
-              <input type="email" placeholder="email@exemplo.com" required />
+              <input
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                autoComplete="email"
+                type="email"
+                placeholder="email@exemplo.com"
+                required
+              />
             </div>
           </div>
           <div className="input-group">
@@ -50,6 +89,11 @@ export function Register() {
             <div className="input-wrapper">
               <Lock size={18} className="input-icon" />
               <input
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                maxLength={128}
+                minLength={8}
+                autoComplete="new-password"
                 type={showPassword ? "text" : "password"}
                 placeholder="••••••"
                 required
@@ -63,8 +107,13 @@ export function Register() {
               </button>
             </div>
           </div>
-          <button type="submit" className="btn-primary">
-            FINALIZAR
+          {error && (
+            <p role="alert" className="online-error">
+              {error}
+            </p>
+          )}
+          <button type="submit" className="btn-primary" disabled={busy}>
+            {busy ? "CADASTRANDO..." : "FINALIZAR"}
           </button>
         </form>
         <div className="auth-footer">

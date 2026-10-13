@@ -1,3 +1,4 @@
+import { LOCAL_API_URL } from "../services/api";
 // frontend/src/pages/CreateGame.tsx
 import React, { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
@@ -32,7 +33,7 @@ export function CreateGame() {
 
     try {
       showToast("Enviando imagem...", "info");
-      const response = await fetch("http://localhost:8000/games/upload-cover", {
+      const response = await fetch(`${LOCAL_API_URL}/games/upload-cover`, {
         method: "POST",
         body: formData,
       });
@@ -50,7 +51,7 @@ export function CreateGame() {
 
   const handleBrowseExe = async () => {
     try {
-      const res = await fetch("http://localhost:8000/games/browse");
+      const res = await fetch(`${LOCAL_API_URL}/games/browse`);
       if (!res.ok) throw new Error("Failed to open file browser");
       const data = await res.json();
       if (data.path) {
@@ -70,7 +71,7 @@ export function CreateGame() {
 
       if (category.trim()) {
         const tagResponse = await fetch(
-          `http://localhost:8000/tags/?name=${encodeURIComponent(category.trim())}`,
+          `${LOCAL_API_URL}/tags/?name=${encodeURIComponent(category.trim())}`,
           { method: "POST" },
         );
         if (tagResponse.ok) {
@@ -93,7 +94,7 @@ export function CreateGame() {
         tag_ids: tagIds,
       };
 
-      const response = await fetch("http://localhost:8000/games/", {
+      const response = await fetch(`${LOCAL_API_URL}/games/`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

@@ -1,3 +1,4 @@
+import { LOCAL_API_URL } from "../services/api";
 // frontend/src/pages/CreateCollection.tsx
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
@@ -29,7 +30,7 @@ export function CreateCollection() {
   useEffect(() => {
     const fetchGames = async () => {
       try {
-        const response = await fetch("http://localhost:8000/games");
+        const response = await fetch(`${LOCAL_API_URL}/games`);
         const data = await response.json();
         setGames(Array.isArray(data) ? data : []);
       } catch (error) {
@@ -59,7 +60,7 @@ export function CreateCollection() {
     try {
       showToast("Enviando imagem...", "info");
       const response = await fetch(
-        "http://localhost:8000/collections/upload-cover",
+        `${LOCAL_API_URL}/collections/upload-cover`,
         {
           method: "POST",
           body: formData,
@@ -86,7 +87,7 @@ export function CreateCollection() {
     }
 
     try {
-      const response = await fetch("http://localhost:8000/collections/", {
+      const response = await fetch(`${LOCAL_API_URL}/collections/`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

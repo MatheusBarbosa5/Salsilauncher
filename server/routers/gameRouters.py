@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlmodel import Session
 
 from database import get_session
+from core.security import CurrentUser, require_catalog_editor
 from models.gameModels import Game, GameCreate, GameUpdate
 from schemas.gameSchemas import GameResolveRequest, GameResponse, GameSearchResponse
 from services import gameService
@@ -20,6 +21,8 @@ async def search_games(
     
     try:
         games, source = await gameService.search_games(session, q, limit)
+    except HTTPException:
+        raise
     except Exception as exc:
         raise HTTPException(
             status_code=502,
@@ -37,6 +40,8 @@ async def get_steam_metadata(appid: int):
 
     try:
         details = await get_game_details(appid)
+    except HTTPException:
+        raise
     except Exception as exc:
         raise HTTPException(
             status_code=502,
@@ -65,12 +70,15 @@ def get_games(
 @router.post("/resolve", response_model=GameResponse, status_code=201)
 async def resolve_selected_game(
     request: GameResolveRequest,
+    user: CurrentUser,
     session: Session = Depends(get_session),
 ):
     try:
         game = await gameService.resolve_game(session, request.steam_appid)
     except ValueError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except HTTPException:
+        raise
     except Exception as exc:
         raise HTTPException(
             status_code=502,
@@ -81,12 +89,14 @@ async def resolve_selected_game(
 
 # Compatibilidade: com steam_appid, trata o AppID como seleção explícita
 @router.post("/", response_model=GameResponse, status_code=201)
-async def create_game(game: GameCreate, session: Session = Depends(get_session)):
+async def create_game(game: GameCreate, user: CurrentUser, session: Session = Depends(get_session)):
     if game.steam_appid is not None:
         try:
             return await gameService.resolve_game(session, game.steam_appid)
         except ValueError as exc:
             raise HTTPException(status_code=404, detail=str(exc)) from exc
+        except HTTPException:
+            raise
         except Exception as exc:
             raise HTTPException(
                 status_code=502,
@@ -106,7 +116,7 @@ def get_game_by_id(game_id: int, session: Session = Depends(get_session)):
 
 
 # Atualiza os metadados do jogo persistido pelo ID interno
-@router.put("/{game_id}", response_model=GameResponse)
+@router.put("/{game_id}", response_model=GameResponse, dependencies=[Depends(require_catalog_editor)])
 def update_game(
     game_id: int,
     game_update: GameUpdate,
@@ -119,7 +129,7 @@ def update_game(
 
 
 # Deletar Jogo
-@router.delete("/{game_id}", status_code=204)
+@router.delete("/{game_id}", status_code=204, dependencies=[Depends(require_catalog_editor)])
 def delete_game(game_id: int, session: Session = Depends(get_session)):
     if not gameService.delete_game(session, game_id):
         raise HTTPException(status_code=404, detail="Game não encontrado")

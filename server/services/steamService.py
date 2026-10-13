@@ -100,4 +100,6 @@ async def get_game_details(appid: int) -> dict[str, Any] | None:
         "background": game.get("background_raw") or game.get("background"),
         "extra_images": screenshots,
         "genres": genres,
+        "developer": ", ".join(game.get("developers", []))[:255] or None,
+        "publisher": ", ".join(game.get("publishers", []))[:255] or None,
     }
