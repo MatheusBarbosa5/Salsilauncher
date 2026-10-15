@@ -1,3 +1,4 @@
+import { LOCAL_API_URL } from "../services/api";
 // frontend/src/pages/GameDetails.tsx
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
@@ -14,7 +15,10 @@ import {
 } from "lucide-react";
 import { useToast } from "../context/ToastContext";
 
+import { OnlineGamePanel } from "../components/OnlineGamePanel";
+
 type Game = {
+  steam_appid?: number | null;
   id: number;
   title: string;
   description: string;
@@ -40,7 +44,7 @@ export function GameDetails() {
   useEffect(() => {
     const fetchSingleGame = async () => {
       try {
-        const response = await fetch(`http://localhost:8000/games/${id}`);
+        const response = await fetch(`${LOCAL_API_URL}/games/${id}`);
         if (!response.ok) throw new Error("Game not found");
         const data = await response.json();
         setGame(data);
@@ -68,7 +72,7 @@ export function GameDetails() {
     if (!game?.id) return;
     try {
       const response = await fetch(
-        `http://localhost:8000/games/abrir/${game.id}`,
+        `${LOCAL_API_URL}/games/abrir/${game.id}`,
       );
       if (!response.ok) throw new Error("Error starting game");
 
@@ -101,7 +105,7 @@ export function GameDetails() {
     if (!isConfirmed) return;
 
     try {
-      const response = await fetch(`http://localhost:8000/games/${id}`, {
+      const response = await fetch(`${LOCAL_API_URL}/games/${id}`, {
         method: "DELETE",
       });
       if (!response.ok) throw new Error("Error deleting game");
@@ -383,6 +387,7 @@ export function GameDetails() {
           </p>
         </div>
       </section>
+      <OnlineGamePanel game={game} />
     </div>
   );
 }

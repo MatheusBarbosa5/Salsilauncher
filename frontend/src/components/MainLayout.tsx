@@ -1,3 +1,4 @@
+import { LOCAL_API_URL } from "../services/api";
 // frontend/src/components/MainLayout.tsx
 import React, { useState, useEffect } from "react";
 import {
@@ -6,6 +7,7 @@ import {
   useSearchParams,
   useLocation,
 } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 import logoImg from "../assets/logo.png";
 import { ToastProvider } from "../context/ToastContext";
 import {
@@ -18,10 +20,13 @@ import {
   Library,
   Folder,
   FolderPlus,
+  UsersRound,
+  Sparkles,
 } from "lucide-react";
 
 export function MainLayout() {
   const navigate = useNavigate();
+  const { user, logout } = useAuth();
   const location = useLocation();
   const [searchParams] = useSearchParams();
 
@@ -40,15 +45,13 @@ export function MainLayout() {
   useEffect(() => {
     const loadCollectionsFromDB = async () => {
       try {
-        const res = await fetch("http://localhost:8000/collections/");
+        const res = await fetch(`${LOCAL_API_URL}/collections/`);
         if (!res.ok) return;
         const cols = await res.json();
 
         const enrichedCols = await Promise.all(
           cols.map(async (c: any) => {
-            const gRes = await fetch(
-              `http://localhost:8000/collections/${c.id}`,
-            );
+            const gRes = await fetch(`${LOCAL_API_URL}/collections/${c.id}`);
             const gamesData = await gRes.json();
             return { id: c.id, name: c.title, gamesCount: gamesData.length };
           }),
@@ -61,7 +64,7 @@ export function MainLayout() {
 
     const fetchFavorites = async () => {
       try {
-        const response = await fetch("http://localhost:8000/games");
+        const response = await fetch(`${LOCAL_API_URL}/games`);
         const data = await response.json();
         if (Array.isArray(data)) {
           setFavoriteGames(data.filter((game: any) => game.favorite));
@@ -97,38 +100,57 @@ export function MainLayout() {
             <h2 className="sidebar-title">SALSILAUNCHER</h2>
           </div>
 
-          <div className="nav-tabs">
-            <div
-              className={`tab ${activeTab === "home" ? "active" : ""}`}
-              onClick={() => navigate("/")}
-            >
-              Início
-            </div>
-            <div
-              className={`tab ${activeTab === "collections" ? "active" : ""}`}
-              onClick={() => navigate("/collections")}
-            >
-              Coleções
-            </div>
-          </div>
-
           <div
             className="sidebar-content"
             style={{ flex: 1, overflowY: "auto" }}
           >
+            <nav className="sidebar-primary-nav" aria-label="Navegação principal">
+              <button
+                className={`sidebar-nav-item ${location.pathname === "/" ? "active" : ""}`}
+                aria-current={location.pathname === "/" ? "page" : undefined}
+                onClick={() => navigate("/")}
+              >
+                <HomeIcon size={18} />
+                <span>Dashboard</span>
+              </button>
+              <button
+                className={`sidebar-nav-item ${location.pathname.startsWith("/community") ? "active" : ""}`}
+                aria-current={
+                  location.pathname.startsWith("/community")
+                    ? "page"
+                    : undefined
+                }
+                onClick={() => navigate("/community")}
+              >
+                <UsersRound size={18} />
+                <span>Comunidade</span>
+              </button>
+              <button
+                className="sidebar-nav-item sidebar-nav-item-disabled"
+                aria-disabled="true"
+                title="Recomendações em breve"
+                disabled
+              >
+                <Sparkles size={18} />
+                <span>Recomendações</span>
+                <span className="sidebar-coming-soon">Em breve</span>
+              </button>
+            </nav>
+
+            <div className="sidebar-section-label">Sua biblioteca</div>
             {activeTab === "home" ? (
               <div className="menu-group animate-in">
-                <div
-                  className={`menu-item ${location.pathname === "/" ? "active" : ""}`}
-                  onClick={() => navigate("/")}
-                >
-                  <HomeIcon size={18} /> <span>Início</span>
-                </div>
                 <div
                   className={`menu-item ${location.pathname === "/library" ? "active" : ""}`}
                   onClick={() => navigate("/library")}
                 >
                   <Library size={18} /> <span>Biblioteca</span>
+                </div>
+                <div
+                  className={`menu-item ${location.pathname.startsWith("/collections") || location.pathname.startsWith("/create-collection") || location.pathname.startsWith("/edit-collection") ? "active" : ""}`}
+                  onClick={() => navigate("/collections")}
+                >
+                  <Folder size={18} /> <span>Coleções locais</span>
                 </div>
               </div>
             ) : (
@@ -262,6 +284,24 @@ export function MainLayout() {
                 ))}
               </div>
             )}
+            <div className="online-menu">
+              <div className="sidebar-section-label">Conta e online</div>
+              <div
+                className="menu-item"
+                onClick={() => navigate("/online-collections")}
+              >
+                Coleções online
+              </div>
+              <div className="menu-item" onClick={() => navigate("/sessions")}>
+                Histórico online
+              </div>
+              <div
+                className="menu-item"
+                onClick={() => navigate(user ? "/account" : "/login")}
+              >
+                {user ? "Minha conta" : "Entrar na conta"}
+              </div>
+            </div>
           </div>
 
           <div
@@ -320,17 +360,48 @@ export function MainLayout() {
             <div className="user-section">
               <div
                 className="user-info"
-                onClick={() => navigate("/login")}
+                onClick={() => navigate(user ? "/account" : "/login")}
                 style={{ cursor: "pointer" }}
               >
                 <div className="user-avatar">
-                  <User size={18} color="white" />
+                  {user?.avatar_url ? (
+                    <img
+                      src={user.avatar_url}
+                      alt="Avatar"
+                      style={{
+                        width: 32,
+                        height: 32,
+                        objectFit: "cover",
+                        borderRadius: "50%",
+                      }}
+                      onError={(e) => {
+                        e.currentTarget.style.display = "none";
+                      }}
+                    />
+                  ) : (
+                    <User size={18} color="white" />
+                  )}
                 </div>
-                <span>Usuário</span>
+                <span>{user?.display_name || user?.username || "Entrar"}</span>
               </div>
-              <button className="icon-btn">
+              <button
+                className="icon-btn"
+                aria-label="Configurações da conta"
+                onClick={() => navigate(user ? "/account" : "/login")}
+              >
                 <Settings size={20} />
               </button>
+              {user && (
+                <button
+                  className="icon-btn"
+                  onClick={() => {
+                    logout();
+                    navigate("/");
+                  }}
+                >
+                  Sair
+                </button>
+              )}
             </div>
           </header>
 

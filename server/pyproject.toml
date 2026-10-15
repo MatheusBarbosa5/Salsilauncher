@@ -1,0 +1,19 @@
+[project]
+name = "salsilauncher-server"
+version = "0.4.0"
+description = "Catálogo e dados sociais do Salsilauncher"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "beautifulsoup4>=4.15,<5", "fastapi[standard]>=0.136.1,<1",
+    "httpx>=0.28.1,<1", "psutil>=7.2.2,<8", "python-dotenv>=1.2.2,<2",
+    "sqlmodel>=0.0.47,<0.1", "pwdlib[argon2,bcrypt]>=0.3,<1",
+    "pyjwt>=2.10,<3", "alembic>=1.14,<2", "psycopg[binary]>=3.2,<4"
+]
+[dependency-groups]
+dev = ["pytest>=8,<10"]
+[tool.uv]
+link-mode = "copy"
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]

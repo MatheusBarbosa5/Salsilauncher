@@ -1,3 +1,4 @@
+import { LOCAL_API_URL } from "../services/api";
 // frontend/src/pages/ScanFolder.tsx
 import React from "react";
 import { useNavigate } from "react-router-dom";
@@ -14,7 +15,7 @@ export function ScanFolder() {
     try {
       const formData = new FormData(e.currentTarget);
 
-      const response = await fetch("http://localhost:8000/games/scan", {
+      const response = await fetch(`${LOCAL_API_URL}/games/scan`, {
         method: "POST",
         body: formData,
       });

@@ -1,3 +1,4 @@
+import { LOCAL_API_URL } from "../services/api";
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -18,7 +19,7 @@ type SteamResult = {
   header_image: string;
 };
 
-const API_URL = "http://localhost:8000";
+const API_URL = LOCAL_API_URL;
 
 export function CreateSteamGame() {
   const [query, setQuery] = useState("");
@@ -232,7 +233,14 @@ export function CreateSteamGame() {
           <span>Prévia na Biblioteca</span>
           <div className="game-card" style={{ width: "230px" }}>
             <div className="image-container">
-              <img src={selectedGame ? `https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/${selectedGame.appid}/header.jpg` : "https://via.placeholder.com/230x345?text=Sem+Imagem"} alt="Prévia do jogo selecionado" className="game-image" />
+              
+              <img src={selectedGame
+                ? `https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/${selectedGame.appid}/library_600x900.jpg`
+                : "https://placehold.co/230x345?text=Sem+Imagem"
+              }
+              alt="Prévia do jogo selecionado"
+              className="game-image"
+              />
             </div>
             <div className="game-info" style={{ padding: "15px" }}>
               <span className="game-category">{category || "STEAM"}</span>

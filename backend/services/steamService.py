@@ -5,83 +5,59 @@ from bs4 import BeautifulSoup
 
 
 # URLs da Steam
-STEAM_STORE_SEARCH_URL = "https://store.steampowered.com/search/"
-STEAM_APP_DETAILS_URL = "https://store.steampowered.com/api/appdetails"
+
 STEAM_API_BASE = "https://api.steampowered.com"
+STEAM_STORE_SEARCH_URL = "https://store.steampowered.com/search/"
+STEAM_APP_DETAILS_URL = (
+    "https://store.steampowered.com/api/appdetails"
+)
 
 
 async def search_steam_store(query: str):
-    query = query.strip()
-
-    if not query:
-        return []
-
-    params = {
-        "term": query,
-        "cc": "br",
-        "l": "portuguese",
-    }
-
-    headers = {
-        "User-Agent": (
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-            "AppleWebKit/537.36 "
-            "(KHTML, like Gecko) "
-            "Chrome/131.0 Safari/537.36"
-        ),
-        "Accept-Language": "pt-BR,pt;q=0.9,en;q=0.8",
-    }
+    params = {"term": query.strip()}
 
     async with httpx.AsyncClient(
-        headers=headers,
+        headers={
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+            "AppleWebKit/537.36 Chrome/131.0 Safari/537.36",
+            "Accept-Language": "pt-BR,pt;q=0.9,en;q=0.8",
+        },
         follow_redirects=True,
-        timeout=15.0,
+        timeout=15,
     ) as client:
         response = await client.get(
             STEAM_STORE_SEARCH_URL,
             params=params,
         )
 
-        response.raise_for_status()
+    response.raise_for_status()
 
     soup = BeautifulSoup(response.text, "html.parser")
 
     results = []
 
     for game in soup.select("a.search_result_row"):
+
         appid = game.get("data-ds-appid")
         name_element = game.select_one(".title")
         image_element = game.select_one("img")
+        app_id = str(appid).split(",")[0]
 
         if not appid or not name_element:
             continue
 
-        # Alguns resultados podem conter mais de um AppID
-        app_id = str(appid).split(",")[0]
-
-        try:
-            app_id_int = int(app_id)
-        except ValueError:
-            continue
-
-        header_image = None
-
-        if image_element:
-            header_image = (
+        results.append({
+            "appid": int(app_id),
+            "name": name_element.get_text(strip=True),
+            "header_image": (
                 image_element.get("data-src")
                 or image_element.get("src")
-            )
-
-        if not header_image:
-            header_image = (
-                "https://shared.cloudflare.steamstatic.com/"
-                f"store_item_assets/steam/apps/{app_id}/header.jpg"
-            )
-
-        results.append({
-            "appid": app_id_int,
-            "name": name_element.get_text(strip=True),
-            "header_image": header_image,
+                if image_element
+                else None
+            ) or (
+                f"https://shared.cloudflare.steamstatic.com/store_item_assets/"
+                f"steam/apps/{app_id}/header.jpg"
+            ),
         })
 
     return results[:20]
@@ -111,11 +87,17 @@ async def get_game_details(appid: int):
 
     game = app_data["data"]
 
+    vertical_cover = (
+        "https://shared.cloudflare.steamstatic.com/"
+        f"store_item_assets/steam/apps/{appid}/library_600x900.jpg"
+    )
+
     return {
         "steam_appid": game["steam_appid"],
         "title": game["name"],
         "description": game.get("short_description"),
         "cover": game.get("header_image"),
+        "vertical_cover": vertical_cover,
         "background": game.get("background_raw"),
     }
 

@@ -128,6 +128,7 @@ async def create_game(
         game.title = steam_game["title"]
         game.description = steam_game["description"]
         game.cover = steam_game["cover"]
+        game.vertical_cover = steam_game["vertical_cover"]
         game.background = steam_game["background"]
 
     new_game = gameService.create_game(session, game)
@@ -260,3 +261,12 @@ def abrir_game(
         )
 
     return {"status": "Game iniciado"}
+
+@router.get("/{game_id}/sessions")
+def list_local_sessions(game_id: int, limit: int = Query(100, ge=1, le=100), offset: int = Query(0, ge=0), session: Session = Depends(get_session)):
+    """Histórico local para sincronização; não retorna PIDs nem caminhos de executáveis."""
+    from sqlmodel import select
+    if session.get(Game, game_id) is None:
+        raise HTTPException(404, "Jogo não encontrado")
+    rows = session.exec(select(GameSession).where(GameSession.game_id == game_id).order_by(GameSession.id).offset(offset).limit(limit)).all()
+    return [{"id": row.id, "game_id": row.game_id, "iniciada_em": row.iniciada_em, "encerrada_em": row.encerrada_em, "ativa": row.ativa, "duracao_segundos": row.duracao_segundos} for row in rows]
