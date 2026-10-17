@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import {
+  Inbox,
   MessageCircle,
   RefreshCw,
   Search,
@@ -33,6 +34,7 @@ export function Community() {
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [editId, setEditId] = useState<number | null>(null);
+  const [tab, setTab] = useState<"people" | "friends" | "requests">("people");
   const chatId = Number(params.get("chat")) || null;
   const [messagePage, setMessagePage] = useState(0);
   const [hasMore, setHasMore] = useState(false);
@@ -157,28 +159,7 @@ export function Community() {
         .includes(query.trim().toLowerCase()),
   );
   return (
-    <div className="online-page community-page">
-      <header className="community-heading">
-        <div>
-          <span className="community-eyebrow">SALSILAUNCHER SOCIAL</span>
-          <h1>Comunidade</h1>
-          <p className="online-muted">
-            Encontre jogadores, cuide das amizades e continue suas conversas.
-          </p>
-        </div>
-        <div className="community-stats" aria-label="Resumo da comunidade">
-          <div className="community-stat">
-            <UsersRound size={18} />
-            <strong>{acceptedCount}</strong>
-            <span>amizades</span>
-          </div>
-          <div className="community-stat">
-            <UserRoundPlus size={18} />
-            <strong>{pendingCount}</strong>
-            <span>pedidos</span>
-          </div>
-        </div>
-      </header>
+    <div className="online-page community-page dc-page animate-in">
       {error && (
         <p role="alert" className="online-error">
           {error}
@@ -189,27 +170,66 @@ export function Community() {
           {notice}
         </p>
       )}
-      <div className="online-columns">
-        <section className="online-card community-card community-people-card">
-          <div className="community-card-heading">
-            <div className="community-card-icon">
-              <UserRoundPlus size={18} />
-            </div>
-            <div>
-              <h2>Encontrar pessoas</h2>
-              <p>Busque pelo nome ou username para conhecer jogadores.</p>
-            </div>
+      <div className="dc-layout">
+        <nav className="dc-rail" aria-label="Seções da comunidade">
+          <button
+            type="button"
+            className={`dc-rail-item ${tab === "people" ? "active" : ""}`}
+            title="Encontrar pessoas"
+            aria-label="Encontrar pessoas"
+            onClick={() => setTab("people")}
+          >
+            <UserRoundPlus size={22} />
+          </button>
+          <button
+            type="button"
+            className={`dc-rail-item ${tab === "friends" ? "active" : ""}`}
+            title="Amigos"
+            aria-label="Amigos"
+            onClick={() => setTab("friends")}
+          >
+            <UsersRound size={22} />
+            {acceptedCount > 0 && (
+              <span className="dc-rail-count">{acceptedCount}</span>
+            )}
+          </button>
+          <button
+            type="button"
+            className={`dc-rail-item ${tab === "requests" ? "active" : ""}`}
+            title="Pedidos"
+            aria-label="Pedidos"
+            onClick={() => setTab("requests")}
+          >
+            <Inbox size={22} />
+            {pendingCount > 0 && (
+              <span className="dc-rail-count hot">{pendingCount}</span>
+            )}
+          </button>
+        </nav>
+        <section className="dc-panel">
+          <div className="dc-panel-header">
+            <h2>
+              {
+                {
+                  people: "Encontrar pessoas",
+                  friends: "Amigos",
+                  requests: "Pedidos",
+                }[tab]
+              }
+            </h2>
           </div>
-          <label className="community-search">
-            <Search size={17} aria-hidden="true" />
-            <input
-              aria-label="Buscar pessoas"
-              placeholder="Buscar por nome ou @username"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-            />
-          </label>
-          {loading ? (
+          {tab === "people" && (
+            <label className="community-search">
+              <Search size={17} aria-hidden="true" />
+              <input
+                aria-label="Buscar pessoas"
+                placeholder="Buscar por nome ou @username"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+              />
+            </label>
+          )}
+          {tab !== "people" ? null : loading ? (
             <p className="community-empty">Carregando pessoas...</p>
           ) : visibleProfiles.length === 0 ? (
             <p className="community-empty">
@@ -229,9 +249,7 @@ export function Community() {
                       {p.avatar_url ? (
                         <img src={p.avatar_url} alt="" />
                       ) : (
-                        (p.display_name || p.username)
-                          .slice(0, 1)
-                          .toUpperCase()
+                        (p.display_name || p.username).slice(0, 1).toUpperCase()
                       )}
                     </div>
                     <div className="community-profile-details">
@@ -274,37 +292,54 @@ export function Community() {
               );
             })
           )}
-          {pastPeers.some(
-            (peer) =>
-              !friends.some((f) => f.user_id === peer || f.friend_id === peer),
-          ) && (
-            <>
-              <h2>Conversas anteriores</h2>
-              {pastPeers
-                .filter(
-                  (peer) =>
-                    !friends.some(
-                      (f) => f.user_id === peer || f.friend_id === peer,
-                    ),
-                )
-                .map((peer) => (
-                  <button
-                    key={peer}
-                    disabled={busy}
-                    onClick={() => chooseChat(peer)}
-                  >
-                    {label(peer)}
-                  </button>
-                ))}
-            </>
-          )}
-          <h2>Minhas amizades</h2>
-          {!loading && !friends.length && (
-            <p className="online-muted">
-              Você ainda não tem pedidos ou amigos.
-            </p>
-          )}
-          {friends.map((f) => {
+          {tab === "friends" &&
+            pastPeers.some(
+              (peer) =>
+                !friends.some(
+                  (f) => f.user_id === peer || f.friend_id === peer,
+                ),
+            ) && (
+              <>
+                <h2>Conversas anteriores</h2>
+                {pastPeers
+                  .filter(
+                    (peer) =>
+                      !friends.some(
+                        (f) => f.user_id === peer || f.friend_id === peer,
+                      ),
+                  )
+                  .map((peer) => (
+                    <button
+                      key={peer}
+                      disabled={busy}
+                      onClick={() => chooseChat(peer)}
+                    >
+                      {label(peer)}
+                    </button>
+                  ))}
+              </>
+            )}
+          {tab !== "people" &&
+            !loading &&
+            !friends.some((f) =>
+              tab === "requests"
+                ? f.status === "pending"
+                : f.status !== "pending",
+            ) && (
+              <p className="community-empty">
+                {tab === "requests"
+                  ? "Nenhum pedido pendente."
+                  : "Você ainda não tem amigos."}
+              </p>
+            )}
+          {(tab === "people"
+            ? []
+            : friends.filter((f) =>
+                tab === "requests"
+                  ? f.status === "pending"
+                  : f.status !== "pending",
+              )
+          ).map((f) => {
             const other = f.user_id === user.id ? f.friend_id : f.user_id;
             return (
               <div className="online-friend" key={f.id}>
@@ -414,20 +449,11 @@ export function Community() {
             Atualizar amigos
           </button>
         </section>
-        <section className="online-card community-card community-chat-card">
-          <div className="community-card-heading">
-            <div className="community-card-icon">
-              <MessageCircle size={18} />
-            </div>
-            <div>
-              <h2>{chatId ? `Conversa com ${label(chatId)}` : "Mensagens"}</h2>
-              <p>
-                {chatId
-                  ? "Suas mensagens aparecem aqui."
-                  : "Escolha uma conversa para começar."}
-              </p>
-            </div>
-          </div>
+        <section className="dc-canvas">
+          <header className="dc-canvas-header">
+            <span className="dc-hash">#</span>
+            <h2>{chatId ? label(chatId) : "Mensagens"}</h2>
+          </header>
           {!chatId ? (
             <div className="community-chat-empty">
               <MessageCircle size={30} />

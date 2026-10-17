@@ -63,7 +63,7 @@ export function Sessions() {
     }
   }
   return (
-    <div className="online-page">
+    <div className="online-page animate-in">
       <h1>Histórico online</h1>
       <p className="online-muted">
         Envie suas partidas nos detalhes do jogo, pelo botão “Sincronizar

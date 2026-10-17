@@ -74,7 +74,7 @@ export function Account() {
     }
   }
   return (
-    <div className="online-page">
+    <div className="online-page animate-in">
       <h1>Minha conta</h1>
       <p className="online-muted">Seu perfil no Salsilauncher.</p>
       {error && (

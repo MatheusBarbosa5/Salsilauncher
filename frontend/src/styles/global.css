@@ -1,6 +1,7 @@
 :root {
-  --bg-dark: #0a0a0a;
-  --bg-sidebar: #121212;
+  --bg-dark: #080808;
+  --bg-sidebar: #111111;
+  --bg-card: #0f0f0f;
   --accent-red: #ff0000;
   --text-gray: #888;
   --border-color: #222;
@@ -75,4 +76,98 @@ select {
 }
 ::-webkit-scrollbar-thumb:hover {
   background: var(--accent-red);
+}
+
+/* Respiro entre a barra superior e o conteúdo */
+.home-container {
+  padding-top: 30px;
+}
+
+/* Efeitos visuais compartilhados: elevação, brilho e vidro fosco */
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #1a1a1a;
+  border: 1px solid #333;
+  color: #ccc;
+  font-weight: 700;
+  cursor: pointer;
+  transition: var(--transition-smooth);
+}
+
+.btn-secondary:hover {
+  background: #222;
+  border-color: var(--accent-red);
+  color: #fff;
+}
+.online-card,
+.community-stat,
+.cadastro-layout,
+.sidebar-nav-item,
+.online-page button,
+.online-game button {
+  transition: var(--transition-smooth);
+}
+
+.online-card:hover,
+.community-card:hover {
+  border-color: rgba(255, 0, 0, 0.35);
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.6);
+}
+
+.community-stat:hover {
+  transform: translateY(-5px);
+  border-color: var(--accent-red);
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.6);
+}
+
+.online-page button:hover:not(:disabled),
+.online-game button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(255, 0, 0, 0.4);
+}
+
+/* Cards tracejados de ação rápida */
+.cadastro-layout,
+.community-empty,
+.community-chat-empty {
+  background: linear-gradient(135deg, #0f0f0f 0%, #151515 100%);
+}
+
+.community-empty,
+.community-chat-empty {
+  transition: var(--transition-smooth);
+}
+
+.community-empty:hover,
+.community-chat-empty:hover {
+  border-color: var(--accent-red);
+  transform: translateY(-5px);
+}
+
+/* Pré-visualização flutuante nas telas de cadastro */
+.preview-section .image-container,
+.preview-section .game-card {
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+}
+
+/* Etiquetas translúcidas (glassmorphism) */
+.community-status {
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+.sidebar-coming-soon {
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+.sidebar-nav-item svg,
+.online-list-item button svg {
+  transition: var(--transition-smooth);
+}
+
+.sidebar-nav-item:hover:not(:disabled) svg {
+  color: #fff;
 }

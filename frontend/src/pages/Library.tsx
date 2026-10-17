@@ -84,7 +84,7 @@ export function Library() {
             style={{
               fontSize: "12px",
               color: "#666",
-              background: "#121212",
+              background: "var(--bg-card)",
               padding: "4px 12px",
               borderRadius: "20px",
               border: "1px solid #222",
@@ -99,7 +99,7 @@ export function Library() {
           style={{
             display: "flex",
             gap: "20px",
-            background: "#121212",
+            background: "var(--bg-card)",
             padding: "15px 25px",
             borderRadius: "12px",
             border: "1px solid #222",
@@ -225,7 +225,7 @@ export function Library() {
                 Adicionar Jogo
               </span>
               <span
-                style={{ color: "#555", fontSize: "11px", marginTop: "4px" }}
+                style={{ color: "#aaa", fontSize: "12px", marginTop: "4px" }}
               >
                 Buscar na Steam
               </span>

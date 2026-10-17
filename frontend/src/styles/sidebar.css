@@ -121,14 +121,18 @@
   background: #1a1a1a;
 }
 
-.sidebar-nav-item.active {
+.sidebar-nav-item.active,
+.menu-item.active {
   color: #fff;
-  background: linear-gradient(90deg, rgba(255, 0, 0, 0.15), rgba(255, 0, 0, 0.03));
-  border-color: rgba(255, 80, 80, 0.16);
+  background: rgba(255, 0, 0, 0.08);
+  border-left: 3px solid #ff0000;
+  border-radius: 4px 10px 10px 4px;
+  padding-left: 11px;
 }
 
-.sidebar-nav-item.active svg {
-  color: #ff5555;
+.sidebar-nav-item.active svg,
+.menu-item.active svg {
+  color: #ff0000;
 }
 
 .sidebar-nav-item:focus-visible {
@@ -143,11 +147,13 @@
 
 .sidebar-coming-soon {
   margin-left: auto;
-  padding: 3px 6px;
-  border: 1px solid #34343b;
+  padding: 3px 8px;
+  border: 1px solid rgba(255, 153, 0, 0.35);
   border-radius: 20px;
-  color: #aaa;
+  background: rgba(255, 153, 0, 0.1);
+  color: #ff9900;
   font-size: 0.62rem;
+  font-weight: 700;
   white-space: nowrap;
 }
 
@@ -165,8 +171,10 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 12px 15px;
-  border-radius: 8px;
+  min-height: 44px;
+  padding: 0 13px;
+  border: 1px solid transparent;
+  border-radius: 10px;
   cursor: pointer;
   color: #aaa;
   transition: 0.2s;
@@ -175,11 +183,6 @@
 .menu-item:hover,
 .collection-item:hover {
   background-color: #1a1a1a;
-  color: white;
-}
-.menu-item.active {
-  border-left: 3px solid var(--accent-red);
-  background: #1a1a1a;
   color: white;
 }
 
@@ -247,6 +250,94 @@
   margin-left: 10px;
   width: 100%;
   outline: none;
+}
+
+.search-container input::placeholder {
+  color: #666;
+}
+
+.sidebar-footer-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 13px;
+  border: 1px solid #333;
+  border-radius: 10px;
+  background: #1a1a1a;
+  color: #ccc;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition-smooth);
+}
+
+.sidebar-footer-btn svg {
+  color: var(--accent-red);
+}
+
+.sidebar-footer-btn:hover {
+  border-color: var(--accent-red);
+  color: #fff;
+}
+
+.user-menu {
+  position: relative;
+}
+
+.user-menu-trigger {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 8px;
+  border: 1px solid transparent;
+  border-radius: 25px;
+  background: none;
+  color: #fff;
+  font: inherit;
+  cursor: pointer;
+  transition: var(--transition-smooth);
+}
+
+.user-menu-trigger:hover {
+  border-color: #333;
+  background: #1a1a1a;
+}
+
+.user-menu-dropdown {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 8px);
+  min-width: 180px;
+  padding: 6px;
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  background: #121212;
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.6);
+  z-index: 50;
+}
+
+.user-menu-dropdown button {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: none;
+  color: #ccc;
+  font: inherit;
+  cursor: pointer;
+  transition: var(--transition-smooth);
+}
+
+.user-menu-dropdown button:hover {
+  background: #1a1a1a;
+  color: #fff;
+}
+
+.user-menu-dropdown button.danger:hover {
+  color: var(--accent-red);
 }
 
 /* Botão da Engrenagem e Usuário */

@@ -30,9 +30,7 @@ export function Collections() {
           const colsData = await resCols.json();
           const enrichedCols = await Promise.all(
             colsData.map(async (c: any) => {
-              const gRes = await fetch(
-                `${LOCAL_API_URL}/collections/${c.id}`,
-              );
+              const gRes = await fetch(`${LOCAL_API_URL}/collections/${c.id}`);
               const colGames = await gRes.json();
               return {
                 id: c.id,
@@ -351,7 +349,7 @@ export function Collections() {
             >
               Criar Coleção
             </span>
-            <span style={{ color: "#555", fontSize: "11px", marginTop: "4px" }}>
+            <span style={{ color: "#aaa", fontSize: "12px", marginTop: "4px" }}>
               Nova Categoria
             </span>
           </div>

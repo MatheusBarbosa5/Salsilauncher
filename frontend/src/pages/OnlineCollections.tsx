@@ -127,7 +127,7 @@ export function OnlineCollections() {
     }
   }
   return (
-    <div className="online-page">
+    <div className="online-page animate-in">
       <h1>Coleções online</h1>
       <p className="online-muted">
         Coleções da sua conta, disponíveis ao entrar em outro computador. As

@@ -151,7 +151,7 @@ export function Home() {
                 Adicionar Jogo
               </span>
               <span
-                style={{ color: "#555", fontSize: "11px", marginTop: "4px" }}
+                style={{ color: "#aaa", fontSize: "12px", marginTop: "4px" }}
               >
                 Buscar na Steam
               </span>

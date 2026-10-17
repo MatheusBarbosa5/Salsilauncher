@@ -150,9 +150,14 @@ export function CreateGame() {
             type="button"
             className="btn-secondary"
             onClick={() => navigate("/add-game/steam")}
-            style={{ marginBottom: "20px", padding: "10px 14px", borderRadius: "8px", cursor: "pointer" }}
+            style={{
+              marginBottom: "20px",
+              padding: "10px 14px",
+              borderRadius: "8px",
+              cursor: "pointer",
+            }}
           >
-            <Gamepad2 size={16} /> Buscar este jogo na Steam
+            <Gamepad2 size={16} /> Buscar Jogo na Steam
           </button>
 
           <div className="input-group">

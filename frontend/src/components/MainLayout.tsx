@@ -22,6 +22,7 @@ import {
   FolderPlus,
   UsersRound,
   Sparkles,
+  LogOut,
 } from "lucide-react";
 
 export function MainLayout() {
@@ -38,6 +39,7 @@ export function MainLayout() {
       : "home";
 
   const [isFavoritesOpen, setIsFavoritesOpen] = useState(false);
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [customCollections, setCustomCollections] = useState<any[]>([]);
   const [favoriteGames, setFavoriteGames] = useState<any[]>([]);
   const searchQuery = searchParams.get("q") || "";
@@ -78,6 +80,20 @@ export function MainLayout() {
     fetchFavorites();
   }, [location.pathname]);
 
+  useEffect(() => {
+    setIsUserMenuOpen(false);
+  }, [location.pathname]);
+
+  useEffect(() => {
+    if (!isUserMenuOpen) return;
+    const close = (e: MouseEvent) => {
+      if (!(e.target as HTMLElement).closest(".user-menu"))
+        setIsUserMenuOpen(false);
+    };
+    document.addEventListener("mousedown", close);
+    return () => document.removeEventListener("mousedown", close);
+  }, [isUserMenuOpen]);
+
   return (
     <ToastProvider>
       <div className="app-layout">
@@ -104,7 +120,10 @@ export function MainLayout() {
             className="sidebar-content"
             style={{ flex: 1, overflowY: "auto" }}
           >
-            <nav className="sidebar-primary-nav" aria-label="Navegação principal">
+            <nav
+              className="sidebar-primary-nav"
+              aria-label="Navegação principal"
+            >
               <button
                 className={`sidebar-nav-item ${location.pathname === "/" ? "active" : ""}`}
                 aria-current={location.pathname === "/" ? "page" : undefined}
@@ -287,16 +306,19 @@ export function MainLayout() {
             <div className="online-menu">
               <div className="sidebar-section-label">Conta e online</div>
               <div
-                className="menu-item"
+                className={`menu-item ${location.pathname.startsWith("/online-collections") ? "active" : ""}`}
                 onClick={() => navigate("/online-collections")}
               >
                 Coleções online
               </div>
-              <div className="menu-item" onClick={() => navigate("/sessions")}>
+              <div
+                className={`menu-item ${location.pathname.startsWith("/sessions") ? "active" : ""}`}
+                onClick={() => navigate("/sessions")}
+              >
                 Histórico online
               </div>
               <div
-                className="menu-item"
+                className={`menu-item ${location.pathname.startsWith("/account") ? "active" : ""}`}
                 onClick={() => navigate(user ? "/account" : "/login")}
               >
                 {user ? "Minha conta" : "Entrar na conta"}
@@ -317,91 +339,96 @@ export function MainLayout() {
             }}
           >
             <button
+              className="sidebar-footer-btn"
               onClick={() => navigate("/scan-folder")}
               title="Escanear Pasta por Jogos"
-              style={{
-                background: "none",
-                border: "none",
-                color: "var(--accent-red)",
-                cursor: "pointer",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                padding: "8px",
-                borderRadius: "8px",
-                transition: "var(--transition-smooth)",
-              }}
             >
-              <FolderPlus size={24} />
+              <FolderPlus size={18} />
+              <span>Escanear pasta</span>
             </button>
           </div>
         </aside>
 
         <div className="content-area">
           <header className="topbar">
-            <div className="search-container">
-              <Search size={18} color="#888" />
-              <input
-                type="text"
-                placeholder="Buscar na biblioteca..."
-                value={searchQuery}
-                onChange={(e) => {
-                  let targetPath = "/";
-                  if (location.pathname === "/library") targetPath = "/library";
-                  else if (activeTab === "collections")
-                    targetPath = "/collections";
-                  navigate(
-                    `${targetPath}?q=${encodeURIComponent(e.target.value)}`,
-                  );
-                }}
-              />
-            </div>
+            {location.pathname.startsWith("/community") ? (
+              <div />
+            ) : (
+              <div className="search-container">
+                <Search size={18} color="#888" />
+                <input
+                  type="text"
+                  placeholder="Buscar na biblioteca..."
+                  value={searchQuery}
+                  onChange={(e) => {
+                    let targetPath = "/";
+                    if (location.pathname === "/library")
+                      targetPath = "/library";
+                    else if (activeTab === "collections")
+                      targetPath = "/collections";
+                    navigate(
+                      `${targetPath}?q=${encodeURIComponent(e.target.value)}`,
+                    );
+                  }}
+                />
+              </div>
+            )}
 
             <div className="user-section">
-              <div
-                className="user-info"
-                onClick={() => navigate(user ? "/account" : "/login")}
-                style={{ cursor: "pointer" }}
-              >
-                <div className="user-avatar">
-                  {user?.avatar_url ? (
-                    <img
-                      src={user.avatar_url}
-                      alt="Avatar"
-                      style={{
-                        width: 32,
-                        height: 32,
-                        objectFit: "cover",
-                        borderRadius: "50%",
-                      }}
-                      onError={(e) => {
-                        e.currentTarget.style.display = "none";
-                      }}
-                    />
-                  ) : (
-                    <User size={18} color="white" />
-                  )}
-                </div>
-                <span>{user?.display_name || user?.username || "Entrar"}</span>
-              </div>
-              <button
-                className="icon-btn"
-                aria-label="Configurações da conta"
-                onClick={() => navigate(user ? "/account" : "/login")}
-              >
-                <Settings size={20} />
-              </button>
-              {user && (
+              <div className="user-menu">
                 <button
-                  className="icon-btn"
-                  onClick={() => {
-                    logout();
-                    navigate("/");
-                  }}
+                  className="user-menu-trigger"
+                  aria-haspopup="menu"
+                  aria-expanded={isUserMenuOpen}
+                  onClick={() =>
+                    user ? setIsUserMenuOpen((o) => !o) : navigate("/login")
+                  }
                 >
-                  Sair
+                  <div className="user-avatar">
+                    {user?.avatar_url ? (
+                      <img
+                        src={user.avatar_url}
+                        alt="Avatar"
+                        style={{
+                          width: 32,
+                          height: 32,
+                          objectFit: "cover",
+                          borderRadius: "50%",
+                        }}
+                        onError={(e) => {
+                          e.currentTarget.style.display = "none";
+                        }}
+                      />
+                    ) : (
+                      <User size={18} color="white" />
+                    )}
+                  </div>
+                  <span>
+                    {user?.display_name || user?.username || "Entrar"}
+                  </span>
+                  {user && <ChevronDown size={16} color="#888" />}
                 </button>
-              )}
+                {user && isUserMenuOpen && (
+                  <div className="user-menu-dropdown" role="menu">
+                    <button
+                      role="menuitem"
+                      onClick={() => navigate("/account")}
+                    >
+                      <Settings size={16} /> Minha conta
+                    </button>
+                    <button
+                      role="menuitem"
+                      className="danger"
+                      onClick={() => {
+                        logout();
+                        navigate("/");
+                      }}
+                    >
+                      <LogOut size={16} /> Sair
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
           </header>
 
