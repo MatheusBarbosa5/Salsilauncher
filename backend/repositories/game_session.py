@@ -21,6 +21,10 @@ def get_all_active_sessions(session: Session):
         ).all()
     return sessoes
 
+
+def get_all_sessions(session: Session):
+    return session.exec(select(GameSession)).all()
+
 def get_active_sessions_by_game(session: Session, game_id: int):
     return session.exec(
         select(GameSession)

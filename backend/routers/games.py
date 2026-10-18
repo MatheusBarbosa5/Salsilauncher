@@ -32,6 +32,7 @@ from datetime import datetime, timezone
 from services import gameService
 from services.steamService import get_game_details, search_steam_store
 from services import tagService
+from services import recommendationService
 from fastapi import APIRouter, Depends, HTTPException
 
 
@@ -108,6 +109,14 @@ def get_recent_games(
         {**game.model_dump(), "tags": [tag.model_dump() for tag in game.tags]}
         for game in games
     ]
+
+
+@router.get("/recommendations", response_model=dict)
+async def get_recommendations(
+    limit: int = Query(8, ge=1, le=20),
+    session: Session = Depends(get_session),
+):
+    return await recommendationService.build_recommendations(session, limit)
 
 @router.get("/{game_id}", response_model=dict)
 def get_game_by_id(

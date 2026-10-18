@@ -13,8 +13,10 @@ STEAM_APP_DETAILS_URL = (
 )
 
 
-async def search_steam_store(query: str):
+async def search_steam_store(query: str = "", tag_ids: list[int] | None = None):
     params = {"term": query.strip()}
+    if tag_ids:
+        params["tags"] = ",".join(str(tag_id) for tag_id in tag_ids)
 
     async with httpx.AsyncClient(
         headers={

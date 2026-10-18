@@ -23,7 +23,7 @@ import {
   FolderHeart,
   FolderPlus,
   UsersRound,
-  Sparkles,
+  Lightbulb,
   LogOut,
 } from "lucide-react";
 
@@ -139,14 +139,12 @@ export function MainLayout() {
                 <span>Página inicial</span>
               </button>
               <button
-                className="sidebar-nav-item sidebar-nav-item-disabled"
-                aria-disabled="true"
-                title="Recomendações em breve"
-                disabled
+                className={`sidebar-nav-item ${location.pathname.startsWith("/recommendations") ? "active" : ""}`}
+                aria-current={location.pathname.startsWith("/recommendations") ? "page" : undefined}
+                onClick={() => navigate("/recommendations")}
               >
-                <Sparkles size={18} />
+                <Lightbulb size={18} />
                 <span>Recomendações</span>
-                <span className="sidebar-coming-soon">Em breve</span>
               </button>
             </nav>
 
