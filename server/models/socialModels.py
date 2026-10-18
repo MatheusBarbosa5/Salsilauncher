@@ -59,3 +59,24 @@ class PlaySession(SQLModel, table=True):
     ended_at: datetime | None = None
     duration_seconds: int | None = None
     created_at: datetime = Field(default_factory=get_utc_now)
+
+class Group(SQLModel, table=True):
+    __tablename__ = "groups"
+    id: int | None = Field(default=None, primary_key=True)
+    name: str = Field(max_length=100)
+    owner_id: int = Field(foreign_key="users.id", index=True)
+    created_at: datetime = Field(default_factory=get_utc_now)
+
+class GroupMember(SQLModel, table=True):
+    __tablename__ = "group_members"
+    group_id: int = Field(foreign_key="groups.id", primary_key=True)
+    user_id: int = Field(foreign_key="users.id", primary_key=True, index=True)
+    joined_at: datetime = Field(default_factory=get_utc_now)
+
+class GroupMessage(SQLModel, table=True):
+    __tablename__ = "group_messages"
+    id: int | None = Field(default=None, primary_key=True)
+    group_id: int = Field(foreign_key="groups.id", index=True)
+    sender_id: int = Field(foreign_key="users.id", index=True)
+    content: str = Field(sa_column=Column(Text, nullable=False))
+    sent_at: datetime = Field(default_factory=get_utc_now)

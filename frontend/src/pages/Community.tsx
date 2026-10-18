@@ -1,6 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { FadingNotice } from "../components/FadingNotice";
+import { GroupChat } from "../components/GroupChat";
+import { GroupsPanel } from "../components/GroupsPanel";
 import {
   Inbox,
   MessageCircle,
@@ -8,11 +11,13 @@ import {
   Search,
   Send,
   UserRoundPlus,
+  Users,
   UsersRound,
 } from "lucide-react";
 import {
   Profile,
   Friendship,
+  Group,
   Message,
   remote,
   allPages,
@@ -34,7 +39,11 @@ export function Community() {
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [editId, setEditId] = useState<number | null>(null);
-  const [tab, setTab] = useState<"people" | "friends" | "requests">("people");
+  const [tab, setTab] = useState<"people" | "friends" | "requests" | "groups">(
+    "people",
+  );
+  const [groups, setGroups] = useState<Group[]>([]);
+  const groupId = Number(params.get("group")) || null;
   const chatId = Number(params.get("chat")) || null;
   const [messagePage, setMessagePage] = useState(0);
   const [hasMore, setHasMore] = useState(false);
@@ -43,13 +52,15 @@ export function Community() {
     return p?.display_name || p?.username || `Usuário #${id}`;
   };
   async function load(signal?: AbortSignal) {
-    const [p, f, history] = await Promise.all([
+    const [p, f, history, g] = await Promise.all([
       allPages<Profile>("/users/", signal),
       allPages<Friendship>("/friendships/", signal),
       allPages<Message>("/messages/", signal),
+      remote<Group[]>("/groups/", { signal }),
     ]);
     setProfiles(p);
     setFriends(f);
+    setGroups(g);
     setPastPeers([
       ...new Set(
         history.map((m) =>
@@ -99,6 +110,28 @@ export function Community() {
       window.clearInterval(timer);
     };
   }, [chatId, messagePage, user?.id]);
+  function chooseGroup(id: number) {
+    setParams({ group: String(id) });
+    setNotice("");
+  }
+  async function createGroup(name: string, memberIds: number[]) {
+    setBusy(true);
+    setError("");
+    setNotice("");
+    try {
+      const created = await remote<Group>("/groups/", {
+        method: "POST",
+        body: body({ name, member_ids: memberIds }),
+      });
+      await load();
+      setParams({ group: String(created.id) });
+      setNotice("Grupo criado.");
+    } catch (err) {
+      setError(errorText(err));
+    } finally {
+      setBusy(false);
+    }
+  }
   function chooseChat(id: number) {
     setParams({ chat: String(id) });
     setMessagePage(0);
@@ -141,6 +174,11 @@ export function Community() {
     );
   }
   if (!user) return null;
+  const friendIds = friends
+    .filter((f) => f.status === "accepted")
+    .map((f) => (f.user_id === user.id ? f.friend_id : f.user_id));
+  const friendProfiles = profiles.filter((p) => friendIds.includes(p.id));
+  const selectedGroup = groups.find((g) => g.id === groupId) || null;
   const selectedFriend = friends.find((f) =>
     [f.user_id, f.friend_id].includes(chatId || -1),
   );
@@ -165,11 +203,7 @@ export function Community() {
           {error}
         </p>
       )}
-      {notice && (
-        <p role="status" className="online-success">
-          {notice}
-        </p>
-      )}
+      <FadingNotice message={notice} onClear={() => setNotice("")} />
       <div className="dc-layout">
         <nav className="dc-rail" aria-label="Seções da comunidade">
           <button
@@ -205,6 +239,18 @@ export function Community() {
               <span className="dc-rail-count hot">{pendingCount}</span>
             )}
           </button>
+          <button
+            type="button"
+            className={`dc-rail-item ${tab === "groups" ? "active" : ""}`}
+            title="Grupos"
+            aria-label="Grupos"
+            onClick={() => setTab("groups")}
+          >
+            <Users size={22} />
+            {groups.length > 0 && (
+              <span className="dc-rail-count">{groups.length}</span>
+            )}
+          </button>
         </nav>
         <section className="dc-panel">
           <div className="dc-panel-header">
@@ -214,10 +260,21 @@ export function Community() {
                   people: "Encontrar pessoas",
                   friends: "Amigos",
                   requests: "Pedidos",
+                  groups: "Grupos",
                 }[tab]
               }
             </h2>
           </div>
+          {tab === "groups" && (
+            <GroupsPanel
+              groups={groups}
+              activeId={groupId}
+              friends={friendProfiles}
+              busy={busy}
+              onOpen={chooseGroup}
+              onCreate={createGroup}
+            />
+          )}
           {tab === "people" && (
             <label className="community-search">
               <Search size={17} aria-hidden="true" />
@@ -320,6 +377,7 @@ export function Community() {
               </>
             )}
           {tab !== "people" &&
+            tab !== "groups" &&
             !loading &&
             !friends.some((f) =>
               tab === "requests"
@@ -332,7 +390,7 @@ export function Community() {
                   : "Você ainda não tem amigos."}
               </p>
             )}
-          {(tab === "people"
+          {(tab === "people" || tab === "groups"
             ? []
             : friends.filter((f) =>
                 tab === "requests"
@@ -440,157 +498,186 @@ export function Community() {
               </div>
             );
           })}
-          <button
-            disabled={busy || loading}
-            onClick={() =>
-              void action(() => Promise.resolve(), "Lista atualizada.")
-            }
-          >
-            Atualizar amigos
-          </button>
+          {tab !== "groups" && (
+            <button
+              disabled={busy || loading}
+              onClick={() =>
+                void action(() => Promise.resolve(), "Lista atualizada.")
+              }
+            >
+              Atualizar amigos
+            </button>
+          )}
         </section>
         <section className="dc-canvas">
-          <header className="dc-canvas-header">
-            <span className="dc-hash">#</span>
-            <h2>{chatId ? label(chatId) : "Mensagens"}</h2>
-          </header>
-          {!chatId ? (
-            <div className="community-chat-empty">
-              <MessageCircle size={30} />
-              <strong>Sua próxima conversa começa aqui</strong>
-              <span>Abra uma conversa com um amigo ou pedido recebido.</span>
-            </div>
+          {selectedGroup ? (
+            <GroupChat
+              key={selectedGroup.id}
+              group={selectedGroup}
+              meId={user.id}
+              profiles={profiles}
+              friendIds={friendIds}
+              onError={setError}
+              onChanged={(text) => void action(() => Promise.resolve(), text)}
+              onLeft={(text) => {
+                setParams({});
+                void action(() => Promise.resolve(), text);
+              }}
+            />
           ) : (
             <>
-              <div className="online-messages">
-                {!messages.length && (
-                  <p className="online-muted">Nenhuma mensagem nesta página.</p>
-                )}
-                {messages.map((m) => (
-                  <article
-                    className={`online-message ${m.sender_id === user.id ? "mine" : ""}`}
-                    key={m.id}
-                  >
-                    <strong>
-                      {m.sender_id === user.id ? "Você" : label(m.sender_id)}
-                    </strong>
-                    <p>{m.content}</p>
-                    <small>
-                      {displayDate(m.sent_at)} ·{" "}
-                      {m.read_at ? "Lida" : "Não lida"}
-                    </small>
-                    <div className="online-row">
-                      {m.receiver_id === user.id && !m.read_at && (
-                        <button
-                          disabled={busy}
-                          onClick={() =>
-                            void action(
-                              () =>
-                                remote(`/messages/${m.id}/read`, {
-                                  method: "PATCH",
-                                }),
-                              "Mensagem marcada como lida.",
-                            )
-                          }
-                        >
-                          Marcar como lida
-                        </button>
-                      )}
-                      {m.sender_id === user.id && (
-                        <>
-                          {!m.read_at && canSend && (
+              <header className="dc-canvas-header">
+                <span className="dc-hash">#</span>
+                <h2>{chatId ? label(chatId) : "Mensagens"}</h2>
+              </header>
+              {!chatId ? (
+                <div className="community-chat-empty">
+                  <MessageCircle size={30} />
+                  <strong>Sua próxima conversa começa aqui</strong>
+                  <span>
+                    Abra uma conversa com um amigo ou pedido recebido.
+                  </span>
+                </div>
+              ) : (
+                <>
+                  <div className="online-messages">
+                    {!messages.length && (
+                      <p className="online-muted">
+                        Nenhuma mensagem nesta página.
+                      </p>
+                    )}
+                    {messages.map((m) => (
+                      <article
+                        className={`online-message ${m.sender_id === user.id ? "mine" : ""}`}
+                        key={m.id}
+                      >
+                        <strong>
+                          {m.sender_id === user.id
+                            ? "Você"
+                            : label(m.sender_id)}
+                        </strong>
+                        <p>{m.content}</p>
+                        <small>
+                          {displayDate(m.sent_at)} ·{" "}
+                          {m.read_at ? "Lida" : "Não lida"}
+                        </small>
+                        <div className="online-row">
+                          {m.receiver_id === user.id && !m.read_at && (
                             <button
                               disabled={busy}
-                              onClick={() => {
-                                setEditId(m.id);
-                                setDraft(m.content);
-                              }}
-                            >
-                              Editar
-                            </button>
-                          )}
-                          <button
-                            disabled={busy}
-                            onClick={() => {
-                              if (
-                                window.confirm(
-                                  "Excluir a mensagem para os dois participantes?",
-                                )
-                              )
+                              onClick={() =>
                                 void action(
                                   () =>
-                                    remote(`/messages/${m.id}`, {
-                                      method: "DELETE",
+                                    remote(`/messages/${m.id}/read`, {
+                                      method: "PATCH",
                                     }),
-                                  "Mensagem excluída.",
-                                );
+                                  "Mensagem marcada como lida.",
+                                )
+                              }
+                            >
+                              Marcar como lida
+                            </button>
+                          )}
+                          {m.sender_id === user.id && (
+                            <>
+                              {!m.read_at && canSend && (
+                                <button
+                                  disabled={busy}
+                                  onClick={() => {
+                                    setEditId(m.id);
+                                    setDraft(m.content);
+                                  }}
+                                >
+                                  Editar
+                                </button>
+                              )}
+                              <button
+                                disabled={busy}
+                                onClick={() => {
+                                  if (
+                                    window.confirm(
+                                      "Excluir a mensagem para os dois participantes?",
+                                    )
+                                  )
+                                    void action(
+                                      () =>
+                                        remote(`/messages/${m.id}`, {
+                                          method: "DELETE",
+                                        }),
+                                      "Mensagem excluída.",
+                                    );
+                                }}
+                              >
+                                Excluir
+                              </button>
+                            </>
+                          )}
+                        </div>
+                      </article>
+                    ))}
+                  </div>
+                  <div className="online-row">
+                    <button
+                      disabled={messagePage === 0 || busy}
+                      onClick={() => setMessagePage((p) => p - 1)}
+                    >
+                      Mais recentes
+                    </button>
+                    <button
+                      disabled={!hasMore || busy}
+                      onClick={() => setMessagePage((p) => p + 1)}
+                    >
+                      Mais antigas
+                    </button>
+                    <button
+                      disabled={busy}
+                      onClick={() =>
+                        void action(
+                          () => Promise.resolve(),
+                          "Conversa atualizada.",
+                        )
+                      }
+                    >
+                      <RefreshCw size={15} />
+                      Atualizar
+                    </button>
+                  </div>
+                  {canSend ? (
+                    <form className="online-form" onSubmit={send}>
+                      <label>
+                        {editId ? "Editar mensagem" : "Escrever mensagem"}
+                        <textarea
+                          required
+                          maxLength={10000}
+                          value={draft}
+                          onChange={(e) => setDraft(e.target.value)}
+                        />
+                      </label>
+                      <div className="online-row">
+                        <button disabled={busy || !draft.trim()} type="submit">
+                          <Send size={15} />
+                          {editId ? "Salvar edição" : "Enviar"}
+                        </button>
+                        {editId && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setEditId(null);
+                              setDraft("");
                             }}
                           >
-                            Excluir
+                            Cancelar edição
                           </button>
-                        </>
-                      )}
-                    </div>
-                  </article>
-                ))}
-              </div>
-              <div className="online-row">
-                <button
-                  disabled={messagePage === 0 || busy}
-                  onClick={() => setMessagePage((p) => p - 1)}
-                >
-                  Mais recentes
-                </button>
-                <button
-                  disabled={!hasMore || busy}
-                  onClick={() => setMessagePage((p) => p + 1)}
-                >
-                  Mais antigas
-                </button>
-                <button
-                  disabled={busy}
-                  onClick={() =>
-                    void action(() => Promise.resolve(), "Conversa atualizada.")
-                  }
-                >
-                  <RefreshCw size={15} />
-                  Atualizar
-                </button>
-              </div>
-              {canSend ? (
-                <form className="online-form" onSubmit={send}>
-                  <label>
-                    {editId ? "Editar mensagem" : "Escrever mensagem"}
-                    <textarea
-                      required
-                      maxLength={10000}
-                      value={draft}
-                      onChange={(e) => setDraft(e.target.value)}
-                    />
-                  </label>
-                  <div className="online-row">
-                    <button disabled={busy || !draft.trim()} type="submit">
-                      <Send size={15} />
-                      {editId ? "Salvar edição" : "Enviar"}
-                    </button>
-                    {editId && (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setEditId(null);
-                          setDraft("");
-                        }}
-                      >
-                        Cancelar edição
-                      </button>
-                    )}
-                  </div>
-                </form>
-              ) : (
-                <p className="online-muted">
-                  Envio disponível após aceitar a amizade e enquanto não houver
-                  bloqueio.
-                </p>
+                        )}
+                      </div>
+                    </form>
+                  ) : (
+                    <p className="online-muted">
+                      Envio disponível após aceitar a amizade e enquanto não
+                      houver bloqueio.
+                    </p>
+                  )}
+                </>
               )}
             </>
           )}

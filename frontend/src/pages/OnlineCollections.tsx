@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { FadingNotice } from "../components/FadingNotice";
 import {
   Collection,
   RemoteGame,
@@ -138,11 +139,7 @@ export function OnlineCollections() {
           {error}
         </p>
       )}
-      {notice && (
-        <p role="status" className="online-success">
-          {notice}
-        </p>
-      )}
+      <FadingNotice message={notice} onClear={() => setNotice("")} />
       <div className="online-columns">
         <section className="online-card">
           <h2>Minhas coleções</h2>

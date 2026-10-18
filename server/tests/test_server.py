@@ -271,3 +271,49 @@ def test_session_sync_idempotent_per_account(client):
     assert len(client.get('/play-sessions/', headers=ah).json()) == 1
     assert client.post('/play-sessions/', headers=ah, json={**payload, 'ended_at': '2026-10-12T18:11:00Z'}).status_code == 409
     assert client.post('/play-sessions/', headers=bh, json=payload).status_code == 201
+
+
+def test_groups_membership_and_messages(client):
+    a, ah = account(client, 'renan')
+    b, bh = account(client, 'maria')
+    c, ch = account(client, 'carlos')
+    fid = friendship(client, ah, b)
+    client.patch(f'/friendships/{fid}', headers=bh, json={'status': 'accepted'})
+    assert client.post('/groups/', headers=ah, json={'name': 'G', 'member_ids': [c]}).status_code == 403
+    created = client.post('/groups/', headers=ah, json={'name': ' Squad ', 'member_ids': [b]})
+    assert created.status_code == 201, created.text
+    group = created.json()
+    gid = group['id']
+    assert group['name'] == 'Squad' and sorted(group['member_ids']) == sorted([a, b])
+    assert client.get(f'/groups/{gid}', headers=ch).status_code == 404
+    assert client.post(f'/groups/{gid}/messages', headers=ch, json={'content': 'oi'}).status_code == 404
+    sent = client.post(f'/groups/{gid}/messages', headers=bh, json={'content': 'Olá'})
+    assert sent.status_code == 201, sent.text
+    assert len(client.get(f'/groups/{gid}/messages', headers=ah).json()) == 1
+    assert client.post(f'/groups/{gid}/members', headers=bh, json={'user_id': c}).status_code == 403
+    assert client.post(f'/groups/{gid}/members', headers=ah, json={'user_id': c}).status_code == 403
+    assert client.delete(f'/groups/{gid}/members/{a}', headers=bh).status_code == 403
+    assert client.delete(f'/groups/{gid}/members/{a}', headers=ah).status_code == 409
+    assert client.delete(f'/groups/{gid}/members/{b}', headers=bh).status_code == 204
+    assert client.get(f'/groups/{gid}', headers=bh).status_code == 404
+    assert client.delete(f'/groups/{gid}', headers=bh).status_code == 404
+    assert client.delete(f'/groups/{gid}', headers=ah).status_code == 204
+    assert client.get('/groups/', headers=ah).json() == []
+
+
+def test_avatar_upload_and_url_validation(client, tmp_path, monkeypatch):
+    from routers import userRouters
+    monkeypatch.setattr(userRouters, 'AVATAR_DIR', tmp_path / 'avatars')
+    a, ah = account(client, 'renan')
+    assert client.patch(f'/users/{a}', headers=ah, json={'avatar_url': 'javascript:alert(1)'}).status_code == 422
+    assert client.patch(f'/users/{a}', headers=ah, json={'avatar_url': 'https://example.com/a.png'}).status_code == 200
+    png = b'\x89PNG\r\n\x1a\n' + b'0' * 32
+    bad = client.post('/users/me/avatar', headers=ah, files={'file': ('x.svg', b'<svg onload=alert(1)>', 'image/svg+xml')})
+    assert bad.status_code == 415
+    big = client.post('/users/me/avatar', headers=ah, files={'file': ('x.png', png + b'0' * (2 * 1024 * 1024), 'image/png')})
+    assert big.status_code == 413
+    ok = client.post('/users/me/avatar', headers=ah, files={'file': ('x.png', png, 'image/png')})
+    assert ok.status_code == 200, ok.text
+    url = ok.json()['avatar_url']
+    assert '/uploads/avatars/' in url and url.endswith('.png')
+    assert len(list((tmp_path / 'avatars').iterdir())) == 1

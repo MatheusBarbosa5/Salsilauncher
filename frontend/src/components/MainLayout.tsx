@@ -283,12 +283,6 @@ export function MainLayout() {
                       <img
                         src={user.avatar_url}
                         alt="Avatar"
-                        style={{
-                          width: 32,
-                          height: 32,
-                          objectFit: "cover",
-                          borderRadius: "50%",
-                        }}
                         onError={(e) => {
                           e.currentTarget.style.display = "none";
                         }}

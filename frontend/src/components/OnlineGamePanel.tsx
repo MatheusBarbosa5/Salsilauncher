@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { FadingNotice } from "./FadingNotice";
 import { useAuth } from "../context/AuthContext";
 import {
   LocalGame,
@@ -170,11 +171,7 @@ function ConnectedPanel({ game, userId }: { game: LocalGame; userId: number }) {
           {error}
         </p>
       )}
-      {notice && (
-        <p role="status" className="online-success">
-          {notice}
-        </p>
-      )}
+      <FadingNotice message={notice} onClear={() => setNotice("")} />
       {loading ? (
         <p>Carregando dados online...</p>
       ) : !linked ? (

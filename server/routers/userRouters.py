@@ -1,9 +1,40 @@
-from fastapi import APIRouter, Query, HTTPException, Response
+import uuid
+from pathlib import Path
+from fastapi import APIRouter, Query, HTTPException, Response, Request, UploadFile, File
 from core.security import DB, CurrentUser
 from schemas.userSchemas import UserCreate, UserRead, UserUpdate, UserPublic
 from services import userService
 
 router = APIRouter(prefix="/users", tags=["Users"])
+
+AVATAR_DIR = Path(__file__).resolve().parent.parent / "uploads" / "avatars"
+MAX_AVATAR_BYTES = 2 * 1024 * 1024
+
+def _image_extension(data: bytes) -> str | None:
+    # Tipo detectado pelo conteúdo; SVG fica de fora por poder conter scripts.
+    if data.startswith(b"\x89PNG\r\n\x1a\n"):
+        return "png"
+    if data.startswith(b"\xff\xd8\xff"):
+        return "jpg"
+    if data.startswith((b"GIF87a", b"GIF89a")):
+        return "gif"
+    if data[:4] == b"RIFF" and data[8:12] == b"WEBP":
+        return "webp"
+    return None
+
+@router.post("/me/avatar", response_model=UserRead)
+async def upload_avatar(request: Request, session: DB, user: CurrentUser, file: UploadFile = File(...)):
+    data = await file.read(MAX_AVATAR_BYTES + 1)
+    if len(data) > MAX_AVATAR_BYTES:
+        raise HTTPException(413, "A imagem deve ter no máximo 2 MB")
+    extension = _image_extension(data)
+    if extension is None:
+        raise HTTPException(415, "Use uma imagem PNG, JPG, GIF ou WEBP")
+    AVATAR_DIR.mkdir(parents=True, exist_ok=True)
+    name = f"{uuid.uuid4().hex}.{extension}"
+    (AVATAR_DIR / name).write_bytes(data)
+    url = f"{str(request.base_url).rstrip('/')}/uploads/avatars/{name}"
+    return userService.update_user_service(session, user.id, UserUpdate(avatar_url=url))
 
 @router.post("/", response_model=UserRead, status_code=201)
 def create_user(data: UserCreate, session: DB):

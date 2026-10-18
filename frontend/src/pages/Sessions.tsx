@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { FadingNotice } from "../components/FadingNotice";
 import {
   PlaySession,
   RemoteGame,
@@ -74,11 +75,7 @@ export function Sessions() {
           {error}
         </p>
       )}
-      {notice && (
-        <p role="status" className="online-success">
-          {notice}
-        </p>
-      )}
+      <FadingNotice message={notice} onClear={() => setNotice("")} />
       <section className="online-card">
         {loading ? (
           <p>Carregando...</p>

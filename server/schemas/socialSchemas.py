@@ -29,6 +29,36 @@ class MessageUpdate(Input):
             raise ValueError('Mensagem vazia')
         return self
 
+class GroupCreate(Input):
+    name: str = Field(min_length=1, max_length=100)
+    member_ids: list[int] = Field(default_factory=list, max_length=49)
+    @model_validator(mode="after")
+    def clean(self):
+        if not self.name.strip():
+            raise ValueError('Nome vazio')
+        if any(i <= 0 for i in self.member_ids):
+            raise ValueError('member_ids inválido')
+        return self
+
+class GroupUpdate(Input):
+    name: str = Field(min_length=1, max_length=100)
+    @model_validator(mode="after")
+    def nonempty(self):
+        if not self.name.strip():
+            raise ValueError('Nome vazio')
+        return self
+
+class GroupMemberAdd(Input):
+    user_id: int = Field(gt=0)
+
+class GroupMessageCreate(Input):
+    content: str = Field(min_length=1, max_length=10000)
+    @model_validator(mode="after")
+    def nonempty(self):
+        if not self.content.strip():
+            raise ValueError('Mensagem vazia')
+        return self
+
 class CollectionCreate(Input):
     name: str = Field(min_length=1, max_length=100)
     description: str | None = Field(default=None, max_length=10000)

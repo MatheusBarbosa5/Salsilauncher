@@ -1,5 +1,10 @@
 from datetime import datetime
-from pydantic import BaseModel, ConfigDict, EmailStr, Field, model_validator
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator, model_validator
+
+def _http_url(value):
+    if value and not value.lower().startswith(("http://", "https://")):
+        raise ValueError("avatar_url deve começar com http:// ou https://")
+    return value
 
 class UserCreate(BaseModel):
     model_config = ConfigDict(extra="forbid")
@@ -11,6 +16,8 @@ class UserCreate(BaseModel):
     language: str = Field(default="pt-BR", min_length=1, max_length=10)
     theme: str = Field(default="dark", min_length=1, max_length=20)
 
+    _check_avatar = field_validator("avatar_url")(_http_url)
+
 class UserUpdate(BaseModel):
     model_config = ConfigDict(extra="forbid")
     username: str | None = Field(default=None, min_length=3, max_length=80, pattern=r"^[A-Za-z0-9_.-]+$")
@@ -20,6 +27,8 @@ class UserUpdate(BaseModel):
     avatar_url: str | None = Field(default=None, max_length=512)
     language: str | None = Field(default=None, min_length=1, max_length=10)
     theme: str | None = Field(default=None, min_length=1, max_length=20)
+
+    _check_avatar = field_validator("avatar_url")(_http_url)
 
     @model_validator(mode="after")
     def nonnull(self):

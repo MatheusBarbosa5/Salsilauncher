@@ -127,6 +127,20 @@ export interface Message {
   sent_at: string;
   read_at: string | null;
 }
+export interface Group {
+  id: number;
+  name: string;
+  owner_id: number;
+  created_at: string;
+  member_ids: number[];
+}
+export interface GroupMessage {
+  id: number;
+  group_id: number;
+  sender_id: number;
+  content: string;
+  sent_at: string;
+}
 export interface Rating {
   id: number;
   game_id: number;

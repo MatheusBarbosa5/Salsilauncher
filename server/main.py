@@ -8,13 +8,15 @@ import psutil
 from fastapi import FastAPI, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
+from pathlib import Path
 from sqlalchemy import text
 from sqlmodel import Session
 
 from database import engine
 import models
 from core.security import get_secret
-from routers import authRouters, friendshipRouters, messageRouters, collectionRouters, ratingRouters, playSessionRouters
+from routers import authRouters, friendshipRouters, messageRouters, collectionRouters, ratingRouters, playSessionRouters, groupRouters
 from routers.gameRouters import router as game_router
 from routers.userRouters import router as user_router
 
@@ -55,8 +57,12 @@ app.add_middleware(
 # rotas no swagger
 app.include_router(game_router)
 app.include_router(user_router)
-for module in (authRouters, friendshipRouters, messageRouters, collectionRouters, ratingRouters, playSessionRouters):
+for module in (authRouters, friendshipRouters, messageRouters, collectionRouters, ratingRouters, playSessionRouters, groupRouters):
     app.include_router(module.router)
+
+UPLOADS_DIR = Path(__file__).resolve().parent / "uploads"
+(UPLOADS_DIR / "avatars").mkdir(parents=True, exist_ok=True)
+app.mount("/uploads", StaticFiles(directory=UPLOADS_DIR), name="uploads")
 
 # Validação de conexão com o banco de dados
 def check_db_connection() -> bool:

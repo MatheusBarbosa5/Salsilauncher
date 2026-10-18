@@ -1,16 +1,22 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import {
+  Camera,
+  Link as LinkIcon,
+  Trash2,
+  User as UserIcon,
+} from "lucide-react";
 import { useAuth } from "../context/AuthContext";
-import { remote, body, errorText } from "../services/api";
+import { FadingNotice } from "../components/FadingNotice";
+import { remote, body, errorText, User } from "../services/api";
 export function Account() {
   const { user, refresh, logout } = useAuth();
   const navigate = useNavigate();
+  const fileRef = useRef<HTMLInputElement>(null);
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
   const [avatar, setAvatar] = useState("");
-  const [language, setLanguage] = useState("pt-BR");
-  const [theme, setTheme] = useState("dark");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -21,10 +27,35 @@ export function Account() {
       setEmail(user.email);
       setName(user.display_name || "");
       setAvatar(user.avatar_url || "");
-      setLanguage(user.language);
-      setTheme(user.theme);
     }
   }, [user]);
+  async function uploadAvatar(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    if (file.size > 2 * 1024 * 1024) {
+      setError("A imagem deve ter no máximo 2 MB.");
+      return;
+    }
+    setBusy(true);
+    setError("");
+    setNotice("");
+    try {
+      const form = new FormData();
+      form.append("file", file);
+      const updated = await remote<User>("/users/me/avatar", {
+        method: "POST",
+        body: form,
+      });
+      setAvatar(updated.avatar_url || "");
+      await refresh();
+      setNotice("Foto de perfil atualizada.");
+    } catch (err) {
+      setError(errorText(err));
+    } finally {
+      setBusy(false);
+    }
+  }
   async function save(e: React.FormEvent) {
     e.preventDefault();
     if (!user) return;
@@ -38,9 +69,7 @@ export function Account() {
           username,
           email,
           display_name: name || null,
-          avatar_url: avatar || null,
-          language,
-          theme,
+          avatar_url: avatar.trim() || null,
           ...(password ? { password } : {}),
         }),
       });
@@ -82,12 +111,66 @@ export function Account() {
           {error}
         </p>
       )}
-      {notice && (
-        <p role="status" className="online-success">
-          {notice}
-        </p>
-      )}
+      <FadingNotice message={notice} onClear={() => setNotice("")} />
       <form className="online-card online-form" onSubmit={save}>
+        <div className="account-avatar-block">
+          <div className="account-avatar" aria-hidden="true">
+            {avatar ? (
+              <img
+                src={avatar}
+                alt=""
+                onError={(e) => {
+                  e.currentTarget.style.display = "none";
+                }}
+              />
+            ) : (
+              <UserIcon size={40} />
+            )}
+          </div>
+          <div className="account-avatar-actions">
+            <strong>Foto de perfil</strong>
+            <small className="online-muted">
+              PNG, JPG, GIF ou WEBP de até 2 MB.
+            </small>
+            <div className="online-row">
+              <button
+                type="button"
+                disabled={busy}
+                onClick={() => fileRef.current?.click()}
+              >
+                <Camera size={15} /> Enviar do PC
+              </button>
+              {avatar && (
+                <button
+                  type="button"
+                  disabled={busy}
+                  onClick={() => setAvatar("")}
+                >
+                  <Trash2 size={15} /> Remover
+                </button>
+              )}
+            </div>
+            <input
+              ref={fileRef}
+              type="file"
+              accept="image/png,image/jpeg,image/gif,image/webp"
+              style={{ display: "none" }}
+              onChange={uploadAvatar}
+            />
+          </div>
+        </div>
+        <label>
+          <span className="account-label-icon">
+            <LinkIcon size={14} /> ou use um link da internet
+          </span>
+          <input
+            type="url"
+            maxLength={512}
+            value={avatar}
+            onChange={(e) => setAvatar(e.target.value)}
+            placeholder="https://..."
+          />
+        </label>
         <label>
           Nome de usuário
           <input
@@ -117,16 +200,6 @@ export function Account() {
           />
         </label>
         <label>
-          URL do avatar
-          <input
-            type="url"
-            maxLength={512}
-            value={avatar}
-            onChange={(e) => setAvatar(e.target.value)}
-            placeholder="https://..."
-          />
-        </label>
-        <label>
           Nova senha (opcional)
           <input
             type="password"
@@ -137,33 +210,6 @@ export function Account() {
             onChange={(e) => setPassword(e.target.value)}
           />
         </label>
-        <div className="online-row">
-          <label>
-            Idioma
-            <select
-              value={language}
-              onChange={(e) => setLanguage(e.target.value)}
-            >
-              <option value="pt-BR">Português</option>
-              <option value="en">English</option>
-              {!["pt-BR", "en"].includes(language) && (
-                <option>{language}</option>
-              )}
-            </select>
-          </label>
-          <label>
-            Preferência de tema
-            <select value={theme} onChange={(e) => setTheme(e.target.value)}>
-              <option value="dark">Escuro</option>
-              <option value="light">Claro</option>
-              {!["dark", "light"].includes(theme) && <option>{theme}</option>}
-            </select>
-          </label>
-        </div>
-        <p className="online-muted">
-          Idioma e tema são preferências salvas na conta; a interface atual
-          permanece em português e com o tema do projeto.
-        </p>
         <button disabled={busy} type="submit">
           {busy ? "Salvando..." : "Salvar alterações"}
         </button>
