@@ -13,6 +13,7 @@ import {
   FolderSearch,
 } from "lucide-react";
 import { useToast } from "../context/ToastContext";
+import { GameCover } from "../components/GameCover";
 
 export function EditGame() {
   const { id } = useParams();
@@ -40,7 +41,11 @@ export function EditGame() {
         setImage(gameData.cover || "");
         setExePath(gameData.exe_path || "");
 
-        setGenres((gameData.tags || []).map((tag: any) => typeof tag === "object" ? tag.name : tag).join(", "));
+        setGenres(
+          (gameData.tags || [])
+            .map((tag: any) => (typeof tag === "object" ? tag.name : tag))
+            .join(", "),
+        );
       } catch (error) {
         console.error(error);
         showToast("Erro ao carregar as informações do jogo.", "error");
@@ -101,15 +106,32 @@ export function EditGame() {
         updatedFields.cover = image.trim() || null;
       if (exePath !== originalGame.exe_path) updatedFields.exe_path = exePath;
 
-      const originalGenres = (originalGame.tags || []).map((tag: any) => String(typeof tag === "object" ? tag.name : tag).trim()).filter(Boolean);
-      const genreNames = [...new Set(genres.split(",").map((name) => name.trim()).filter(Boolean))];
+      const originalGenres = (originalGame.tags || [])
+        .map((tag: any) =>
+          String(typeof tag === "object" ? tag.name : tag).trim(),
+        )
+        .filter(Boolean);
+      const genreNames = [
+        ...new Set(
+          genres
+            .split(",")
+            .map((name) => name.trim())
+            .filter(Boolean),
+        ),
+      ];
       if (genreNames.join("\0") !== originalGenres.join("\0")) {
-        updatedFields.tag_ids = await Promise.all(genreNames.map(async (name) => {
-          const tagResponse = await fetch(`${LOCAL_API_URL}/tags/?name=${encodeURIComponent(name)}`, { method: "POST" });
-          if (!tagResponse.ok) throw new Error(`Could not save genre: ${name}`);
-          const tag = await tagResponse.json();
-          return tag.id as number;
-        }));
+        updatedFields.tag_ids = await Promise.all(
+          genreNames.map(async (name) => {
+            const tagResponse = await fetch(
+              `${LOCAL_API_URL}/tags/?name=${encodeURIComponent(name)}`,
+              { method: "POST" },
+            );
+            if (!tagResponse.ok)
+              throw new Error(`Could not save genre: ${name}`);
+            const tag = await tagResponse.json();
+            return tag.id as number;
+          }),
+        );
       }
 
       if (Object.keys(updatedFields).length === 0) {
@@ -323,13 +345,7 @@ export function EditGame() {
           <span>Prévia na Biblioteca</span>
           <div className="game-card" style={{ width: "230px" }}>
             <div className="image-container">
-              <img
-                src={
-                  image || "https://via.placeholder.com/230x345?text=Sem+Imagem"
-                }
-                alt="Preview"
-                className="game-image"
-              />
+              <GameCover src={image} title={title} />
             </div>
             <div className="game-info" style={{ padding: "15px" }}>
               <span className="game-category">{genres || "GÊNEROS"}</span>

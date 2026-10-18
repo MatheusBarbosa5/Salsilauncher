@@ -64,10 +64,33 @@
 .game-image-placeholder {
   display: grid;
   place-items: center;
-  background: linear-gradient(135deg, #251010, #111 65%);
-  color: rgba(255, 255, 255, 0.65);
-  font-size: 42px;
+  background:
+    radial-gradient(circle at 50% 38%, rgba(255, 0, 0, 0.22), transparent 60%),
+    linear-gradient(160deg, #1a0707 0%, #0a0a0a 70%);
+  color: #ff0000;
+  font-size: clamp(48px, 8vw, 96px);
   font-weight: 800;
+  text-shadow: 0 0 28px rgba(255, 0, 0, 0.55);
+  user-select: none;
+}
+
+.game-header-placeholder {
+  background:
+    radial-gradient(circle at 78% 30%, rgba(255, 0, 0, 0.25), transparent 55%),
+    linear-gradient(135deg, #1a0707 0%, #0a0a0a 75%);
+}
+
+.game-header-letter {
+  position: absolute;
+  top: 50%;
+  right: 8%;
+  transform: translateY(-50%);
+  color: rgba(255, 0, 0, 0.18);
+  font-size: clamp(120px, 22vw, 260px);
+  font-weight: 800;
+  line-height: 1;
+  pointer-events: none;
+  user-select: none;
 }
 
 .game-card:hover .game-image {

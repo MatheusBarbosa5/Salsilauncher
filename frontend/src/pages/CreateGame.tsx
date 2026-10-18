@@ -13,6 +13,7 @@ import {
   FolderSearch,
 } from "lucide-react";
 import { useToast } from "../context/ToastContext";
+import { GameCover } from "../components/GameCover";
 
 export function CreateGame() {
   const [title, setTitle] = useState("");
@@ -67,13 +68,25 @@ export function CreateGame() {
     e.preventDefault();
 
     try {
-      const genreNames = [...new Set(genres.split(",").map((name) => name.trim()).filter(Boolean))];
-      const tagIds = await Promise.all(genreNames.map(async (name) => {
-        const response = await fetch(`${LOCAL_API_URL}/tags/?name=${encodeURIComponent(name)}`, { method: "POST" });
-        if (!response.ok) throw new Error(`Could not save genre: ${name}`);
-        const tag = await response.json();
-        return tag.id as number;
-      }));
+      const genreNames = [
+        ...new Set(
+          genres
+            .split(",")
+            .map((name) => name.trim())
+            .filter(Boolean),
+        ),
+      ];
+      const tagIds = await Promise.all(
+        genreNames.map(async (name) => {
+          const response = await fetch(
+            `${LOCAL_API_URL}/tags/?name=${encodeURIComponent(name)}`,
+            { method: "POST" },
+          );
+          if (!response.ok) throw new Error(`Could not save genre: ${name}`);
+          const tag = await response.json();
+          return tag.id as number;
+        }),
+      );
 
       const payload = {
         title: title,
@@ -305,13 +318,7 @@ export function CreateGame() {
           <span>Prévia na Biblioteca</span>
           <div className="game-card" style={{ width: "230px" }}>
             <div className="image-container">
-              <img
-                src={
-                  image || "https://via.placeholder.com/230x345?text=Sem+Imagem"
-                }
-                alt="Preview"
-                className="game-image"
-              />
+              <GameCover src={image} title={title} />
             </div>
             <div className="game-info" style={{ padding: "15px" }}>
               <span className="game-category">{genres || "GÊNEROS"}</span>

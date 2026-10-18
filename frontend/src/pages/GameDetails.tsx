@@ -218,11 +218,18 @@ export function GameDetails() {
       </button>
 
       <header
-        className="game-header"
-        style={{
-          backgroundImage: `url(${game.background || game.cover || "https://via.placeholder.com/1200x600?text=Salsilauncher"})`,
-        }}
+        className={`game-header ${game.background || game.cover ? "" : "game-header-placeholder"}`}
+        style={
+          game.background || game.cover
+            ? { backgroundImage: `url(${game.background || game.cover})` }
+            : undefined
+        }
       >
+        {!(game.background || game.cover) && (
+          <span className="game-header-letter" aria-hidden="true">
+            {(game.title.trim()[0] || "?").toUpperCase()}
+          </span>
+        )}
         <div className="header-overlay">
           <div
             style={{

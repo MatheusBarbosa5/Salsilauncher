@@ -11,6 +11,7 @@ import {
   Square,
 } from "lucide-react";
 import { useToast } from "../context/ToastContext";
+import { GameCover } from "../components/GameCover";
 
 type SteamResult = {
   appid: number;
@@ -122,8 +123,26 @@ export function CreateSteamGame() {
 
   return (
     <div className="page-container animate-in">
-      <div className="section-title" style={{ marginBottom: "30px", display: "flex", alignItems: "center", gap: "15px" }}>
-        <button type="button" onClick={() => navigate("/")} aria-label="Voltar" style={{ background: "none", color: "white", cursor: "pointer", display: "flex" }}>
+      <div
+        className="section-title"
+        style={{
+          marginBottom: "30px",
+          display: "flex",
+          alignItems: "center",
+          gap: "15px",
+        }}
+      >
+        <button
+          type="button"
+          onClick={() => navigate("/")}
+          aria-label="Voltar"
+          style={{
+            background: "none",
+            color: "white",
+            cursor: "pointer",
+            display: "flex",
+          }}
+        >
           <ArrowLeft size={20} />
         </button>
         <span>Cadastrar Jogo da Steam</span>
@@ -131,12 +150,20 @@ export function CreateSteamGame() {
 
       <div className="cadastro-layout">
         <form className="cadastro-form" onSubmit={handleSubmit}>
-          <p className="form-helper">Procure o jogo na Steam e selecione o resultado para importar automaticamente seus dados.</p>
+          <p className="form-helper">
+            Procure o jogo na Steam e selecione o resultado para importar
+            automaticamente seus dados.
+          </p>
           <button
             type="button"
             className="btn-secondary"
             onClick={() => navigate("/add-game")}
-            style={{ marginBottom: "20px", padding: "10px 14px", borderRadius: "8px", cursor: "pointer" }}
+            style={{
+              marginBottom: "20px",
+              padding: "10px 14px",
+              borderRadius: "8px",
+              cursor: "pointer",
+            }}
           >
             Cadastrar jogo manualmente
           </button>
@@ -146,15 +173,28 @@ export function CreateSteamGame() {
             <div className="steam-search-input">
               <div className="input-wrapper" style={{ flex: 1 }}>
                 <Search size={18} className="input-icon" />
-                <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Digite o nome do jogo..." autoFocus />
+                <input
+                  value={query}
+                  onChange={(event) => setQuery(event.target.value)}
+                  placeholder="Digite o nome do jogo..."
+                  autoFocus
+                />
               </div>
             </div>
           </div>
 
-          {isSearching && <p style={{ color: "#888" }}>Buscando jogos na Steam...</p>}
-          {hasSearched && !isSearching && results.length === 0 && <p style={{ color: "#888" }}>Nenhum jogo encontrado na Steam.</p>}
+          {isSearching && (
+            <p style={{ color: "#888" }}>Buscando jogos na Steam...</p>
+          )}
+          {hasSearched && !isSearching && results.length === 0 && (
+            <p style={{ color: "#888" }}>Nenhum jogo encontrado na Steam.</p>
+          )}
           {results.length > 0 && (
-            <div className="steam-results" role="listbox" aria-label="Resultados da Steam">
+            <div
+              className="steam-results"
+              role="listbox"
+              aria-label="Resultados da Steam"
+            >
               {results.map((game) => (
                 <div
                   role="option"
@@ -190,17 +230,51 @@ export function CreateSteamGame() {
             <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
               <div className="input-wrapper" style={{ flex: 1 }}>
                 <FileCode size={18} className="input-icon" />
-                <input value={exePath} onChange={(event) => setExePath(event.target.value)} placeholder="D:\Games\Minecraft\minecraft.exe" required />
+                <input
+                  value={exePath}
+                  onChange={(event) => setExePath(event.target.value)}
+                  placeholder="D:\Games\Minecraft\minecraft.exe"
+                  required
+                />
               </div>
-              <button type="button" onClick={handleBrowseExe} className="btn-secondary" style={{ padding: "0 20px", borderRadius: "10px", cursor: "pointer", display: "flex", alignItems: "center", gap: "8px", whiteSpace: "nowrap" }}>
+              <button
+                type="button"
+                onClick={handleBrowseExe}
+                className="btn-secondary"
+                style={{
+                  padding: "0 20px",
+                  borderRadius: "10px",
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px",
+                  whiteSpace: "nowrap",
+                }}
+              >
                 <FolderSearch size={18} /> Procurar...
               </button>
             </div>
           </div>
 
           <div className="form-actions" style={{ marginTop: "20px" }}>
-            <button type="button" className="btn-secondary" onClick={() => navigate("/")}>CANCELAR</button>
-            <button type="submit" className="btn-primary" disabled={isSaving || !selectedGame} style={{ display: "flex", alignItems: "center", gap: "8px", justifyContent: "center" }}>
+            <button
+              type="button"
+              className="btn-secondary"
+              onClick={() => navigate("/")}
+            >
+              CANCELAR
+            </button>
+            <button
+              type="submit"
+              className="btn-primary"
+              disabled={isSaving || !selectedGame}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "8px",
+                justifyContent: "center",
+              }}
+            >
               <Plus size={18} /> {isSaving ? "SALVANDO..." : "CADASTRAR JOGO"}
             </button>
           </div>
@@ -210,18 +284,20 @@ export function CreateSteamGame() {
           <span>Prévia na Biblioteca</span>
           <div className="game-card" style={{ width: "230px" }}>
             <div className="image-container">
-              
-              <img src={selectedGame
-                ? `https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/${selectedGame.appid}/library_600x900.jpg`
-                : "https://placehold.co/230x345?text=Sem+Imagem"
-              }
-              alt="Prévia do jogo selecionado"
-              className="game-image"
+              <GameCover
+                src={
+                  selectedGame
+                    ? `https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/${selectedGame.appid}/library_600x900.jpg`
+                    : null
+                }
+                title={selectedGame?.name || ""}
               />
             </div>
             <div className="game-info" style={{ padding: "15px" }}>
               <span className="game-category">GÊNEROS IMPORTADOS DA STEAM</span>
-              <h3 className="game-title">{selectedGame?.name || "Selecione um jogo"}</h3>
+              <h3 className="game-title">
+                {selectedGame?.name || "Selecione um jogo"}
+              </h3>
             </div>
           </div>
         </div>

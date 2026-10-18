@@ -1,7 +1,8 @@
 // frontend/src/components/GameCard.tsx
 import React from "react";
-import { Play, Clock } from "lucide-react";
+import { Play } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { GameCover } from "./GameCover";
 
 interface GameCardProps {
   id: number | string;
@@ -11,27 +12,8 @@ interface GameCardProps {
   playTime?: number;
 }
 
-export function GameCard({
-  id,
-  nome,
-  capa,
-  category,
-  playTime,
-}: GameCardProps) {
+export function GameCard({ id, nome, capa, category }: GameCardProps) {
   const navigate = useNavigate();
-
-  const formatPlayTime = (seconds?: number) => {
-    if (!seconds || seconds <= 0) return null;
-    const hours = Math.floor(seconds / 3600);
-    const minutes = Math.floor((seconds % 3600) / 60);
-
-    if (hours > 0) {
-      return `${hours}h ${minutes}min`;
-    }
-    return `${minutes}min`;
-  };
-
-  const formattedTime = formatPlayTime(playTime);
 
   return (
     <div
@@ -40,13 +22,7 @@ export function GameCard({
       style={{ cursor: "pointer" }}
     >
       <div className="image-container">
-        {capa ? (
-          <img src={capa} alt={nome} className="game-image" />
-        ) : (
-          <div className="game-image game-image-placeholder" aria-label={`Capa indisponível para ${nome}`}>
-            <span>{nome.slice(0, 1).toUpperCase()}</span>
-          </div>
-        )}
+        <GameCover src={capa} title={nome} />
 
         <div className="play-overlay">
           <div className="play-button">
@@ -56,14 +32,7 @@ export function GameCard({
       </div>
 
       <div className="game-info" style={{ padding: "15px" }}>
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            marginBottom: "4px",
-          }}
-        >
+        <div style={{ marginBottom: "4px" }}>
           <span
             className="game-category"
             style={{
@@ -75,22 +44,6 @@ export function GameCard({
           >
             {category || "CATEGORIA"}
           </span>
-
-          {formattedTime && (
-            <span
-              style={{
-                fontSize: "10px",
-                color: "var(--accent-red)",
-                fontWeight: "700",
-                display: "inline-flex",
-                alignItems: "center",
-                gap: "4px",
-              }}
-              title="Tempo total jogado"
-            >
-              <Clock size={10} /> {formattedTime}
-            </span>
-          )}
         </div>
 
         <h3
