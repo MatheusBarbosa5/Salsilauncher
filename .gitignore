@@ -4,3 +4,5 @@ __pycache__/
 *.pyc
 *.db
 salsilauncher-server.db
+frontend/release/
+frontend/electron-bin/

@@ -5,12 +5,7 @@ import { Community } from "./pages/Community";
 import { OnlineCollections } from "./pages/OnlineCollections";
 import { Sessions } from "./pages/Sessions";
 import "./styles/online.css";
-import {
-  BrowserRouter as Router,
-  Routes,
-  Route,
-  Navigate,
-} from "react-router-dom";
+import { HashRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import "./styles/global.css";
 import "./styles/sidebar.css";
 import "./styles/auth.css";
