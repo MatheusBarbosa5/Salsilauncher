@@ -139,28 +139,6 @@ export function MainLayout() {
                 <span>Página inicial</span>
               </button>
               <button
-                className={`sidebar-nav-item ${location.pathname.startsWith("/community") ? "active" : ""}`}
-                aria-current={
-                  location.pathname.startsWith("/community")
-                    ? "page"
-                    : undefined
-                }
-                onClick={() => navigate("/community")}
-              >
-                <UsersRound size={18} />
-                <span>Comunidade</span>
-              </button>
-              <button
-                className={`sidebar-nav-item ${location.pathname.startsWith("/capsule") ? "active" : ""}`}
-                aria-current={
-                  location.pathname.startsWith("/capsule") ? "page" : undefined
-                }
-                onClick={() => navigate("/capsule")}
-              >
-                <BarChart3 size={18} />
-                <span>Cápsula Gamer</span>
-              </button>
-              <button
                 className="sidebar-nav-item sidebar-nav-item-disabled"
                 aria-disabled="true"
                 title="Recomendações em breve"
@@ -210,22 +188,22 @@ export function MainLayout() {
             <div className="online-menu">
               <div className="sidebar-section-label">Conta e online</div>
               <div
-                className={`menu-item ${location.pathname.startsWith("/online-collections") ? "active" : ""}`}
-                onClick={() => navigate("/online-collections")}
-              >
-                Coleções online
-              </div>
-              <div
-                className={`menu-item ${location.pathname.startsWith("/sessions") ? "active" : ""}`}
-                onClick={() => navigate("/sessions")}
-              >
-                Histórico online
-              </div>
-              <div
                 className={`menu-item ${location.pathname.startsWith("/account") ? "active" : ""}`}
                 onClick={() => navigate(user ? "/account" : "/login")}
               >
-                {user ? "Minha conta" : "Entrar na conta"}
+                <User size={18} /> <span>{user ? "Minha conta" : "Entrar na conta"}</span>
+              </div>
+              <div
+                className={`menu-item ${location.pathname.startsWith("/community") ? "active" : ""}`}
+                onClick={() => navigate("/community")}
+              >
+                <UsersRound size={18} /> <span>Comunidade</span>
+              </div>
+              <div
+                className={`menu-item ${location.pathname.startsWith("/capsule") ? "active" : ""}`}
+                onClick={() => navigate("/capsule")}
+              >
+                <BarChart3 size={18} /> <span>Cápsula Gamer</span>
               </div>
             </div>
           </div>
