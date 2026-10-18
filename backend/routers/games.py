@@ -27,7 +27,7 @@ from repositories import (
     game_session as game_session_repo
     )
 from database import get_session
-from sqlmodel import Session
+from sqlmodel import Session, select, or_
 from datetime import datetime, timezone
 from services import gameService
 from services.steamService import get_game_details
@@ -131,6 +131,35 @@ async def create_game(
         game.vertical_cover = steam_game["vertical_cover"]
         game.background = steam_game["background"]
 
+    # Verifica se já existe um jogo com o mesmo exe_path, steam_appid ou title
+    condicoes = [
+        Game.exe_path == game.exe_path,
+        Game.title == game.title
+    ]
+    if game.steam_appid is not None:
+        condicoes.append(Game.steam_appid == game.steam_appid)
+
+    jogo_existente = session.exec(select(Game).where(or_(*condicoes))).first()
+
+    if jogo_existente:
+        if jogo_existente.is_active:
+            raise HTTPException(
+                status_code=409,
+                detail=f"O jogo '{jogo_existente.title}' já está na sua biblioteca."
+            )
+        else:
+            # Se estava inativo (deletado via soft delete), reativa e atualiza
+            jogo_existente.is_active = True
+            jogo_existente.exe_path = game.exe_path
+            jogo_existente.folder_path = game.folder_path
+            session.add(jogo_existente)
+            session.commit()
+            session.refresh(jogo_existente)
+            return {
+                **jogo_existente.model_dump(),
+                "tags": [tag.model_dump() for tag in jogo_existente.tags]
+            }
+
     new_game = gameService.create_game(session, game)
 
     return {
@@ -172,13 +201,24 @@ def escanear_pasta_por_games(
     validar_scan_path(scan_path) 
 
     games = game_repo.get_games(session, offset=0, limit=10_000) 
-    pastas_existentes = {j.exe_path for j in games}
+    
+    # Usa folder_path para checar as pastas e exe_path para checar os executáveis
+    pastas_existentes = {
+        os.path.normcase(os.path.abspath(j.folder_path)) 
+        for j in games if j.folder_path
+    }
+    exes_existentes = {
+        os.path.normcase(os.path.abspath(j.exe_path)) 
+        for j in games if j.exe_path
+    }
+    
     novos = []
 
     def descobrir_pastas_validas():
         for nome in os.listdir(caminho):
             pasta = os.path.join(caminho, nome)
-            if os.path.isdir(pasta) and pasta not in pastas_existentes:
+            pasta_norm = os.path.normcase(os.path.abspath(pasta))
+            if os.path.isdir(pasta) and pasta_norm not in pastas_existentes:
                 yield pasta
 
     def encontrar_executavel(pasta):
@@ -200,10 +240,18 @@ def escanear_pasta_por_games(
         exe = encontrar_executavel(pasta)
         if not exe:
             logger.warning("Pasta ignorada (sem executável): %s", pasta)
-            continue  
+            continue
+            
+        # Garante que o executável encontrado também não está cadastrado
+        exe_norm = os.path.normcase(os.path.abspath(exe))
+        if exe_norm in exes_existentes:
+            logger.info("Jogo ignorado (executável já cadastrado): %s", exe)
+            continue
+
         game = criar_game_para_pasta(pasta, exe)
         criado = game_repo.create_game(session, game)
         novos.append(criado)
+        exes_existentes.add(exe_norm) # Evita duplicatas dentro do mesmo ciclo de scan
 
     if novos:
         logger.info("%d novos games adicionados via scan", len(novos))

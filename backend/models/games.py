@@ -55,7 +55,7 @@ class Game(SQLModel, table=True):
         index=True
     )
     description: str | None = None
-    exe_path: str
+    exe_path: str = Field(unique=True, index=True)
     folder_path: str = Field(index=True)
     cover: str | None = None
     vertical_cover: str | None = None
