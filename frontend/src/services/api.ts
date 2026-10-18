@@ -157,6 +157,6 @@ export interface PlaySession {
 export const displayDate = (value: string) =>
   new Date(
     /(?:Z|[+-]\d\d:\d\d)$/.test(value) ? value : `${value}Z`,
-  ).toLocaleString("pt-BR");
+  ).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" });
 export const errorText = (err: unknown) =>
   err instanceof Error ? err.message : "Não foi possível concluir a operação";

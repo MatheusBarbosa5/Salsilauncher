@@ -241,27 +241,25 @@ export function GroupChat({
       </div>
 
       <form className="online-form" onSubmit={send}>
-        <label>
-          Escrever mensagem
-          <textarea
-            required
-            maxLength={10000}
-            className="chat-input"
-            placeholder="Escreva uma mensagem... (Enter envia, Shift+Enter quebra a linha)"
-            value={draft}
-            onChange={(e) => setDraft(e.target.value)}
-            onKeyDown={(e) => {
-              if (
-                e.key === "Enter" &&
-                !e.shiftKey &&
-                !e.nativeEvent.isComposing
-              ) {
-                e.preventDefault();
-                e.currentTarget.form?.requestSubmit();
-              }
-            }}
-          />
-        </label>
+        <textarea
+          required
+          maxLength={10000}
+          className="chat-input"
+          aria-label="Escreva uma mensagem"
+          placeholder="Escreva uma mensagem"
+          value={draft}
+          onChange={(e) => setDraft(e.target.value)}
+          onKeyDown={(e) => {
+            if (
+              e.key === "Enter" &&
+              !e.shiftKey &&
+              !e.nativeEvent.isComposing
+            ) {
+              e.preventDefault();
+              e.currentTarget.form?.requestSubmit();
+            }
+          }}
+        />
         <div className="online-row">
           <button disabled={busy || !draft.trim()} type="submit">
             <Send size={15} /> Enviar
