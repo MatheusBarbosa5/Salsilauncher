@@ -195,6 +195,12 @@
   letter-spacing: 1px;
 }
 
+.tag-cloud {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
 .detail-tag {
   background: #222;
   border: 1px solid #333;

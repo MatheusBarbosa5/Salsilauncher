@@ -16,7 +16,7 @@ import { useToast } from "../context/ToastContext";
 
 export function CreateGame() {
   const [title, setTitle] = useState("");
-  const [category, setCategory] = useState("");
+  const [genres, setGenres] = useState("");
   const [image, setImage] = useState("");
   const [exePath, setExePath] = useState("");
 
@@ -67,20 +67,13 @@ export function CreateGame() {
     e.preventDefault();
 
     try {
-      let tagIds: number[] = [];
-
-      if (category.trim()) {
-        const tagResponse = await fetch(
-          `${LOCAL_API_URL}/tags/?name=${encodeURIComponent(category.trim())}`,
-          { method: "POST" },
-        );
-        if (tagResponse.ok) {
-          const tagData = await tagResponse.json();
-          if (tagData && tagData.id) {
-            tagIds.push(tagData.id);
-          }
-        }
-      }
+      const genreNames = [...new Set(genres.split(",").map((name) => name.trim()).filter(Boolean))];
+      const tagIds = await Promise.all(genreNames.map(async (name) => {
+        const response = await fetch(`${LOCAL_API_URL}/tags/?name=${encodeURIComponent(name)}`, { method: "POST" });
+        if (!response.ok) throw new Error(`Could not save genre: ${name}`);
+        const tag = await response.json();
+        return tag.id as number;
+      }));
 
       const payload = {
         title: title,
@@ -175,14 +168,14 @@ export function CreateGame() {
           </div>
 
           <div className="input-group">
-            <label>Gênero / Categoria</label>
+            <label>Gêneros (separados por vírgula)</label>
             <div className="input-wrapper">
               <Tag size={18} className="input-icon" />
               <input
                 type="text"
-                placeholder="Ex: Sandbox"
-                value={category}
-                onChange={(e) => setCategory(e.target.value)}
+                placeholder="Ex: Sandbox, Aventura, RPG"
+                value={genres}
+                onChange={(e) => setGenres(e.target.value)}
                 required
               />
             </div>
@@ -321,7 +314,7 @@ export function CreateGame() {
               />
             </div>
             <div className="game-info" style={{ padding: "15px" }}>
-              <span className="game-category">{category || "CATEGORIA"}</span>
+              <span className="game-category">{genres || "GÊNEROS"}</span>
               <h3 className="game-title">{title || "Título do Jogo"}</h3>
             </div>
           </div>

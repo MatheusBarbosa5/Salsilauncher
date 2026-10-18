@@ -240,7 +240,7 @@ export function Library() {
                 id={game.id}
                 nome={game.title}
                 capa={game.vertical_cover || game.cover || ""}
-                category={game.tags?.[0]?.name || game.tags?.[0] || "PC Game"}
+                category={game.tags?.map((tag: any) => typeof tag === "object" ? tag.name : tag).join(", ") || "PC Game"}
                 playTime={game.play_time}
               />
             ))

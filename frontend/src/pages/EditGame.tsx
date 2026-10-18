@@ -20,7 +20,7 @@ export function EditGame() {
   const { showToast } = useToast();
 
   const [title, setTitle] = useState("");
-  const [category, setCategory] = useState("");
+  const [genres, setGenres] = useState("");
   const [image, setImage] = useState("");
   const [exePath, setExePath] = useState("");
 
@@ -40,9 +40,7 @@ export function EditGame() {
         setImage(gameData.cover || "");
         setExePath(gameData.exe_path || "");
 
-        const currentTagName =
-          gameData.tags?.[0]?.name || gameData.tags?.[0] || "";
-        setCategory(currentTagName);
+        setGenres((gameData.tags || []).map((tag: any) => typeof tag === "object" ? tag.name : tag).join(", "));
       } catch (error) {
         console.error(error);
         showToast("Erro ao carregar as informações do jogo.", "error");
@@ -103,23 +101,15 @@ export function EditGame() {
         updatedFields.cover = image.trim() || null;
       if (exePath !== originalGame.exe_path) updatedFields.exe_path = exePath;
 
-      const originalCategoryName =
-        originalGame.tags?.[0]?.name || originalGame.tags?.[0] || "";
-      if (category.trim() !== originalCategoryName) {
-        if (category.trim()) {
-          const tagResponse = await fetch(
-            `${LOCAL_API_URL}/tags/?name=${encodeURIComponent(category.trim())}`,
-            { method: "POST" },
-          );
-          if (tagResponse.ok) {
-            const tagData = await tagResponse.json();
-            if (tagData && tagData.id) {
-              updatedFields.tag_ids = [tagData.id];
-            }
-          }
-        } else {
-          updatedFields.tag_ids = [];
-        }
+      const originalGenres = (originalGame.tags || []).map((tag: any) => String(typeof tag === "object" ? tag.name : tag).trim()).filter(Boolean);
+      const genreNames = [...new Set(genres.split(",").map((name) => name.trim()).filter(Boolean))];
+      if (genreNames.join("\0") !== originalGenres.join("\0")) {
+        updatedFields.tag_ids = await Promise.all(genreNames.map(async (name) => {
+          const tagResponse = await fetch(`${LOCAL_API_URL}/tags/?name=${encodeURIComponent(name)}`, { method: "POST" });
+          if (!tagResponse.ok) throw new Error(`Could not save genre: ${name}`);
+          const tag = await tagResponse.json();
+          return tag.id as number;
+        }));
       }
 
       if (Object.keys(updatedFields).length === 0) {
@@ -198,14 +188,14 @@ export function EditGame() {
           </div>
 
           <div className="input-group">
-            <label>Gênero</label>
+            <label>Gêneros (separados por vírgula)</label>
             <div className="input-wrapper">
               <Tag size={18} className="input-icon" />
               <input
                 type="text"
-                value={category}
-                onChange={(e) => setCategory(e.target.value)}
-                required
+                value={genres}
+                onChange={(e) => setGenres(e.target.value)}
+                placeholder="Ex: RPG, Aventura, Mundo aberto"
               />
             </div>
           </div>
@@ -342,7 +332,7 @@ export function EditGame() {
               />
             </div>
             <div className="game-info" style={{ padding: "15px" }}>
-              <span className="game-category">{category || "CATEGORIA"}</span>
+              <span className="game-category">{genres || "GÊNEROS"}</span>
               <h3 className="game-title">{title || "Título do Jogo"}</h3>
             </div>
           </div>

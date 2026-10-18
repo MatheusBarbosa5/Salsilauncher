@@ -26,7 +26,7 @@ export function CreateSteamGame() {
   const [results, setResults] = useState<SteamResult[]>([]);
   const [selectedGame, setSelectedGame] = useState<SteamResult | null>(null);
   const [exePath, setExePath] = useState("");
-  const [category, setCategory] = useState("");
+  const [genres, setGenres] = useState("");
   const [isSearching, setIsSearching] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
@@ -93,17 +93,13 @@ export function CreateSteamGame() {
 
     setIsSaving(true);
     try {
-      let tagIds: number[] = [];
-      if (category.trim()) {
-        const tagResponse = await fetch(
-          `${API_URL}/tags/?name=${encodeURIComponent(category.trim())}`,
-          { method: "POST" },
-        );
-        if (tagResponse.ok) {
-          const tag = await tagResponse.json();
-          if (tag?.id) tagIds = [tag.id];
-        }
-      }
+      const genreNames = [...new Set(genres.split(",").map((name) => name.trim()).filter(Boolean))];
+      const tagIds = await Promise.all(genreNames.map(async (name) => {
+        const tagResponse = await fetch(`${API_URL}/tags/?name=${encodeURIComponent(name)}`, { method: "POST" });
+        if (!tagResponse.ok) throw new Error(`Could not save genre: ${name}`);
+        const tag = await tagResponse.json();
+        return tag.id as number;
+      }));
 
       const folderPath = exePath.includes("\\")
         ? exePath.substring(0, exePath.lastIndexOf("\\"))
@@ -201,10 +197,10 @@ export function CreateSteamGame() {
           )}
 
           <div className="input-group">
-            <label>Gênero / Categoria (Opcional)</label>
+            <label>Gêneros (separados por vírgula, opcional)</label>
             <div className="input-wrapper">
               <Gamepad2 size={18} className="input-icon" />
-              <input value={category} onChange={(event) => setCategory(event.target.value)} placeholder="Ex: RPG" />
+              <input value={genres} onChange={(event) => setGenres(event.target.value)} placeholder="Ex: RPG, Aventura, Mundo aberto" />
             </div>
           </div>
 
@@ -243,7 +239,7 @@ export function CreateSteamGame() {
               />
             </div>
             <div className="game-info" style={{ padding: "15px" }}>
-              <span className="game-category">{category || "STEAM"}</span>
+              <span className="game-category">{genres || "STEAM"}</span>
               <h3 className="game-title">{selectedGame?.name || "Selecione um jogo"}</h3>
             </div>
           </div>
