@@ -657,8 +657,20 @@ export function Community() {
                         <textarea
                           required
                           maxLength={10000}
+                          className="chat-input"
+                          placeholder="Escreva uma mensagem... (Enter envia, Shift+Enter quebra a linha)"
                           value={draft}
                           onChange={(e) => setDraft(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (
+                              e.key === "Enter" &&
+                              !e.shiftKey &&
+                              !e.nativeEvent.isComposing
+                            ) {
+                              e.preventDefault();
+                              e.currentTarget.form?.requestSubmit();
+                            }
+                          }}
                         />
                       </label>
                       <div className="online-row">
