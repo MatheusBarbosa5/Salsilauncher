@@ -30,6 +30,7 @@ from database import get_session
 from sqlmodel import Session, select, or_
 from datetime import datetime, timezone
 from services import gameService
+from services import monitor_service
 from services.steamService import get_game_details, search_steam_store
 from services import tagService
 from services import recommendationService
@@ -369,6 +370,7 @@ def abrir_game(
         )
 
         game_session_repo.create_session(session, sessao_game)
+        monitor_service.iniciar_monitoramento()
 
     except Exception as e:
         raise HTTPException(

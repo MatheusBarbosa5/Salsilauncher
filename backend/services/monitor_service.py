@@ -1,5 +1,6 @@
 import time
 import psutil
+import threading
 
 from datetime import datetime, timezone
 from sqlmodel import Session
@@ -7,6 +8,10 @@ from repositories import game_session as game_session_repo
 from database import engine
 from models import games
 from core.logging import logger
+
+
+_monitor_thread: threading.Thread | None = None
+_monitor_lock = threading.Lock()
 
 
 def conversor_utc(dt: datetime):
@@ -99,6 +104,20 @@ def monitorar_sessoes():
             logger.exception("Erro no monitor")
 
         time.sleep(5)
+
+
+def iniciar_monitoramento() -> None:
+    """Inicia uma única thread de monitoramento para as sessões locais."""
+    global _monitor_thread
+    with _monitor_lock:
+        if _monitor_thread and _monitor_thread.is_alive():
+            return
+        _monitor_thread = threading.Thread(
+            target=monitorar_sessoes,
+            name="salsilauncher-session-monitor",
+            daemon=True,
+        )
+        _monitor_thread.start()
 
 
 if __name__ == "__main__":
