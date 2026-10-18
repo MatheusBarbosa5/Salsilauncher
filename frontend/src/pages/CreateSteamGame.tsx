@@ -5,7 +5,6 @@ import {
   ArrowLeft,
   FileCode,
   FolderSearch,
-  Gamepad2,
   Search,
   Plus,
   CheckSquare,
@@ -26,7 +25,6 @@ export function CreateSteamGame() {
   const [results, setResults] = useState<SteamResult[]>([]);
   const [selectedGame, setSelectedGame] = useState<SteamResult | null>(null);
   const [exePath, setExePath] = useState("");
-  const [genres, setGenres] = useState("");
   const [isSearching, setIsSearching] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
@@ -93,14 +91,6 @@ export function CreateSteamGame() {
 
     setIsSaving(true);
     try {
-      const genreNames = [...new Set(genres.split(",").map((name) => name.trim()).filter(Boolean))];
-      const tagIds = await Promise.all(genreNames.map(async (name) => {
-        const tagResponse = await fetch(`${API_URL}/tags/?name=${encodeURIComponent(name)}`, { method: "POST" });
-        if (!tagResponse.ok) throw new Error(`Could not save genre: ${name}`);
-        const tag = await tagResponse.json();
-        return tag.id as number;
-      }));
-
       const folderPath = exePath.includes("\\")
         ? exePath.substring(0, exePath.lastIndexOf("\\"))
         : exePath.includes("/")
@@ -115,7 +105,6 @@ export function CreateSteamGame() {
           steam_appid: selectedGame.appid,
           exe_path: exePath,
           folder_path: folderPath,
-          tag_ids: tagIds,
         }),
       });
       if (!response.ok) throw new Error("Create game failed");
@@ -197,14 +186,6 @@ export function CreateSteamGame() {
           )}
 
           <div className="input-group">
-            <label>Gêneros (separados por vírgula, opcional)</label>
-            <div className="input-wrapper">
-              <Gamepad2 size={18} className="input-icon" />
-              <input value={genres} onChange={(event) => setGenres(event.target.value)} placeholder="Ex: RPG, Aventura, Mundo aberto" />
-            </div>
-          </div>
-
-          <div className="input-group">
             <label>Caminho do Executável (.exe)</label>
             <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
               <div className="input-wrapper" style={{ flex: 1 }}>
@@ -239,7 +220,7 @@ export function CreateSteamGame() {
               />
             </div>
             <div className="game-info" style={{ padding: "15px" }}>
-              <span className="game-category">{genres || "STEAM"}</span>
+              <span className="game-category">GÊNEROS IMPORTADOS DA STEAM</span>
               <h3 className="game-title">{selectedGame?.name || "Selecione um jogo"}</h3>
             </div>
           </div>

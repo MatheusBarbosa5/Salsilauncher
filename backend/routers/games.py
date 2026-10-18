@@ -152,6 +152,11 @@ async def create_game(
         game.cover = steam_game["cover"]
         game.vertical_cover = steam_game["vertical_cover"]
         game.background = steam_game["background"]
+        game.tag_ids = [
+            tagService.post_tags(session, genre).id
+            for genre in steam_game.get("genres", [])
+            if genre.strip()
+        ]
 
     # Verifica se já existe um jogo com o mesmo exe_path, steam_appid ou title
     condicoes = [
