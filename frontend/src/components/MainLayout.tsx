@@ -12,6 +12,7 @@ import logoImg from "../assets/logo.png";
 import { ToastProvider } from "../context/ToastContext";
 import {
   Search,
+  BarChart3,
   Home as HomeIcon,
   ChevronDown,
   User,
@@ -150,6 +151,16 @@ export function MainLayout() {
                 <span>Comunidade</span>
               </button>
               <button
+                className={`sidebar-nav-item ${location.pathname.startsWith("/capsule") ? "active" : ""}`}
+                aria-current={
+                  location.pathname.startsWith("/capsule") ? "page" : undefined
+                }
+                onClick={() => navigate("/capsule")}
+              >
+                <BarChart3 size={18} />
+                <span>Cápsula Gamer</span>
+              </button>
+              <button
                 className="sidebar-nav-item sidebar-nav-item-disabled"
                 aria-disabled="true"
                 title="Recomendações em breve"
@@ -245,6 +256,7 @@ export function MainLayout() {
         <div className="content-area">
           <header className="topbar">
             {location.pathname.startsWith("/community") ||
+            location.pathname.startsWith("/capsule") ||
             location.pathname.startsWith("/favorites") ? (
               <div />
             ) : (

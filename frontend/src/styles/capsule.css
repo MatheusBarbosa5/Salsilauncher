@@ -1,0 +1,467 @@
+.capsule-page {
+  max-width: 1100px;
+}
+
+.capsule-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 20px;
+  margin-bottom: 24px;
+}
+
+.capsule-title {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.capsule-title h1 {
+  margin: 0 0 4px;
+  font-size: 1.6rem;
+}
+
+.capsule-title p {
+  margin: 0;
+  color: var(--text-gray);
+}
+
+.capsule-icon {
+  width: 48px;
+  height: 48px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(255, 0, 0, 0.25);
+  border-radius: 14px;
+  background: rgba(255, 0, 0, 0.08);
+  color: #ff0000;
+}
+
+.capsule-years,
+.capsule-months {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.capsule-months {
+  margin-bottom: 28px;
+}
+
+.capsule-years button,
+.capsule-months button {
+  padding: 8px 14px;
+  border: 1px solid #222;
+  border-radius: 999px;
+  background: #121212;
+  color: #aaa;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition-smooth);
+}
+
+.capsule-months button.has-data {
+  color: #fff;
+}
+
+.capsule-years button:hover,
+.capsule-months button:hover {
+  border-color: var(--accent-red);
+  color: #fff;
+}
+
+.capsule-years button.active,
+.capsule-months button.active {
+  border-color: rgba(255, 0, 0, 0.5);
+  background: rgba(255, 0, 0, 0.12);
+  color: #fff;
+}
+
+.capsule-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 20px;
+}
+
+.capsule-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 22px;
+  border: 1px solid #222;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #0f0f0f 0%, #151515 100%);
+  transition: var(--transition-smooth);
+}
+
+.capsule-card:hover {
+  transform: translateY(-5px);
+  border-color: rgba(255, 0, 0, 0.4);
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.6);
+}
+
+.capsule-card > svg {
+  color: #ff0000;
+}
+
+.capsule-label {
+  color: var(--text-gray);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.capsule-big {
+  color: #fff;
+  font-size: 1.7rem;
+  line-height: 1.15;
+  overflow-wrap: anywhere;
+}
+
+.capsule-card small {
+  color: #aaa;
+}
+
+.capsule-card .btn-secondary {
+  margin-top: auto;
+  padding: 8px 14px;
+  border-radius: 8px;
+}
+
+.capsule-game {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+}
+
+.capsule-game img {
+  width: 72px;
+  aspect-ratio: 2 / 3;
+  flex-shrink: 0;
+  border-radius: 10px;
+  object-fit: cover;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+}
+
+.capsule-game > div {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.capsule-game .capsule-big {
+  font-size: 1.2rem;
+}
+
+.capsule-empty {
+  padding: 30px;
+  border: 1px dashed #333;
+  border-radius: 16px;
+  color: #888;
+  text-align: center;
+}
+
+.capsule-rank {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 24px 0 0;
+  padding: 20px;
+  border: 1px solid #222;
+  border-radius: 16px;
+  background: #0f0f0f;
+  list-style: none;
+}
+
+.capsule-rank li {
+  display: grid;
+  grid-template-columns: 28px minmax(120px, 1.3fr) minmax(80px, 2fr) auto;
+  align-items: center;
+  gap: 14px;
+}
+
+.rank-pos {
+  color: #ff0000;
+  font-weight: 800;
+}
+
+.rank-name {
+  overflow: hidden;
+  color: #fff;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rank-bar {
+  height: 8px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #1a1a1a;
+}
+
+.rank-bar span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #ff0000, #ff4d4d);
+}
+
+.rank-time {
+  color: #aaa;
+  font-size: 0.85rem;
+  white-space: nowrap;
+}
+
+.retro-banner {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  margin-bottom: 24px;
+  padding: 16px 20px;
+  border: 1px solid rgba(255, 0, 0, 0.3);
+  border-radius: 14px;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 0, 0, 0.18),
+    rgba(255, 0, 0, 0.03)
+  );
+  color: #fff;
+  text-align: left;
+  cursor: pointer;
+  transition: var(--transition-smooth);
+}
+
+.retro-banner:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.6);
+}
+
+.retro-banner svg {
+  color: #ff0000;
+  flex-shrink: 0;
+}
+
+.retro-banner span {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.retro-banner small {
+  color: #aaa;
+}
+
+/* Retrospectiva anual */
+.retro-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  overflow-y: auto;
+  padding: 40px 20px;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(6px);
+}
+
+.retro-panel {
+  position: relative;
+  width: 100%;
+  max-width: 920px;
+  padding: 40px;
+  border: 1px solid #222;
+  border-radius: 20px;
+  background: #0a0a0a;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+}
+
+.retro-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid #333;
+  border-radius: 50%;
+  background: #121212;
+  color: #ccc;
+  cursor: pointer;
+  transition: var(--transition-smooth);
+}
+
+.retro-close:hover {
+  border-color: var(--accent-red);
+  color: #fff;
+}
+
+.retro-hero {
+  margin-bottom: 28px;
+  padding: 28px;
+  border-radius: 16px;
+  border-left: 4px solid var(--accent-red);
+  background: linear-gradient(
+    90deg,
+    rgba(255, 0, 0, 0.18) 0%,
+    transparent 100%
+  );
+}
+
+.retro-hero h2 {
+  margin: 6px 0 4px;
+  font-size: 2.2rem;
+}
+
+.retro-hero p {
+  margin: 0;
+  color: var(--text-gray);
+}
+
+.retro-eyebrow {
+  color: #ff0000;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+}
+
+.retro-months {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0 0 32px;
+  padding: 0;
+  list-style: none;
+}
+
+.retro-months li {
+  display: grid;
+  grid-template-columns: 100px minmax(60px, 1fr) 90px minmax(120px, 1.4fr) 100px;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: #0f0f0f;
+}
+
+.retro-months li:hover {
+  background: #151515;
+}
+
+.retro-months li.empty {
+  opacity: 0.45;
+}
+
+.retro-month-name {
+  color: #fff;
+  font-weight: 700;
+}
+
+.retro-month-bar {
+  height: 8px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #1a1a1a;
+}
+
+.retro-month-bar span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #ff0000, #ff4d4d);
+}
+
+.retro-month-time,
+.retro-month-genre {
+  color: #aaa;
+  font-size: 0.85rem;
+}
+
+.retro-month-game {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  color: #fff;
+  font-size: 0.9rem;
+}
+
+.retro-month-game img {
+  width: 26px;
+  aspect-ratio: 2 / 3;
+  flex-shrink: 0;
+  border-radius: 4px;
+  object-fit: cover;
+}
+
+.retro-month-game span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.retro-total h3 {
+  margin: 0 0 16px;
+  font-size: 1.3rem;
+}
+
+.retro-total-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+}
+
+.retro-tops {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 20px;
+  margin-top: 8px;
+}
+
+.retro-tops h4 {
+  margin: 24px 0 0;
+  color: #aaa;
+  font-size: 0.8rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.retro-tops .capsule-rank {
+  margin-top: 10px;
+}
+
+.retro-tops .capsule-rank li {
+  grid-template-columns: 28px 1fr auto;
+}
+
+@media (max-width: 760px) {
+  .retro-panel {
+    padding: 24px 16px;
+  }
+
+  .retro-months li {
+    grid-template-columns: 80px 1fr 80px;
+  }
+
+  .retro-month-bar,
+  .retro-month-genre {
+    display: none;
+  }
+
+  .capsule-rank li {
+    grid-template-columns: 24px 1fr auto;
+  }
+
+  .rank-bar {
+    display: none;
+  }
+}

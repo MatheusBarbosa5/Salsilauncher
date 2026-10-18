@@ -30,6 +30,7 @@ import { Collections } from "./pages/Collections";
 import { EditCollection } from "./pages/EditCollection";
 import { Library } from "./pages/Library";
 import { Favorites } from "./pages/Favorites";
+import { Capsule } from "./pages/Capsule";
 
 function App() {
   return (
@@ -52,6 +53,7 @@ function App() {
               <Route path="/sessions" element={<Sessions />} />
             </Route>
             <Route path="/" element={<Home />} />
+            <Route path="/capsule" element={<Capsule />} />
             <Route path="/add-game" element={<CreateGame />} />
             <Route path="/add-game/steam" element={<CreateSteamGame />} />
             <Route path="/scan-folder" element={<ScanFolder />} />

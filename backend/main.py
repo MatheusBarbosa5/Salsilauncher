@@ -15,7 +15,8 @@ from routers import (
     userRouters,
     messagesRouters,
     userRatingsRouters,
-    steamRouter
+    steamRouter,
+    statsRouters
 )
 
 from fastapi.middleware.cors import CORSMiddleware
@@ -58,6 +59,7 @@ app.include_router(messagesRouters.router)
 app.include_router(userRatingsRouters.router)
 app.include_router(steam_router)
 app.include_router(steamRouter.router)
+app.include_router(statsRouters.router)
 
 @app.get("/")
 def root():
