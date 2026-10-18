@@ -67,7 +67,7 @@ async def get_game_details(appid: int):
     params = {
         "appids": appid,
         "cc": "br",
-        "l": "portuguese",
+        "l": "brazilian",
     }
 
     async with httpx.AsyncClient() as client:

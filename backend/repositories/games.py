@@ -1,9 +1,11 @@
 from sqlmodel import Session, select
-from sqlalchemy import or_
+from sqlalchemy import delete, or_
 from typing import List, Optional
 from sqlalchemy.orm import selectinload
 
-from models.games import Game, GameCreate, GameUpdate
+from models.games import CollectionGameLink, Game, GameCreate, GameTagLink, GameUpdate
+from models.game_session import GameSession
+from models.userRatings import UserRating
 from models.tags import Tag
 
 def _get_game_eager(session: Session, game_id: int) -> Game | None:
@@ -107,7 +109,15 @@ def delete_game(session: Session, game_id: int) -> bool:
     if not game_db:
         return False
 
-    game_db.is_active = False
+    # A remoção é permanente: os vínculos e dados que dependem do jogo precisam
+    # sair primeiro para manter a integridade do banco.
+    session.execute(delete(GameTagLink).where(GameTagLink.game_id == game_id))
+    session.execute(
+        delete(CollectionGameLink).where(CollectionGameLink.game_id == game_id)
+    )
+    session.execute(delete(GameSession).where(GameSession.game_id == game_id))
+    session.execute(delete(UserRating).where(UserRating.game_id == game_id))
+    session.delete(game_db)
     session.commit()
     return True
 
