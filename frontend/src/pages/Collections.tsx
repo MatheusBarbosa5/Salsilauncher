@@ -291,7 +291,7 @@ export function Collections() {
                 key={game.id}
                 id={game.id}
                 nome={game.title}
-                capa={game.cover}
+                capa={game.vertical_cover || game.cover || ""}
                 category={game.tags?.[0]?.name || game.tags?.[0] || "PC Game"}
                 playTime={game.play_time}
               />
