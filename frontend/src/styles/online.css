@@ -1176,6 +1176,93 @@
   gap: 6px;
 }
 
+/* Caixa de texto do chat: sem arrastar o tamanho */
+.dc-canvas textarea {
+  resize: none;
+  height: 84px;
+  min-height: 84px;
+  max-height: 84px;
+}
+
+/* Menu de tr\u00eas pontos nas mensagens */
+.online-message {
+  position: relative;
+}
+
+.online-message .message-menu {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+}
+
+.online-message:has(.message-menu) > strong {
+  padding-right: 32px;
+}
+
+.online-page .message-menu-trigger {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: #888;
+  opacity: 0.55;
+  transition: var(--transition-smooth);
+}
+
+.online-message:hover .message-menu-trigger,
+.online-page .message-menu-trigger[aria-expanded="true"],
+.online-page .message-menu-trigger:focus-visible {
+  opacity: 1;
+}
+
+.online-page .message-menu-trigger:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  transform: none;
+  box-shadow: none;
+}
+
+.message-menu-list {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  z-index: 20;
+  min-width: 150px;
+  padding: 6px;
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  background: #121212;
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.6);
+}
+
+.online-page .message-menu-list button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 9px 12px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: #ccc;
+  text-align: left;
+}
+
+.online-page .message-menu-list button:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  transform: none;
+  box-shadow: none;
+}
+
+.online-page .message-menu-list button.danger:hover:not(:disabled) {
+  color: #ff0000;
+}
+
 @media (max-width: 900px) {
   .dc-layout {
     grid-template-columns: 60px minmax(0, 1fr);

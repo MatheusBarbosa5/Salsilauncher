@@ -9,6 +9,7 @@ import {
   displayDate,
 } from "../services/api";
 import { Send, Trash2, UserRoundPlus, LogOut, X } from "lucide-react";
+import { MessageMenu } from "./MessageMenu";
 
 interface Props {
   group: Group;
@@ -213,24 +214,28 @@ export function GroupChat({
             <strong>{label(m.sender_id)}</strong>
             <p>{m.content}</p>
             <small>{displayDate(m.sent_at)}</small>
-            {(m.sender_id === meId || isOwner) && (
-              <div className="online-row">
-                <button
-                  disabled={busy}
-                  onClick={() =>
-                    void act(
-                      () =>
-                        remote(`/groups/${group.id}/messages/${m.id}`, {
-                          method: "DELETE",
-                        }),
-                      () => void loadMessages(),
-                    )
-                  }
-                >
-                  Excluir
-                </button>
-              </div>
-            )}
+            <MessageMenu
+              disabled={busy}
+              items={
+                m.sender_id === meId || isOwner
+                  ? [
+                      {
+                        label: "Excluir",
+                        icon: <Trash2 size={14} />,
+                        danger: true,
+                        onClick: () =>
+                          void act(
+                            () =>
+                              remote(`/groups/${group.id}/messages/${m.id}`, {
+                                method: "DELETE",
+                              }),
+                            () => void loadMessages(),
+                          ),
+                      },
+                    ]
+                  : []
+              }
+            />
           </article>
         ))}
       </div>

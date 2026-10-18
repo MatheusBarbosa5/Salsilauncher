@@ -4,12 +4,16 @@ import { useAuth } from "../context/AuthContext";
 import { FadingNotice } from "../components/FadingNotice";
 import { GroupChat } from "../components/GroupChat";
 import { GroupsPanel } from "../components/GroupsPanel";
+import { MessageMenu } from "../components/MessageMenu";
 import {
+  Check,
   Inbox,
   MessageCircle,
+  Pencil,
   RefreshCw,
   Search,
   Send,
+  Trash2,
   UserRoundPlus,
   Users,
   UsersRound,
@@ -561,58 +565,62 @@ export function Community() {
                           {displayDate(m.sent_at)} ·{" "}
                           {m.read_at ? "Lida" : "Não lida"}
                         </small>
-                        <div className="online-row">
-                          {m.receiver_id === user.id && !m.read_at && (
-                            <button
-                              disabled={busy}
-                              onClick={() =>
-                                void action(
-                                  () =>
-                                    remote(`/messages/${m.id}/read`, {
-                                      method: "PATCH",
-                                    }),
-                                  "Mensagem marcada como lida.",
-                                )
-                              }
-                            >
-                              Marcar como lida
-                            </button>
-                          )}
-                          {m.sender_id === user.id && (
-                            <>
-                              {!m.read_at && canSend && (
-                                <button
-                                  disabled={busy}
-                                  onClick={() => {
-                                    setEditId(m.id);
-                                    setDraft(m.content);
-                                  }}
-                                >
-                                  Editar
-                                </button>
-                              )}
-                              <button
-                                disabled={busy}
-                                onClick={() => {
-                                  if (
-                                    window.confirm(
-                                      "Excluir a mensagem para os dois participantes?",
-                                    )
-                                  )
-                                    void action(
-                                      () =>
-                                        remote(`/messages/${m.id}`, {
-                                          method: "DELETE",
-                                        }),
-                                      "Mensagem excluída.",
-                                    );
-                                }}
-                              >
-                                Excluir
-                              </button>
-                            </>
-                          )}
-                        </div>
+                        <MessageMenu
+                          disabled={busy}
+                          items={[
+                            ...(m.receiver_id === user.id && !m.read_at
+                              ? [
+                                  {
+                                    label: "Marcar como lida",
+                                    icon: <Check size={14} />,
+                                    onClick: () =>
+                                      void action(
+                                        () =>
+                                          remote(`/messages/${m.id}/read`, {
+                                            method: "PATCH",
+                                          }),
+                                        "Mensagem marcada como lida.",
+                                      ),
+                                  },
+                                ]
+                              : []),
+                            ...(m.sender_id === user.id && !m.read_at && canSend
+                              ? [
+                                  {
+                                    label: "Editar",
+                                    icon: <Pencil size={14} />,
+                                    onClick: () => {
+                                      setEditId(m.id);
+                                      setDraft(m.content);
+                                    },
+                                  },
+                                ]
+                              : []),
+                            ...(m.sender_id === user.id
+                              ? [
+                                  {
+                                    label: "Excluir",
+                                    icon: <Trash2 size={14} />,
+                                    danger: true,
+                                    onClick: () => {
+                                      if (
+                                        window.confirm(
+                                          "Excluir a mensagem para os dois participantes?",
+                                        )
+                                      )
+                                        void action(
+                                          () =>
+                                            remote(`/messages/${m.id}`, {
+                                              method: "DELETE",
+                                            }),
+                                          "Mensagem excluída.",
+                                        );
+                                    },
+                                  },
+                                ]
+                              : []),
+                          ]}
+                        />
                       </article>
                     ))}
                   </div>
