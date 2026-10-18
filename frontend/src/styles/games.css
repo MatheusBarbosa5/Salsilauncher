@@ -61,6 +61,15 @@
   transition: 0.5s;
 }
 
+.game-image-placeholder {
+  display: grid;
+  place-items: center;
+  background: linear-gradient(135deg, #251010, #111 65%);
+  color: rgba(255, 255, 255, 0.65);
+  font-size: 42px;
+  font-weight: 800;
+}
+
 .game-card:hover .game-image {
   transform: scale(1.1);
 }

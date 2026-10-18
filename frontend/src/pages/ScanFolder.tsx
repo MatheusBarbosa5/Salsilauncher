@@ -2,7 +2,7 @@ import { LOCAL_API_URL } from "../services/api";
 // frontend/src/pages/ScanFolder.tsx
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus, FolderIcon } from "lucide-react";
+import { FolderSearch, FolderIcon } from "lucide-react";
 import { useToast } from "../context/ToastContext";
 
 export function ScanFolder() {
@@ -35,14 +35,17 @@ export function ScanFolder() {
   };
 
   return (
-    <div className="page-container animate-in">
-      <div className="section-title">
-        <Plus size={20} color="#ff0000" />
-        <span>Escanear Pasta por Jogos</span>
-      </div>
+    <div className="scan-page animate-in">
+      <section className="scan-heading">
+        <div className="scan-heading-icon"><FolderSearch size={25} /></div>
+        <div>
+          <h2>Escanear Pasta</h2>
+          <p>Adicione jogos instalados no seu computador à sua biblioteca.</p>
+        </div>
+      </section>
 
-      <div className="cadastro-layout">
-        <form className="cadastro-form" onSubmit={handleScanSubmit}>
+      <div className="scan-layout">
+        <form className="scan-form" onSubmit={handleScanSubmit}>
           <p className="form-helper">
             Use esta opção para encontrar jogos automaticamente em uma pasta
             específica do seu computador.
@@ -53,6 +56,7 @@ export function ScanFolder() {
             <div className="input-wrapper">
               <FolderIcon size={18} className="input-icon" />
               <input
+                id="scan-path"
                 type="text"
                 name="caminho"
                 placeholder="Ex: C:/Games"
@@ -70,7 +74,7 @@ export function ScanFolder() {
               CANCELAR
             </button>
             <button type="submit" className="btn-primary">
-              INICIAR BUSCA
+              Adicionar
             </button>
           </div>
         </form>

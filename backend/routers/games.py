@@ -30,7 +30,8 @@ from database import get_session
 from sqlmodel import Session, select, or_
 from datetime import datetime, timezone
 from services import gameService
-from services.steamService import get_game_details
+from services.steamService import get_game_details, search_steam_store
+from services import tagService
 from fastapi import APIRouter, Depends, HTTPException
 
 
@@ -94,6 +95,18 @@ def get_games(
         }
         for game in games
         if game.is_active  # Filtra apenas jogos ativos
+    ]
+
+
+@router.get("/recent", response_model=list[dict])
+def get_recent_games(
+    limit: int = Query(8, ge=1, le=20),
+    session: Session = Depends(get_session),
+):
+    games = game_session_repo.get_recently_played_games(session, limit)
+    return [
+        {**game.model_dump(), "tags": [tag.model_dump() for tag in game.tags]}
+        for game in games
     ]
 
 @router.get("/{game_id}", response_model=dict)
@@ -191,7 +204,7 @@ def deletar_game(game_id: int, session: Session = Depends(get_session)):
     return
 
 @router.post("/scan")
-def escanear_pasta_por_games(
+async def escanear_pasta_por_games(
     caminho: str = Form(...),
     session: Session = Depends(get_session)
 ):
@@ -211,6 +224,7 @@ def escanear_pasta_por_games(
         os.path.normcase(os.path.abspath(j.exe_path)) 
         for j in games if j.exe_path
     }
+    steam_ids_existentes = {j.steam_appid for j in games if j.steam_appid}
     
     novos = []
 
@@ -228,12 +242,47 @@ def escanear_pasta_por_games(
                     return os.path.join(root, f)
         return None
 
-    def criar_game_para_pasta(pasta, executavel):
+    async def criar_game_para_pasta(pasta, executavel):
         nome = os.path.basename(pasta)
+        metadata = {}
+        tag_ids = []
+
+        # O nome da pasta normalmente corresponde ao nome de instalação. Quando a
+        # Steam encontra uma correspondência, aproveitamos capa, descrição e gêneros.
+        try:
+            results = await search_steam_store(nome)
+            normalized_name = "".join(char for char in nome.lower() if char.isalnum())
+            match = next(
+                (
+                    result for result in results
+                    if "".join(char for char in result["name"].lower() if char.isalnum())
+                    == normalized_name
+                ),
+                results[0] if results else None,
+            )
+            if match:
+                details = await get_game_details(match["appid"])
+                if details:
+                    metadata = details
+                    tag_ids = [
+                        tagService.post_tags(session, genre).id
+                        for genre in details.get("genres", [])
+                        if genre.strip()
+                    ]
+        except Exception as error:
+            # Falha de rede/metadados não deve impedir o jogo local de ser adicionado.
+            logger.warning("Não foi possível enriquecer '%s' com dados da Steam: %s", nome, error)
+
         return GameCreate(
-            title=nome,
+            title=metadata.get("title", nome),
             exe_path=executavel,
-            folder_path=pasta
+            folder_path=pasta,
+            steam_appid=metadata.get("steam_appid"),
+            description=metadata.get("description"),
+            cover=metadata.get("cover"),
+            vertical_cover=metadata.get("vertical_cover"),
+            background=metadata.get("background"),
+            tag_ids=tag_ids,
         )
 
     for pasta in descobrir_pastas_validas(): 
@@ -248,10 +297,15 @@ def escanear_pasta_por_games(
             logger.info("Jogo ignorado (executável já cadastrado): %s", exe)
             continue
 
-        game = criar_game_para_pasta(pasta, exe)
+        game = await criar_game_para_pasta(pasta, exe)
+        if game.steam_appid and game.steam_appid in steam_ids_existentes:
+            logger.info("Jogo ignorado (Steam AppID já cadastrado): %s", game.steam_appid)
+            continue
         criado = game_repo.create_game(session, game)
         novos.append(criado)
         exes_existentes.add(exe_norm) # Evita duplicatas dentro do mesmo ciclo de scan
+        if game.steam_appid:
+            steam_ids_existentes.add(game.steam_appid)
 
     if novos:
         logger.info("%d novos games adicionados via scan", len(novos))

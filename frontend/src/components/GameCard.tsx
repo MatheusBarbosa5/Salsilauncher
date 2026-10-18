@@ -40,7 +40,13 @@ export function GameCard({
       style={{ cursor: "pointer" }}
     >
       <div className="image-container">
-        <img src={capa} alt={nome} className="game-image" />
+        {capa ? (
+          <img src={capa} alt={nome} className="game-image" />
+        ) : (
+          <div className="game-image game-image-placeholder" aria-label={`Capa indisponível para ${nome}`}>
+            <span>{nome.slice(0, 1).toUpperCase()}</span>
+          </div>
+        )}
 
         <div className="play-overlay">
           <div className="play-button">

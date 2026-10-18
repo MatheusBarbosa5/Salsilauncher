@@ -99,6 +99,7 @@ async def get_game_details(appid: int):
         "cover": game.get("header_image"),
         "vertical_cover": vertical_cover,
         "background": game.get("background_raw"),
+        "genres": [genre["description"] for genre in game.get("genres", [])],
     }
 
 

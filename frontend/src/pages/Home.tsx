@@ -2,13 +2,14 @@ import { LOCAL_API_URL } from "../services/api";
 // frontend/src/pages/Home.tsx
 import React, { useState, useEffect } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
-import { LayoutGrid, Plus } from "lucide-react";
+import { Clock3, LayoutGrid, Plus } from "lucide-react";
 import { GameCard } from "../components/GameCard";
 import logoImg from "../assets/logo.png";
 import "../styles/home.css";
 
 export function Home() {
   const [games, setGames] = useState<any[]>([]);
+  const [recentGames, setRecentGames] = useState<any[]>([]);
   const [searchParams] = useSearchParams();
   const query = searchParams.get("q") || "";
   const navigate = useNavigate();
@@ -25,11 +26,14 @@ export function Home() {
   useEffect(() => {
     const fetchGames = async () => {
       try {
-        const response = await fetch(
-          `${LOCAL_API_URL}/games?q=${encodeURIComponent(query)}`,
-        );
+        const [response, recentResponse] = await Promise.all([
+          fetch(`${LOCAL_API_URL}/games?q=${encodeURIComponent(query)}`),
+          query ? Promise.resolve(null) : fetch(`${LOCAL_API_URL}/games/recent`),
+        ]);
         const data = await response.json();
         setGames(Array.isArray(data) ? data : []);
+        const recentData = recentResponse?.ok ? await recentResponse.json() : [];
+        setRecentGames(Array.isArray(recentData) ? recentData : []);
       } catch (error) {
         console.error("Error fetching games:", error);
       }
@@ -88,11 +92,28 @@ export function Home() {
         </section>
       )}
 
-      <section className="section-container">
+      {!query && recentGames.length > 0 && (
+        <section className="section-container recent-games-section">
+          <div className="section-title">
+            <Clock3 size={20} color="#ff0000" />
+            <span>Jogos jogados recentemente</span>
+          </div>
+          <div className="game-row recent-games-row">
+            {recentGames.map((game) => (
+              <GameCard key={game.id} id={game.id} nome={game.title}
+                capa={game.vertical_cover || game.cover || ""}
+                category={game.tags?.map((tag: any) => typeof tag === "object" ? tag.name : tag).join(", ") || "PC Game"}
+                playTime={game.play_time} />
+            ))}
+          </div>
+        </section>
+      )}
+
+      <section className="section-container all-games-section">
         <div className="section-title">
           <LayoutGrid size={20} color="#ff0000" />
           <span>
-            {query ? `Resultados para: "${query}"` : "Todos os Jogos"}
+            {query ? `Resultados para: "${query}"` : "Todos os jogos"}
           </span>
         </div>
         <div className="game-row">

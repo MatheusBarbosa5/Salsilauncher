@@ -136,7 +136,7 @@ export function MainLayout() {
                 onClick={() => navigate("/")}
               >
                 <HomeIcon size={18} />
-                <span>Dashboard</span>
+                <span>Página inicial</span>
               </button>
               <button
                 className={`sidebar-nav-item ${location.pathname.startsWith("/community") ? "active" : ""}`}
@@ -245,10 +245,10 @@ export function MainLayout() {
             <button
               className="sidebar-footer-btn"
               onClick={() => navigate("/scan-folder")}
-              title="Escanear Pasta por Jogos"
+              title="Escanear Pasta"
             >
               <FolderPlus size={18} />
-              <span>Escanear pasta</span>
+              <span>Escanear Pasta</span>
             </button>
           </div>
         </aside>
