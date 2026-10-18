@@ -227,6 +227,8 @@
   backdrop-filter: blur(10px);
   border-bottom: 1px solid var(--border-color);
   flex-shrink: 0;
+  position: relative;
+  z-index: 100;
 }
 
 .search-container {
