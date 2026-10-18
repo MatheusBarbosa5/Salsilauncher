@@ -29,6 +29,7 @@ import { CreateCollection } from "./pages/CreateCollection";
 import { Collections } from "./pages/Collections";
 import { EditCollection } from "./pages/EditCollection";
 import { Library } from "./pages/Library";
+import { Favorites } from "./pages/Favorites";
 
 function App() {
   return (
@@ -58,6 +59,14 @@ function App() {
             <Route path="/edit-game/:id" element={<EditGame />} />
             <Route path="/create-collection" element={<CreateCollection />} />
             <Route path="/collections" element={<Collections />} />
+            <Route
+              path="/favorites/games"
+              element={<Favorites kind="games" />}
+            />
+            <Route
+              path="/favorites/collections"
+              element={<Favorites kind="collections" />}
+            />
             <Route path="/edit-collection/:id" element={<EditCollection />} />
             <Route path="/library" element={<Library />} />
           </Route>

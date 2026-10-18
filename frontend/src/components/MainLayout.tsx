@@ -19,6 +19,7 @@ import {
   Star,
   Library,
   Folder,
+  FolderHeart,
   FolderPlus,
   UsersRound,
   Sparkles,
@@ -38,7 +39,6 @@ export function MainLayout() {
       ? "collections"
       : "home";
 
-  const [isFavoritesOpen, setIsFavoritesOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [customCollections, setCustomCollections] = useState<any[]>([]);
   const [favoriteGames, setFavoriteGames] = useState<any[]>([]);
@@ -55,7 +55,12 @@ export function MainLayout() {
           cols.map(async (c: any) => {
             const gRes = await fetch(`${LOCAL_API_URL}/collections/${c.id}`);
             const gamesData = await gRes.json();
-            return { id: c.id, name: c.title, gamesCount: gamesData.length };
+            return {
+              id: c.id,
+              name: c.title,
+              gamesCount: gamesData.length,
+              favorite: !!c.favorite,
+            };
           }),
         );
         setCustomCollections(enrichedCols);
@@ -157,152 +162,40 @@ export function MainLayout() {
             </nav>
 
             <div className="sidebar-section-label">Sua biblioteca</div>
-            {activeTab === "home" ? (
-              <div className="menu-group animate-in">
-                <div
-                  className={`menu-item ${location.pathname === "/library" ? "active" : ""}`}
-                  onClick={() => navigate("/library")}
-                >
-                  <Library size={18} /> <span>Biblioteca</span>
-                </div>
-                <div
-                  className={`menu-item ${location.pathname.startsWith("/collections") || location.pathname.startsWith("/create-collection") || location.pathname.startsWith("/edit-collection") ? "active" : ""}`}
-                  onClick={() => navigate("/collections")}
-                >
-                  <Folder size={18} /> <span>Coleções locais</span>
-                </div>
-              </div>
-            ) : (
+            <div className="menu-group">
               <div
-                className="menu-group animate-in"
-                style={{ display: "flex", flexDirection: "column", gap: "4px" }}
+                className={`menu-item ${location.pathname === "/library" ? "active" : ""}`}
+                onClick={() => navigate("/library")}
               >
-                <div
-                  className="collection-item"
-                  onClick={() => setIsFavoritesOpen(!isFavoritesOpen)}
-                  style={{ cursor: "pointer" }}
-                >
-                  <Star
-                    size={16}
-                    fill={favoriteGames.length > 0 ? "#ff0000" : "none"}
-                    color={
-                      favoriteGames.length > 0 ? "#ff0000" : "currentColor"
-                    }
-                    style={{ flexShrink: 0 }}
-                  />
-                  <span>Favoritos</span>
-                  <ChevronDown
-                    size={16}
-                    className={`arrow ${isFavoritesOpen ? "open" : ""}`}
-                    style={{
-                      marginLeft: "auto",
-                      transform: isFavoritesOpen ? "rotate(180deg)" : "none",
-                      transition: "transform 0.2s",
-                      flexShrink: 0,
-                    }}
-                  />
-                </div>
-
-                {isFavoritesOpen && (
-                  <div
-                    className="animate-in"
-                    style={{
-                      display: "flex",
-                      flexDirection: "column",
-                      gap: "2px",
-                      paddingLeft: "20px",
-                      marginBottom: "10px",
-                      minWidth: 0,
-                    }}
-                  >
-                    {favoriteGames.length > 0 ? (
-                      favoriteGames.map((game) => (
-                        <div
-                          key={game.id}
-                          className="menu-item"
-                          onClick={() => navigate(`/game/${game.id}`)}
-                          style={{
-                            fontSize: "0.85rem",
-                            padding: "8px 12px",
-                            color: "#aaa",
-                            display: "flex",
-                            alignItems: "center",
-                            minWidth: 0,
-                          }}
-                        >
-                          <span
-                            style={{
-                              whiteSpace: "nowrap",
-                              overflow: "hidden",
-                              textOverflow: "ellipsis",
-                              flex: 1,
-                            }}
-                          >
-                            {game.title}
-                          </span>
-                        </div>
-                      ))
-                    ) : (
-                      <span
-                        style={{
-                          fontSize: "0.8rem",
-                          color: "#555",
-                          padding: "6px 12px",
-                          fontStyle: "italic",
-                        }}
-                      >
-                        Nenhum jogo favoritado
-                      </span>
-                    )}
-                  </div>
-                )}
-
-                {customCollections.map((col) => (
-                  <div
-                    key={col.id}
-                    className="collection-item"
-                    style={{
-                      paddingLeft: "25px",
-                      fontSize: "0.9rem",
-                      color: "#ccc",
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "12px",
-                      minWidth: 0,
-                    }}
-                    onClick={() => navigate("/collections")}
-                  >
-                    <Folder
-                      size={14}
-                      color="#ff3333"
-                      style={{ flexShrink: 0 }}
-                    />
-                    <span
-                      style={{
-                        whiteSpace: "nowrap",
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                        flex: 1,
-                      }}
-                    >
-                      {col.name}
-                    </span>
-                    <span
-                      style={{
-                        fontSize: "0.75rem",
-                        color: "#666",
-                        background: "#181818",
-                        padding: "2px 6px",
-                        borderRadius: "4px",
-                        flexShrink: 0,
-                      }}
-                    >
-                      {col.gamesCount}
-                    </span>
-                  </div>
-                ))}
+                <Library size={18} /> <span>Biblioteca</span>
               </div>
-            )}
+              <div
+                className={`menu-item ${location.pathname.startsWith("/collections") || location.pathname.startsWith("/create-collection") || location.pathname.startsWith("/edit-collection") ? "active" : ""}`}
+                onClick={() => navigate("/collections")}
+              >
+                <Folder size={18} /> <span>Coleções</span>
+              </div>
+              <div
+                className={`menu-item ${location.pathname === "/favorites/games" ? "active" : ""}`}
+                onClick={() => navigate("/favorites/games")}
+              >
+                <Star size={18} /> <span>Jogos favoritos</span>
+                {favoriteGames.length > 0 && (
+                  <small className="menu-count">{favoriteGames.length}</small>
+                )}
+              </div>
+              <div
+                className={`menu-item ${location.pathname === "/favorites/collections" ? "active" : ""}`}
+                onClick={() => navigate("/favorites/collections")}
+              >
+                <FolderHeart size={18} /> <span>Coleções favoritas</span>
+                {customCollections.some((c) => c.favorite) && (
+                  <small className="menu-count">
+                    {customCollections.filter((c) => c.favorite).length}
+                  </small>
+                )}
+              </div>
+            </div>
             <div className="online-menu">
               <div className="sidebar-section-label">Conta e online</div>
               <div
@@ -351,7 +244,8 @@ export function MainLayout() {
 
         <div className="content-area">
           <header className="topbar">
-            {location.pathname.startsWith("/community") ? (
+            {location.pathname.startsWith("/community") ||
+            location.pathname.startsWith("/favorites") ? (
               <div />
             ) : (
               <div className="search-container">

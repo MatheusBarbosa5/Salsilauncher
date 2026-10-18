@@ -12,6 +12,7 @@ import {
   ArrowLeft,
   Edit3,
   Trash2,
+  Star,
 } from "lucide-react";
 import { useToast } from "../context/ToastContext";
 
@@ -71,9 +72,7 @@ export function GameDetails() {
   const handlePlayGame = async () => {
     if (!game?.id) return;
     try {
-      const response = await fetch(
-        `${LOCAL_API_URL}/games/abrir/${game.id}`,
-      );
+      const response = await fetch(`${LOCAL_API_URL}/games/abrir/${game.id}`);
       if (!response.ok) throw new Error("Error starting game");
 
       const now = new Date();
@@ -94,6 +93,29 @@ export function GameDetails() {
     } catch (error) {
       console.error(error);
       showToast("Não foi possível iniciar o jogo.", "error");
+    }
+  };
+
+  const handleToggleFavorite = async () => {
+    if (!game) return;
+    const next = !game.favorite;
+    try {
+      const response = await fetch(`${LOCAL_API_URL}/games/${game.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ favorite: next }),
+      });
+      if (!response.ok) throw new Error("Error updating favorite");
+      setGame({ ...game, favorite: next });
+      showToast(
+        next
+          ? "Jogo adicionado aos favoritos."
+          : "Jogo removido dos favoritos.",
+        "success",
+      );
+    } catch (error) {
+      console.error(error);
+      showToast("Não foi possível atualizar os favoritos.", "error");
     }
   };
 
@@ -212,6 +234,33 @@ export function GameDetails() {
           >
             <h1 className="game-title-large">{game.title}</h1>
             <div style={{ display: "flex", gap: "12px", marginBottom: "10px" }}>
+              <button
+                type="button"
+                onClick={handleToggleFavorite}
+                aria-pressed={game.favorite}
+                title={game.favorite ? "Remover dos favoritos" : "Favoritar"}
+                style={{
+                  background: game.favorite
+                    ? "rgba(255, 0, 0, 0.2)"
+                    : "rgba(255,255,255,0.1)",
+                  border: game.favorite
+                    ? "1px solid rgba(255, 0, 0, 0.4)"
+                    : "1px solid rgba(255,255,255,0.2)",
+                  color: game.favorite ? "#ff0000" : "white",
+                  padding: "10px 20px",
+                  borderRadius: "8px",
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px",
+                  fontWeight: "600",
+                  backdropFilter: "blur(5px)",
+                  transition: "0.3s",
+                }}
+              >
+                <Star size={18} fill={game.favorite ? "#ff0000" : "none"} />{" "}
+                {game.favorite ? "Favorito" : "Favoritar"}
+              </button>
               <button
                 type="button"
                 onClick={() => navigate(`/edit-game/${game.id}`)}

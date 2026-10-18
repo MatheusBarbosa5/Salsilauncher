@@ -2,7 +2,14 @@ import { LOCAL_API_URL } from "../services/api";
 // frontend/src/pages/Collections.tsx
 import React, { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { Folder, FolderHeart, Trash2, Edit3, ArrowLeft } from "lucide-react";
+import {
+  Folder,
+  FolderHeart,
+  Trash2,
+  Edit3,
+  ArrowLeft,
+  Star,
+} from "lucide-react";
 import { useToast } from "../context/ToastContext";
 import { GameCard } from "../components/GameCard";
 
@@ -36,6 +43,7 @@ export function Collections() {
                 id: c.id,
                 name: c.title,
                 cover: c.cover,
+                favorite: !!c.favorite,
                 gamesCount: colGames.length,
                 gamesData: colGames,
               };
@@ -49,6 +57,33 @@ export function Collections() {
     };
     fetchDashboardData();
   }, []);
+
+  const handleToggleFavorite = async (col: any, e: React.MouseEvent) => {
+    e.stopPropagation();
+    const next = !col.favorite;
+    try {
+      const response = await fetch(
+        `${LOCAL_API_URL}/collections/${col.id}/favorite`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ favorite: next }),
+        },
+      );
+      if (!response.ok) throw new Error("Error updating favorite");
+      setCollections((prev) =>
+        prev.map((c) => (c.id === col.id ? { ...c, favorite: next } : c)),
+      );
+      showToast(
+        next
+          ? "Coleção adicionada aos favoritos."
+          : "Coleção removida dos favoritos.",
+        "success",
+      );
+    } catch (error) {
+      showToast("Não foi possível atualizar os favoritos.", "error");
+    }
+  };
 
   const handleDeleteCollection = async (
     collectionId: number,
@@ -445,6 +480,22 @@ export function Collections() {
                   flexShrink: 0,
                 }}
               >
+                <button
+                  onClick={(e) => handleToggleFavorite(col, e)}
+                  aria-pressed={col.favorite}
+                  style={{
+                    background: "none",
+                    border: "none",
+                    color: col.favorite ? "#ff0000" : "#444",
+                    cursor: "pointer",
+                    transition: "0.2s",
+                  }}
+                  title={
+                    col.favorite ? "Remover dos favoritos" : "Favoritar coleção"
+                  }
+                >
+                  <Star size={15} fill={col.favorite ? "#ff0000" : "none"} />
+                </button>
                 <button
                   onClick={(e) => {
                     e.stopPropagation();

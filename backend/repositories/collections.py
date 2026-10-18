@@ -87,6 +87,24 @@ def update_collection(
 
     return collection_db
 
+# Favoritar coleção
+def set_collection_favorite(
+    session: Session,
+    collection_id: int,
+    favorite: bool
+) -> Collection | None:
+    collection_db = session.get(Collection, collection_id)
+
+    if collection_db is None:
+        return None
+
+    collection_db.favorite = favorite
+    session.add(collection_db)
+    session.commit()
+    session.refresh(collection_db)
+
+    return collection_db
+
 # Obter jogos na coleção
 def get_collection_games(
     session: Session,

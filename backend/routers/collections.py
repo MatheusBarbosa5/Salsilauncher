@@ -15,7 +15,7 @@ import uuid
 from sqlmodel import Session
 from typing import List, Optional
 from models.games import Game, GameCreate, GameUpdate
-from models.collections import Collection, CollectionCreate, CollectionUpdate
+from models.collections import Collection, CollectionCreate, CollectionUpdate, CollectionFavorite
 from repositories import collections as collection_repo
 
 from services import collectionsService
@@ -57,10 +57,28 @@ def get_collections(
         {
             "id": c.id,
             "title": c.title,
-            "cover": c.cover
+            "cover": c.cover,
+            "favorite": c.favorite
         }
         for c in cols
     ]
+
+@router.put("/{collection_id}/favorite", response_model=dict)
+def set_collection_favorite(
+    collection_id: int,
+    payload: CollectionFavorite,
+    session: Session = Depends(get_session)
+):
+    col = collectionsService.set_collection_favorite(
+        session=session,
+        collection_id=collection_id,
+        favorite=payload.favorite
+    )
+
+    if not col:
+        raise HTTPException(status_code=404, detail="Collection not found")
+
+    return {"id": col.id, "favorite": col.favorite}
 
 # Evita o loop retornando dict de jogos
 @router.get("/{collection_id}", response_model=list[dict])

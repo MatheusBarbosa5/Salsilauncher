@@ -15,6 +15,7 @@ class Collection(SQLModel, table=True):
     )
     title: str
     cover: str | None = None
+    favorite: bool = False
     games: list["Game"] = Relationship(
         back_populates="collections",
         link_model=CollectionGameLink
@@ -26,6 +27,9 @@ class CollectionCreate(SQLModel):
     game_ids: list[int] = Field(
         default_factory=list
     )
+
+class CollectionFavorite(SQLModel):
+    favorite: bool
 
 class CollectionUpdate(SQLModel):
     title: str | None = None
