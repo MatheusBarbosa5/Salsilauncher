@@ -11,9 +11,11 @@ export interface MessageMenuItem {
 export function MessageMenu({
   items,
   disabled,
+  ariaLabel = "Opções da mensagem",
 }: {
   items: MessageMenuItem[];
   disabled?: boolean;
+  ariaLabel?: string;
 }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -39,7 +41,7 @@ export function MessageMenu({
       <button
         type="button"
         className="message-menu-trigger"
-        aria-label="Opções da mensagem"
+        aria-label={ariaLabel}
         aria-haspopup="menu"
         aria-expanded={open}
         disabled={disabled}

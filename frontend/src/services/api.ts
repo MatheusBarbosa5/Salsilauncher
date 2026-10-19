@@ -1,14 +1,85 @@
+const remoteApiStorageKey = "salsilauncher.remoteApiUrl";
+const DEFAULT_REMOTE_API_URL = "http://26.95.113.100:8000";
+
 export const LOCAL_API_URL = (
-  import.meta.env.VITE_LOCAL_API_URL || "http://localhost:8000"
+  import.meta.env.VITE_LOCAL_API_URL || "http://localhost:8001"
 ).replace(/\/$/, "");
-export const REMOTE_API_URL = (
-  import.meta.env.VITE_REMOTE_API_URL || "http://127.0.0.1:8001"
-).replace(/\/$/, "");
-const tokenKey = `salsilauncher.token:${REMOTE_API_URL}`;
-export const getToken = () => sessionStorage.getItem(tokenKey);
+
+export function normalizeRemoteApiUrl(raw: string): string {
+  const trimmed = raw.trim().replace(/\/+$/, "");
+  if (!trimmed) return DEFAULT_REMOTE_API_URL;
+  const withProtocol = /^https?:\/\//i.test(trimmed)
+    ? trimmed
+    : `http://${trimmed}`;
+  try {
+    const parsed = new URL(withProtocol);
+    if (!parsed.port) parsed.port = "8000";
+    return parsed.origin;
+  } catch {
+    return withProtocol;
+  }
+}
+
+export function getRemoteApiUrl(): string {
+  const stored = localStorage.getItem(remoteApiStorageKey) || "";
+  const envUrl = import.meta.env.VITE_REMOTE_API_URL || "";
+  return normalizeRemoteApiUrl(stored || envUrl || DEFAULT_REMOTE_API_URL);
+}
+
+export let REMOTE_API_URL = getRemoteApiUrl();
+
+export function setRemoteApiUrl(raw: string): string {
+  const trimmed = raw.trim();
+  if (!trimmed) {
+    localStorage.removeItem(remoteApiStorageKey);
+  } else {
+    localStorage.setItem(remoteApiStorageKey, normalizeRemoteApiUrl(trimmed));
+  }
+  REMOTE_API_URL = getRemoteApiUrl();
+  return REMOTE_API_URL;
+}
+
+export function rewriteRemoteAssetUrls<T>(value: T): T {
+  if (typeof value === "string") {
+    const match = value.match(/^https?:\/\/[^/]+(\/uploads\/avatars\/.+)$/i);
+    if (match) return `${getRemoteApiUrl()}${match[1]}` as unknown as T;
+    if (value.startsWith("/uploads/avatars/")) {
+      return `${getRemoteApiUrl()}${value}` as unknown as T;
+    }
+    return value;
+  }
+  if (Array.isArray(value)) {
+    return value.map((item) => rewriteRemoteAssetUrls(item)) as unknown as T;
+  }
+  if (value && typeof value === "object") {
+    const copy: Record<string, unknown> = {};
+    for (const [k, v] of Object.entries(value)) {
+      copy[k] = rewriteRemoteAssetUrls(v);
+    }
+    return copy as T;
+  }
+  return value;
+}
+
+const localProfileKey = "salsilauncher.localProfileId";
+export function setLocalProfileId(profileId: number | null) {
+  if (profileId === null) sessionStorage.removeItem(localProfileKey);
+  else sessionStorage.setItem(localProfileKey, String(profileId));
+}
+export function localFetch(
+  input: RequestInfo | URL,
+  init: RequestInit = {},
+): Promise<Response> {
+  const headers = new Headers(init.headers);
+  const profileId = sessionStorage.getItem(localProfileKey);
+  if (profileId) headers.set("X-User-ID", profileId);
+  return fetch(input, { ...init, headers });
+}
+const getTokenKey = () => `salsilauncher.token:${getRemoteApiUrl()}`;
+export const getToken = () => sessionStorage.getItem(getTokenKey());
 export function setToken(token: string | null) {
-  if (token) sessionStorage.setItem(tokenKey, token);
-  else sessionStorage.removeItem(tokenKey);
+  if (token) sessionStorage.setItem(getTokenKey(), token);
+  else sessionStorage.removeItem(getTokenKey());
 }
 export class ApiError extends Error {
   constructor(
@@ -22,6 +93,8 @@ export async function remote<T>(
   path: string,
   options: RequestInit = {},
 ): Promise<T> {
+  const baseUrl = getRemoteApiUrl();
+  REMOTE_API_URL = baseUrl;
   const headers = new Headers(options.headers);
   const token = getToken();
   if (token) headers.set("Authorization", `Bearer ${token}`);
@@ -29,10 +102,10 @@ export async function remote<T>(
     headers.set("Content-Type", "application/json");
   let response: Response;
   try {
-    response = await fetch(`${REMOTE_API_URL}${path}`, { ...options, headers });
+    response = await fetch(`${baseUrl}${path}`, { ...options, headers });
   } catch {
     throw new ApiError(
-      "Não foi possível conectar ao servidor. Confira se ele está ligado.",
+      `Não foi possível conectar ao servidor (${baseUrl}). Confira se ele está ligado e acessível na rede/Radmin VPN.`,
       0,
     );
   }
@@ -56,7 +129,9 @@ export async function remote<T>(
           : `Erro do servidor (${response.status})`;
     throw new ApiError(message, response.status);
   }
-  return response.status === 204 ? (undefined as T) : response.json();
+  if (response.status === 204) return undefined as T;
+  const json = (await response.json()) as T;
+  return rewriteRemoteAssetUrls(json);
 }
 export const body = (value: unknown) => JSON.stringify(value);
 // Percorre todas as páginas sem presumir que a primeira contém todos os registros.

@@ -1,4 +1,4 @@
-import { LOCAL_API_URL } from "../services/api";
+import { LOCAL_API_URL, localFetch as fetch } from "../services/api";
 // frontend/src/pages/Collections.tsx
 import React, { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";

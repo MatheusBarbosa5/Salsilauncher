@@ -152,6 +152,21 @@
   margin: 12px 0;
   border-left: 3px solid #707080;
 }
+
+.online-message.deleted-message {
+  border: 1px dashed #55545e;
+  background: rgba(255, 255, 255, 0.025);
+  color: #92909a;
+}
+
+.online-message.deleted-message p {
+  color: #aaa8b1;
+  font-style: italic;
+}
+
+.online-message.deleted-message small {
+  color: #777680;
+}
 .online-message.mine {
   background: #342029;
   border-left-color: #ec445c;
@@ -408,6 +423,32 @@
   color: #918e99;
 }
 
+.community-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-width: 0;
+}
+
+.community-title-row strong {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.community-unread-indicator {
+  display: inline-block;
+  width: fit-content;
+  margin-top: 0;
+  padding: 2px 6px;
+  border-radius: 8px;
+  background: rgba(255, 0, 0, 0.14);
+  color: #ff737f;
+  font-size: 0.65rem;
+  font-weight: 700;
+  flex: 0 0 auto;
+}
+
 .community-page .online-list-item {
   min-height: 64px;
   padding: 10px 0;
@@ -462,6 +503,36 @@
 .community-page .online-friend {
   padding: 14px 0;
   border-color: #2e2d35;
+}
+
+.community-friend-card-clickable {
+  cursor: pointer;
+}
+
+.community-friend-card-clickable:focus-visible {
+  border-radius: 8px;
+  outline: 2px solid var(--accent-red);
+  outline-offset: 2px;
+}
+
+.community-friend-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.community-friend-menu {
+  flex: 0 0 auto;
+}
+
+.community-friend-menu .message-menu {
+  position: relative;
+  z-index: 5;
+}
+
+.community-friend-actions:empty {
+  display: none;
 }
 
 .community-page .online-friend > strong {

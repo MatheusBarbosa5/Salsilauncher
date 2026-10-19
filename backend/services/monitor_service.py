@@ -5,12 +5,12 @@ import threading
 from datetime import datetime, timezone
 from sqlmodel import Session
 from repositories import game_session as game_session_repo
-from database import engine
+from database import engine as default_engine
 from models import games
 from core.logging import logger
 
 
-_monitor_thread: threading.Thread | None = None
+_monitor_threads: dict[str, threading.Thread] = {}
 _monitor_lock = threading.Lock()
 
 
@@ -91,12 +91,12 @@ def verificar_sessoes(session):
                 )
     
 
-def monitorar_sessoes():
+def monitorar_sessoes(db_engine):
     logger.info("Worker iniciado")
 
     while True:
         try:
-            with Session(engine) as session:
+            with Session(db_engine) as session:
                 verificar_sessoes(session)
                 session.commit()
 
@@ -106,19 +106,22 @@ def monitorar_sessoes():
         time.sleep(5)
 
 
-def iniciar_monitoramento() -> None:
-    """Inicia uma única thread de monitoramento para as sessões locais."""
-    global _monitor_thread
+def iniciar_monitoramento(db_engine=default_engine) -> None:
+    """Start a monitor for the database that owns the local game session."""
+    engine_key = str(db_engine.url.database)
     with _monitor_lock:
-        if _monitor_thread and _monitor_thread.is_alive():
+        thread = _monitor_threads.get(engine_key)
+        if thread and thread.is_alive():
             return
-        _monitor_thread = threading.Thread(
+        thread = threading.Thread(
             target=monitorar_sessoes,
-            name="salsilauncher-session-monitor",
+            args=(db_engine,),
+            name=f"salsilauncher-session-monitor-{len(_monitor_threads) + 1}",
             daemon=True,
         )
-        _monitor_thread.start()
+        _monitor_threads[engine_key] = thread
+        thread.start()
 
 
 if __name__ == "__main__":
-    monitorar_sessoes()
+    monitorar_sessoes(default_engine)

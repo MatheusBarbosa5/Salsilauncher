@@ -8,6 +8,7 @@ from schemas.socialSchemas import MessageCreate, MessageUpdate
 from repositories.socialRepository import commit, active_user, friendship_pair
 
 router = APIRouter(prefix='/messages', tags=['Messages'])
+DELETED_MESSAGE = 'Mensagem excluída'
 
 def participant(session, message_id, user_id):
     item = session.get(Message, message_id)
@@ -52,6 +53,8 @@ def edit(message_id: int, data: MessageUpdate, session: DB, user: CurrentUser):
     item = participant(session, message_id, user.id)
     if item.sender_id != user.id:
         raise HTTPException(403, 'Somente o remetente pode editar')
+    if item.content == DELETED_MESSAGE:
+        raise HTTPException(409, 'Mensagem excluída não pode ser editada')
     require_friend(session, user.id, item.receiver_id)
     if item.read_at is not None:
         raise HTTPException(409, 'Mensagem já foi lida')
@@ -63,6 +66,6 @@ def delete_message(message_id: int, session: DB, user: CurrentUser):
     item = participant(session, message_id, user.id)
     if item.sender_id != user.id:
         raise HTTPException(403, 'Somente o remetente pode excluir')
-    session.delete(item)
-    session.commit()
+    item.content = DELETED_MESSAGE
+    commit(session, item)
     return Response(status_code=204)

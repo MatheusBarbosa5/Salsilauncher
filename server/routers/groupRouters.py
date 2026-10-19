@@ -8,6 +8,7 @@ from repositories.socialRepository import commit, active_user, friendship_pair
 
 router = APIRouter(prefix='/groups', tags=['Groups'])
 MAX_MEMBERS = 50
+DELETED_MESSAGE = 'Mensagem excluída'
 
 def member_ids(session, group_id):
     return list(session.exec(select(GroupMember.user_id).where(GroupMember.group_id == group_id)).all())
@@ -122,6 +123,6 @@ def delete_group_message(group_id: int, message_id: int, session: DB, user: Curr
         raise HTTPException(404, 'Mensagem não encontrada')
     if item.sender_id != user.id and group.owner_id != user.id:
         raise HTTPException(403, 'Somente o remetente ou o criador pode excluir')
-    session.delete(item)
-    session.commit()
+    item.content = DELETED_MESSAGE
+    commit(session, item)
     return Response(status_code=204)

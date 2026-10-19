@@ -1,4 +1,4 @@
-import { LOCAL_API_URL } from "../services/api";
+import { LOCAL_API_URL, localFetch as fetch } from "../services/api";
 import React, { useEffect, useState } from "react";
 import { BarChart3, Clock, Gamepad2, Sparkles, Tag } from "lucide-react";
 import { YearRetrospective } from "../components/YearRetrospective";

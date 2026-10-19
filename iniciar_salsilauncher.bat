@@ -17,14 +17,14 @@ if not exist "frontend\node_modules" (
     pushd frontend & call npm install & popd
 )
 
-echo [INFO] Iniciando Backend local (8000)...
-start "Salsilauncher - Backend :8000" cmd /k "cd /d %~dp0backend && uv run fastapi dev --port 8000"
+echo [INFO] Iniciando Backend local (8001)...
+start "Salsilauncher - Backend :8001" cmd /k "cd /d %~dp0backend && uv run fastapi dev --port 8001"
 
-echo [INFO] Iniciando Server (8001)...
-start "Salsilauncher - Server :8001" cmd /k "cd /d %~dp0server && uv run python -m alembic upgrade head && uv run python -m uvicorn main:app --host 127.0.0.1 --port 8001 --reload"
+echo [INFO] Iniciando Server (8000)...
+start "Salsilauncher - Server :8000" cmd /k "cd /d %~dp0server && uv run python -m alembic upgrade head && uv run python main.py"
 
 echo [INFO] Iniciando Frontend (5173)...
-start "Salsilauncher - Frontend :5173" cmd /k "cd /d %~dp0frontend && npm run dev"
+start "Salsilauncher - Frontend :5173" cmd /k "cd /d %~dp0frontend && npm run dev -- --host 0.0.0.0"
 
 timeout /t 6 >nul
 start "" http://localhost:5173

@@ -4,6 +4,7 @@ import { Group, Profile } from "../services/api";
 
 interface Props {
   groups: Group[];
+  unreadGroupIds: Set<number>;
   activeId: number | null;
   friends: Profile[];
   busy: boolean;
@@ -13,6 +14,7 @@ interface Props {
 
 export function GroupsPanel({
   groups,
+  unreadGroupIds,
   activeId,
   friends,
   busy,
@@ -101,7 +103,18 @@ export function GroupsPanel({
             <Users size={16} />
           </span>
           <span className="group-item-text">
-            <strong>{g.name}</strong>
+            <span className="community-title-row">
+              <strong>{g.name}</strong>
+              {unreadGroupIds.has(g.id) && (
+                <span
+                  className="community-unread-indicator"
+                  aria-label={"Mensagens n\u00e3o lidas"}
+                  title={"Mensagens n\u00e3o lidas"}
+                >
+                  {"N\u00e3o lidas"}
+                </span>
+              )}
+            </span>
             <small>
               {g.member_ids.length}{" "}
               {g.member_ids.length === 1 ? "membro" : "membros"}

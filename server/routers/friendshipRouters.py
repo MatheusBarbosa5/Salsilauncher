@@ -46,6 +46,12 @@ def respond(friendship_id: int, data: FriendshipUpdate, session: DB, user: Curre
                 raise HTTPException(403, 'Bloqueio definido pela outra conta')
             return public(item)
         item.blocked_by_id = user.id
+    elif old_status == 'blocked':
+        if item.blocked_by_id != user.id:
+            raise HTTPException(403, 'Somente quem bloqueou pode desbloquear')
+        if data.status != 'accepted':
+            raise HTTPException(409, 'O bloqueio só pode ser removido restaurando a amizade')
+        item.blocked_by_id = None
     else:
         if item.friend_id != user.id:
             raise HTTPException(403, 'Somente o destinatário pode aceitar ou rejeitar')

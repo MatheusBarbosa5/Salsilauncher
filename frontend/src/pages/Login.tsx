@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Mail, Lock, Eye, EyeOff } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
-import { remote, body, errorText } from "../services/api";
+import { errorText } from "../services/api";
 import { useLocation } from "react-router-dom";
 import logoImg from "../assets/logo.png";
 

@@ -1,4 +1,4 @@
-import { LOCAL_API_URL } from "../services/api";
+import { LOCAL_API_URL, localFetch as fetch } from "../services/api";
 // frontend/src/pages/ScanFolder.tsx
 import React from "react";
 import { useNavigate } from "react-router-dom";

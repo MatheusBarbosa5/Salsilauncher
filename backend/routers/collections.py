@@ -4,6 +4,7 @@ from fastapi import (
     HTTPException, 
     Query, 
     Depends,
+    Request,
     Form,
     UploadFile,
     File
@@ -25,7 +26,7 @@ from database import get_session
 router = APIRouter(prefix="/collections", tags=["Collections"])
 
 @router.post("/upload-cover")
-def upload_cover_image(file: UploadFile = File(...)):
+def upload_cover_image(request: Request, file: UploadFile = File(...)):
     try:
         os.makedirs("uploads", exist_ok=True)
         file_extension = file.filename.split(".")[-1] if "." in file.filename else "jpg"
@@ -35,7 +36,8 @@ def upload_cover_image(file: UploadFile = File(...)):
         with open(file_path, "wb") as buffer:
             shutil.copyfileobj(file.file, buffer)
             
-        return {"url": f"http://localhost:8000/uploads/{unique_filename}"}
+        base_url = str(request.base_url).rstrip("/")
+        return {"url": f"{base_url}/uploads/{unique_filename}"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Erro ao salvar imagem: {str(e)}")
 

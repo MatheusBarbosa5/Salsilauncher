@@ -11,11 +11,12 @@ Não sobrescreva seu banco com o banco incluído no ZIP. Faça backup do seu ban
 Copie `frontend/.env.example` para `frontend/.env`, ou acrescente as variáveis abaixo ao arquivo existente:
 
 ```env
-VITE_LOCAL_API_URL=http://localhost:8000
-VITE_REMOTE_API_URL=http://127.0.0.1:8001
+VITE_LOCAL_API_URL=
+VITE_REMOTE_API_URL=
 ```
 
-As configurações são lidas pelo Vite. Reinicie `npm run dev` depois de alterá-las; para distribuição, refaça o build. Nenhuma senha do banco ou chave administrativa do catálogo deve entrar nesse arquivo do frontend.
+Deixe as URLs vazias para usar automaticamente o hostname pelo qual o frontend foi aberto (`:8001` para a API local e `:8000` para o servidor). Para acessar de outro dispositivo, inicie o Vite com `npm run dev -- --host 0.0.0.0` e abra `http://<IP_DO_SERVIDOR>:5173`. Reinicie o Vite depois de alterar essas configurações; para distribuição, refaça o build. Nenhuma senha do banco ou chave administrativa do catálogo deve entrar nesse arquivo do frontend.
+
 
 No `server/.env`, configure `SECRET_KEY` e `DATABASE_URL`, conforme `server/README.md`. Configure `CORS_ORIGINS` com a origem real do frontend. O padrão já permite `http://localhost:5173` e `http://127.0.0.1:5173`.
 
@@ -26,7 +27,7 @@ Na pasta `server/`:
 ```bash
 uv sync --locked
 uv run python -m alembic upgrade head
-uv run python -m uvicorn main:app --host 127.0.0.1 --port 8001 --reload
+uv run python main.py
 ```
 
 Na pasta `backend/`:

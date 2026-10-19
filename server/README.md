@@ -30,16 +30,16 @@ Se `.env` já existir, preserve-o e adicione apenas as variáveis ausentes. Gere
 uv run python -c "import secrets; print(secrets.token_hex(32))"
 ```
 
-Coloque o resultado em `SECRET_KEY` no `.env`. Mantenha o mesmo valor entre reinícios; mudá-lo invalida os tokens existentes. A porta 8001 evita conflito com o backend local na porta 8000.
+Coloque o resultado em `SECRET_KEY` no `.env`. Mantenha o mesmo valor entre reinícios; mudá-lo invalida os tokens existentes. O servidor usa a porta 8000; o backend local usa a porta 8001.
 
 Antes de atualizar um banco existente, faça uma cópia de `salsilauncher-server.db` com os serviços parados. Depois:
 
 ```bash
 uv run python -m alembic upgrade head
-uv run python -m uvicorn main:app --host 127.0.0.1 --port 8001 --reload
+uv run python main.py
 ```
 
-Documentação interativa: <http://127.0.0.1:8001/docs>.
+Documentação interativa: <http://127.0.0.1:8000/docs>.
 
 O `link-mode = "copy"` já está no `pyproject.toml` para evitar os problemas de hardlink. Se o `uv` estiver instalado em um ambiente separado, use o caminho desse executável ou adicione-o ao PATH. `uv run` usa a `.venv` do projeto sem exigir ativação. Não reutilize uma `.venv` do Windows no Linux.
 

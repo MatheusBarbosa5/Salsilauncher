@@ -1,6 +1,7 @@
 import {
   LOCAL_API_URL,
-  REMOTE_API_URL,
+  localFetch as fetch,
+  getRemoteApiUrl,
   LocalGame,
   RemoteGame,
   PlaySession,
@@ -8,7 +9,7 @@ import {
   remote,
 } from "./api";
 export function linkKey(userId: number, game: LocalGame) {
-  return `salsilauncher.link:${REMOTE_API_URL}:${LOCAL_API_URL}:${userId}:${game.id}:${game.steam_appid || ""}:${game.exe_path || game.title}`;
+  return `salsilauncher.link:${getRemoteApiUrl()}:${LOCAL_API_URL}:${userId}:${game.id}:${game.steam_appid || ""}:${game.exe_path || game.title}`;
 }
 export function storedLink(userId: number, game: LocalGame) {
   const id = Number(localStorage.getItem(linkKey(userId, game)));
@@ -54,6 +55,7 @@ export async function syncCompletedSessions(
   remoteGameId: number,
 ) {
   let count = 0;
+  const remoteUrl = getRemoteApiUrl();
   for (let offset = 0; ; offset += 100) {
     const response = await fetch(
       `${LOCAL_API_URL}/games/${game.id}/sessions?limit=100&offset=${offset}`,
@@ -65,7 +67,7 @@ export async function syncCompletedSessions(
     const rows: LocalSession[] = await response.json();
     for (const record of rows) {
       if (record.ativa || !record.encerrada_em) continue;
-      const key = `salsilauncher.session:${REMOTE_API_URL}:${LOCAL_API_URL}:${userId}:${game.id}:${record.id}:${record.iniciada_em}`;
+      const key = `salsilauncher.session:${remoteUrl}:${LOCAL_API_URL}:${userId}:${game.id}:${record.id}:${record.iniciada_em}`;
       let uuid = localStorage.getItem(key);
       if (!uuid) {
         uuid = crypto.randomUUID();

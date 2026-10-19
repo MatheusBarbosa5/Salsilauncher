@@ -191,9 +191,14 @@
   padding: 1px 7px;
   border-radius: 10px;
   background: rgba(255, 0, 0, 0.15);
-  color: #ff3333;
+  color: #aaa;
   font-size: 0.7rem;
   font-weight: 700;
+}
+
+.menu-item:hover .menu-count,
+.menu-item.active .menu-count {
+  color: #fff;
 }
 
 .online-menu .sidebar-section-label {

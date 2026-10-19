@@ -4,7 +4,8 @@ from contextlib import asynccontextmanager
 from fastapi.staticfiles import StaticFiles
 from steam import router as steam_router
 
-from database import create_db_and_tables
+from database import create_db_and_tables, engine
+from services import monitor_service
 
 from routers import (
     games,
@@ -29,6 +30,7 @@ os.makedirs("uploads", exist_ok=True)
 async def lifespan(app: FastAPI):
     # Executa quando a API ligar
     create_db_and_tables()
+    monitor_service.iniciar_monitoramento(engine)
     yield
     # Executa quando a API desligar
 
@@ -41,7 +43,7 @@ app = FastAPI(
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],  
-    allow_credentials=True,
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )

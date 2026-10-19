@@ -1,5 +1,5 @@
-import { LOCAL_API_URL } from "../services/api";
 // frontend/src/components/MainLayout.tsx
+import { LOCAL_API_URL, localFetch as fetch } from "../services/api";
 import React, { useState, useEffect } from "react";
 import {
   Outlet,
@@ -44,7 +44,7 @@ export function MainLayout() {
   const [customCollections, setCustomCollections] = useState<any[]>([]);
   const [favoriteGames, setFavoriteGames] = useState<any[]>([]);
   const searchQuery = searchParams.get("q") || "";
-
+  
   useEffect(() => {
     const loadCollectionsFromDB = async () => {
       try {
@@ -85,6 +85,7 @@ export function MainLayout() {
     loadCollectionsFromDB();
     fetchFavorites();
   }, [location.pathname]);
+
 
   useEffect(() => {
     setIsUserMenuOpen(false);

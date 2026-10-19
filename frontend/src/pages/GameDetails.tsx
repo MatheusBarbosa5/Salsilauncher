@@ -1,4 +1,4 @@
-import { LOCAL_API_URL } from "../services/api";
+import { LOCAL_API_URL, localFetch as fetch } from "../services/api";
 // frontend/src/pages/GameDetails.tsx
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
@@ -15,6 +15,7 @@ import {
   Star,
 } from "lucide-react";
 import { useToast } from "../context/ToastContext";
+import { useAuth } from "../context/AuthContext";
 
 import { OnlineGamePanel } from "../components/OnlineGamePanel";
 
@@ -36,7 +37,9 @@ type Game = {
 export function GameDetails() {
   const [game, setGame] = useState<Game | null>(null);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState("");
   const { id } = useParams();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const { showToast } = useToast();
 
@@ -44,9 +47,19 @@ export function GameDetails() {
 
   useEffect(() => {
     const fetchSingleGame = async () => {
+      setLoading(true);
+      setGame(null);
+      setLoadError("");
       try {
         const response = await fetch(`${LOCAL_API_URL}/games/${id}`);
-        if (!response.ok) throw new Error("Game not found");
+        if (!response.ok) {
+          const data = await response.json().catch(() => null);
+          throw new Error(
+            typeof data?.detail === "string"
+              ? `HTTP ${response.status}: ${data.detail}`
+              : `Falha ao carregar o jogo (HTTP ${response.status}).`,
+          );
+        }
         const data = await response.json();
         setGame(data);
 
@@ -62,12 +75,17 @@ export function GameDetails() {
         }
       } catch (error) {
         console.error(error);
+        setLoadError(
+          error instanceof Error
+            ? error.message
+            : "Não foi possível carregar o jogo.",
+        );
       } finally {
         setLoading(false);
       }
     };
-    fetchSingleGame();
-  }, [id]);
+    void fetchSingleGame();
+  }, [id, user?.id]);
 
   const handlePlayGame = async () => {
     if (!game?.id) return;
@@ -162,7 +180,11 @@ export function GameDetails() {
         className="main-scroll"
         style={{ padding: "40px", textAlign: "center" }}
       >
-        <p>Jogo não encontrado no banco de dados.</p>
+        <p>
+          {loadError
+            ? `N\u00e3o foi poss\u00edvel abrir este jogo: ${loadError}`
+            : "Jogo n\u00e3o encontrado no banco de dados desta conta."}
+        </p>
         <button
           type="button"
           className="btn-secondary"

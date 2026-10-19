@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Compass, Lightbulb, Tag } from "lucide-react";
-import { LOCAL_API_URL } from "../services/api";
+import { LOCAL_API_URL, localFetch as fetch } from "../services/api";
 import "../styles/recommendations.css";
 
 type RecommendedGame = { steam_appid: number; title: string; cover: string; genres: string[] };

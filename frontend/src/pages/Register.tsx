@@ -1,9 +1,7 @@
 // frontend/src/pages/Register.tsx
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
 import { remote, body, errorText } from "../services/api";
-import { useLocation } from "react-router-dom";
 import logoImg from "../assets/logo.png";
 import { User, Mail, Lock, Eye, EyeOff, ArrowLeft } from "lucide-react";
 
@@ -15,8 +13,6 @@ export function Register() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
-  const { login } = useAuth();
-  const location = useLocation();
   const [username, setUsername] = useState("");
   const handleRegisterSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

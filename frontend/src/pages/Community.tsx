@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { FadingNotice } from "../components/FadingNotice";
@@ -6,11 +6,9 @@ import { GroupChat } from "../components/GroupChat";
 import { GroupsPanel } from "../components/GroupsPanel";
 import { MessageMenu } from "../components/MessageMenu";
 import {
-  Check,
   Inbox,
   MessageCircle,
   Pencil,
-  RefreshCw,
   Search,
   Send,
   Trash2,
@@ -22,6 +20,7 @@ import {
   Profile,
   Friendship,
   Group,
+  GroupMessage,
   Message,
   remote,
   allPages,
@@ -34,7 +33,11 @@ export function Community() {
   const [params, setParams] = useSearchParams();
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [friends, setFriends] = useState<Friendship[]>([]);
-  const [pastPeers, setPastPeers] = useState<number[]>([]);
+  const [recentMessages, setRecentMessages] = useState<Message[]>([]);
+  const [latestGroupMessages, setLatestGroupMessages] = useState<
+    Record<number, { id: number; senderId: number }>
+  >({});
+  const [groupReadRevision, setGroupReadRevision] = useState(0);
   const [messages, setMessages] = useState<Message[]>([]);
   const [query, setQuery] = useState("");
   const [draft, setDraft] = useState("");
@@ -43,35 +46,44 @@ export function Community() {
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [editId, setEditId] = useState<number | null>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
+  const lastMessageIdRef = useRef<number | null>(null);
+  const pendingAutoScrollRef = useRef(false);
+  const markingReadIdsRef = useRef<Set<number>>(new Set());
   const [tab, setTab] = useState<"people" | "friends" | "requests" | "groups">(
     "people",
   );
   const [groups, setGroups] = useState<Group[]>([]);
   const groupId = Number(params.get("group")) || null;
   const chatId = Number(params.get("chat")) || null;
-  const [messagePage, setMessagePage] = useState(0);
-  const [hasMore, setHasMore] = useState(false);
   const label = (id: number) => {
     const p = profiles.find((p) => p.id === id);
     return p?.display_name || p?.username || `Usuário #${id}`;
   };
   async function load(signal?: AbortSignal) {
-    const [p, f, history, g] = await Promise.all([
+    const [p, f, g, recent] = await Promise.all([
       allPages<Profile>("/users/", signal),
       allPages<Friendship>("/friendships/", signal),
-      allPages<Message>("/messages/", signal),
       remote<Group[]>("/groups/", { signal }),
+      remote<Message[]>("/messages/?limit=100", { signal }),
     ]);
     setProfiles(p);
     setFriends(f);
     setGroups(g);
-    setPastPeers([
-      ...new Set(
-        history.map((m) =>
-          m.sender_id === user?.id ? m.receiver_id : m.sender_id,
-        ),
-      ),
-    ]);
+    setRecentMessages(recent);
+    const latestGroupMessages = await Promise.all(
+      g.map(async (group) => {
+        const rows = await remote<GroupMessage[]>(
+          `/groups/${group.id}/messages?limit=1`,
+          { signal },
+        );
+        return [
+          group.id,
+          { id: rows[0]?.id ?? 0, senderId: rows[0]?.sender_id ?? 0 },
+        ] as const;
+      }),
+    );
+    setLatestGroupMessages(Object.fromEntries(latestGroupMessages));
   }
   useEffect(() => {
     const abort = new AbortController();
@@ -85,38 +97,126 @@ export function Community() {
       });
     return () => abort.abort();
   }, [user?.id]);
+  useEffect(() => {
+    const abort = new AbortController();
+    let refreshing = false;
+    const refresh = async () => {
+      if (refreshing || document.visibilityState === "hidden") return;
+      refreshing = true;
+      try {
+        await load(abort.signal);
+      } catch {
+        // Keep the current community view during temporary connection failures.
+      } finally {
+        refreshing = false;
+      }
+    };
+    const timer = window.setInterval(() => void refresh(), 5000);
+    window.addEventListener("focus", refresh);
+    document.addEventListener("visibilitychange", refresh);
+    return () => {
+      abort.abort();
+      window.clearInterval(timer);
+      window.removeEventListener("focus", refresh);
+      document.removeEventListener("visibilitychange", refresh);
+    };
+  }, [user?.id]);
   async function loadMessages(signal?: AbortSignal) {
     if (!chatId) {
+      lastMessageIdRef.current = null;
       setMessages([]);
       return;
     }
     const rows = await remote<Message[]>(
-      `/messages/?with_user_id=${chatId}&limit=26&offset=${messagePage * 25}`,
+      `/messages/?with_user_id=${chatId}&limit=100`,
       { signal },
     );
-    setHasMore(rows.length > 25);
-    setMessages(rows.slice(0, 25).reverse());
+    const nextMessages = rows.reverse();
+    const nextLastId = nextMessages[nextMessages.length - 1]?.id ?? null;
+    const isInitialLoad = lastMessageIdRef.current === null;
+    const hasNewMessage =
+      nextLastId !== null &&
+      lastMessageIdRef.current !== null &&
+      nextLastId > lastMessageIdRef.current;
+    const container = messagesContainerRef.current;
+    const nearBottom =
+      !container ||
+      container.scrollHeight - container.scrollTop - container.clientHeight <
+        140;
+    pendingAutoScrollRef.current =
+      isInitialLoad || (hasNewMessage && nearBottom);
+    lastMessageIdRef.current = nextLastId;
+    setMessages(nextMessages);
   }
+  useLayoutEffect(() => {
+    if (pendingAutoScrollRef.current && messagesContainerRef.current) {
+      messagesContainerRef.current.scrollTop =
+        messagesContainerRef.current.scrollHeight;
+    }
+    pendingAutoScrollRef.current = false;
+  }, [messages]);
   useEffect(() => {
     const abort = new AbortController();
+    lastMessageIdRef.current = null;
+    pendingAutoScrollRef.current = false;
     setMessages([]);
     setError("");
-    loadMessages(abort.signal).catch((err) => {
-      if (!abort.signal.aborted) setError(errorText(err));
-    });
-    const timer = window.setInterval(() => {
+    let loadingMessages = false;
+    const refreshMessages = () => {
+      if (loadingMessages) return;
+      loadingMessages = true;
       loadMessages(abort.signal).catch((err) => {
         if (!abort.signal.aborted) setError(errorText(err));
+      }).finally(() => {
+        loadingMessages = false;
       });
-    }, 10000);
+    };
+    refreshMessages();
+    const timer = window.setInterval(refreshMessages, 2000);
     return () => {
       abort.abort();
       window.clearInterval(timer);
     };
-  }, [chatId, messagePage, user?.id]);
+  }, [chatId, user?.id]);
+  useEffect(() => {
+    if (!chatId || !user) return;
+    const unread = messages.filter(
+      (message) =>
+        message.receiver_id === user.id &&
+        !message.read_at &&
+        !markingReadIdsRef.current.has(message.id),
+    );
+    for (const message of unread) {
+      markingReadIdsRef.current.add(message.id);
+      void remote<Message>(`/messages/${message.id}/read`, {
+        method: "PATCH",
+      })
+        .then((updated) => {
+          setMessages((current) =>
+            current.map((item) => (item.id === updated.id ? updated : item)),
+          );
+          setRecentMessages((current) =>
+            current.map((item) => (item.id === updated.id ? updated : item)),
+          );
+        })
+        .catch((err) => {
+          markingReadIdsRef.current.delete(message.id);
+          setError(errorText(err));
+        });
+    }
+  }, [chatId, messages, user]);
   function chooseGroup(id: number) {
     setParams({ group: String(id) });
     setNotice("");
+  }
+  function markGroupRead(groupId: number, messageId: number) {
+    if (!user || messageId < 1) return;
+    const key = `salsilauncher:group-last-read:${user.id}:${groupId}`;
+    const previous = Number(localStorage.getItem(key)) || 0;
+    if (messageId > previous) {
+      localStorage.setItem(key, String(messageId));
+      setGroupReadRevision((revision) => revision + 1);
+    }
   }
   async function createGroup(name: string, memberIds: number[]) {
     setBusy(true);
@@ -138,7 +238,6 @@ export function Community() {
   }
   function chooseChat(id: number) {
     setParams({ chat: String(id) });
-    setMessagePage(0);
     setEditId(null);
     setDraft("");
     setNotice("");
@@ -174,7 +273,7 @@ export function Community() {
         setDraft("");
         setEditId(null);
       },
-      editId ? "Mensagem editada." : "Mensagem enviada.",
+      editId ? "Mensagem editada." : "",
     );
   }
   if (!user) return null;
@@ -182,7 +281,55 @@ export function Community() {
     .filter((f) => f.status === "accepted")
     .map((f) => (f.user_id === user.id ? f.friend_id : f.user_id));
   const friendProfiles = profiles.filter((p) => friendIds.includes(p.id));
+  const latestMessageByPeer = new Map<number, number>();
+  const unreadCountByPeer = new Map<number, number>();
+  for (const message of recentMessages) {
+    const peer =
+      message.sender_id === user.id ? message.receiver_id : message.sender_id;
+    latestMessageByPeer.set(
+      peer,
+      Math.max(latestMessageByPeer.get(peer) ?? 0, message.id),
+    );
+    if (message.receiver_id === user.id && !message.read_at) {
+      unreadCountByPeer.set(peer, (unreadCountByPeer.get(peer) ?? 0) + 1);
+    }
+  }
+  const displayedFriendships =
+    tab === "friends"
+      ? friends
+          .filter((friend) => friend.status !== "pending")
+          .sort(
+            (a, b) => {
+              const blockedOrder =
+                Number(a.status === "blocked") -
+                Number(b.status === "blocked");
+              if (blockedOrder !== 0) return blockedOrder;
+              const aPeer = a.user_id === user.id ? a.friend_id : a.user_id;
+              const bPeer = b.user_id === user.id ? b.friend_id : b.user_id;
+              return (
+                (latestMessageByPeer.get(bPeer) ?? 0) -
+                (latestMessageByPeer.get(aPeer) ?? 0)
+              );
+            },
+          )
+      : tab === "requests"
+        ? friends.filter((friend) => friend.status === "pending")
+        : [];
   const selectedGroup = groups.find((g) => g.id === groupId) || null;
+  void groupReadRevision;
+  const unreadGroupIds = new Set(
+    groups
+      .filter((group) => {
+        const lastRead = Number(
+          localStorage.getItem(
+            `salsilauncher:group-last-read:${user.id}:${group.id}`,
+          ),
+        ) || 0;
+        const latest = latestGroupMessages[group.id];
+        return !!latest && latest.senderId !== user.id && latest.id > lastRead;
+      })
+      .map((group) => group.id),
+  );
   const selectedFriend = friends.find((f) =>
     [f.user_id, f.friend_id].includes(chatId || -1),
   );
@@ -272,6 +419,7 @@ export function Community() {
           {tab === "groups" && (
             <GroupsPanel
               groups={groups}
+              unreadGroupIds={unreadGroupIds}
               activeId={groupId}
               friends={friendProfiles}
               busy={busy}
@@ -353,33 +501,6 @@ export function Community() {
               );
             })
           )}
-          {tab === "friends" &&
-            pastPeers.some(
-              (peer) =>
-                !friends.some(
-                  (f) => f.user_id === peer || f.friend_id === peer,
-                ),
-            ) && (
-              <>
-                <h2>Conversas anteriores</h2>
-                {pastPeers
-                  .filter(
-                    (peer) =>
-                      !friends.some(
-                        (f) => f.user_id === peer || f.friend_id === peer,
-                      ),
-                  )
-                  .map((peer) => (
-                    <button
-                      key={peer}
-                      disabled={busy}
-                      onClick={() => chooseChat(peer)}
-                    >
-                      {label(peer)}
-                    </button>
-                  ))}
-              </>
-            )}
           {tab !== "people" &&
             tab !== "groups" &&
             !loading &&
@@ -394,32 +515,150 @@ export function Community() {
                   : "Você ainda não tem amigos."}
               </p>
             )}
-          {(tab === "people" || tab === "groups"
-            ? []
-            : friends.filter((f) =>
-                tab === "requests"
-                  ? f.status === "pending"
-                  : f.status !== "pending",
-              )
-          ).map((f) => {
+          {displayedFriendships.map((f, index, listed) => {
             const other = f.user_id === user.id ? f.friend_id : f.user_id;
+            const profile = profiles.find((p) => p.id === other);
+            const isFriendTab = tab === "friends";
+            const startsBlockedSection =
+              isFriendTab &&
+              f.status === "blocked" &&
+              (index === 0 || listed[index - 1].status !== "blocked");
+            const startsConversationSection =
+              isFriendTab && index === 0 && f.status !== "blocked";
             return (
-              <div className="online-friend" key={f.id}>
-                <strong>{label(other)}</strong>
-                <p>
-                  {
-                    {
-                      pending:
-                        f.friend_id === user.id
-                          ? "Quer ser seu amigo"
-                          : "Pedido enviado",
-                      accepted: "Amigo",
-                      rejected: "Pedido rejeitado",
-                      blocked: "Bloqueado",
-                    }[f.status]
+              <React.Fragment key={f.id}>
+                {startsConversationSection && <h2>Conversas</h2>}
+                {startsBlockedSection && <h2>Contatos bloqueados</h2>}
+                <div
+                  className={`online-friend ${isFriendTab ? "community-friend-card-clickable" : ""}`}
+                  role={isFriendTab ? "button" : undefined}
+                  tabIndex={isFriendTab ? 0 : undefined}
+                  onClick={isFriendTab ? () => chooseChat(other) : undefined}
+                  onKeyDown={
+                    isFriendTab
+                      ? (event) => {
+                          if (
+                            event.target === event.currentTarget &&
+                            (event.key === "Enter" || event.key === " ")
+                          ) {
+                            event.preventDefault();
+                            chooseChat(other);
+                          }
+                        }
+                      : undefined
                   }
-                </p>
-                <div className="online-row">
+                >
+                <div className="community-friend-heading">
+                  <div className="community-profile">
+                    <div className="community-avatar" aria-hidden="true">
+                      {profile?.avatar_url ? (
+                        <img src={profile.avatar_url} alt="" />
+                      ) : (
+                        label(other).slice(0, 1).toUpperCase()
+                      )}
+                    </div>
+                    <div className="community-profile-details">
+                      <span className="community-title-row">
+                        <strong>{label(other)}</strong>
+                        {!!unreadCountByPeer.get(other) && (
+                          <span
+                            className="community-unread-indicator"
+                            aria-label={`${unreadCountByPeer.get(other)} mensagens n\u00e3o lidas`}
+                            title={`${unreadCountByPeer.get(other)} mensagens n\u00e3o lidas`}
+                          >
+                            {unreadCountByPeer.get(other)}{" n\u00e3o lidas"}
+                          </span>
+                        )}
+                      </span>
+                      {profile?.username && <small>@{profile.username}</small>}
+                    </div>
+                  </div>
+                  <div
+                    className="community-friend-menu"
+                    onClick={(event) => event.stopPropagation()}
+                    onKeyDown={(event) => event.stopPropagation()}
+                  >
+                    <MessageMenu
+                      disabled={busy}
+                      ariaLabel="Opções do contato"
+                      items={[
+                        ...(f.status !== "blocked"
+                          ? [
+                              {
+                                label: "Bloquear",
+                                danger: true,
+                                onClick: () => {
+                                  if (window.confirm(`Bloquear ${label(other)}?`))
+                                    void action(
+                                      () =>
+                                        remote(`/friendships/${f.id}`, {
+                                          method: "PATCH",
+                                          body: body({ status: "blocked" }),
+                                        }),
+                                      "Usuário bloqueado.",
+                                    );
+                                },
+                              },
+                            ]
+                          : []),
+                        ...(f.status !== "blocked" || f.blocked_by_id === user.id
+                          ? [
+                              {
+                                label:
+                                  f.status === "blocked" ? "Desbloquear" : "Remover",
+                                danger: true,
+                                onClick: () => {
+                                  const isUnblock = f.status === "blocked";
+                                  if (
+                                    window.confirm(
+                                      isUnblock
+                                        ? "Desbloquear e restaurar a amizade?"
+                                        : "Remover esta relação?",
+                                    )
+                                  )
+                                    void action(
+                                      () =>
+                                        remote(
+                                          `/friendships/${f.id}`,
+                                          isUnblock
+                                            ? {
+                                                method: "PATCH",
+                                                body: body({ status: "accepted" }),
+                                              }
+                                            : { method: "DELETE" },
+                                        ),
+                                      isUnblock
+                                        ? "Contato desbloqueado e restaurado como amigo."
+                                        : "Relação removida.",
+                                    );
+                                },
+                              },
+                            ]
+                          : []),
+                      ]}
+                    />
+                  </div>
+                </div>
+                {f.status !== "accepted" && (
+                  <p>
+                    {
+                      {
+                        pending:
+                          f.friend_id === user.id
+                            ? "Quer ser seu amigo"
+                            : "Pedido enviado",
+                        rejected: "Pedido rejeitado",
+                        blocked: "Bloqueado",
+                        accepted: "",
+                      }[f.status]
+                    }
+                  </p>
+                )}
+                <div
+                  className="online-row community-friend-actions"
+                  onClick={(event) => event.stopPropagation()}
+                  onKeyDown={(event) => event.stopPropagation()}
+                >
                   {f.status === "pending" && f.friend_id === user.id && (
                     <>
                       <button
@@ -454,64 +693,11 @@ export function Community() {
                       </button>
                     </>
                   )}
-                  <button disabled={busy} onClick={() => chooseChat(other)}>
-                    Conversa
-                  </button>
-                  {f.status !== "blocked" && (
-                    <button
-                      disabled={busy}
-                      onClick={() => {
-                        if (window.confirm(`Bloquear ${label(other)}?`))
-                          void action(
-                            () =>
-                              remote(`/friendships/${f.id}`, {
-                                method: "PATCH",
-                                body: body({ status: "blocked" }),
-                              }),
-                            "Usuário bloqueado.",
-                          );
-                      }}
-                    >
-                      Bloquear
-                    </button>
-                  )}
-                  {(f.status !== "blocked" || f.blocked_by_id === user.id) && (
-                    <button
-                      disabled={busy}
-                      onClick={() => {
-                        if (
-                          window.confirm(
-                            f.status === "blocked"
-                              ? "Remover o bloqueio?"
-                              : "Remover esta relação?",
-                          )
-                        )
-                          void action(
-                            () =>
-                              remote(`/friendships/${f.id}`, {
-                                method: "DELETE",
-                              }),
-                            "Relação removida.",
-                          );
-                      }}
-                    >
-                      {f.status === "blocked" ? "Desbloquear" : "Remover"}
-                    </button>
-                  )}
                 </div>
-              </div>
+                </div>
+              </React.Fragment>
             );
           })}
-          {tab !== "groups" && (
-            <button
-              disabled={busy || loading}
-              onClick={() =>
-                void action(() => Promise.resolve(), "Lista atualizada.")
-              }
-            >
-              Atualizar amigos
-            </button>
-          )}
         </section>
         <section className="dc-canvas">
           {selectedGroup ? (
@@ -522,6 +708,7 @@ export function Community() {
               profiles={profiles}
               friendIds={friendIds}
               onError={setError}
+              onViewed={(messageId) => markGroupRead(selectedGroup.id, messageId)}
               onChanged={(text) => void action(() => Promise.resolve(), text)}
               onLeft={(text) => {
                 setParams({});
@@ -544,15 +731,15 @@ export function Community() {
                 </div>
               ) : (
                 <>
-                  <div className="online-messages">
+                  <div className="online-messages" ref={messagesContainerRef}>
                     {!messages.length && (
                       <p className="online-muted">
-                        Nenhuma mensagem nesta página.
+                        Nenhuma mensagem nesta conversa.
                       </p>
                     )}
                     {messages.map((m) => (
                       <article
-                        className={`online-message ${m.sender_id === user.id ? "mine" : ""}`}
+                        className={`online-message ${m.sender_id === user.id ? "mine" : ""} ${m.content === "Mensagem excluída" ? "deleted-message" : ""}`}
                         key={m.id}
                       >
                         <strong>
@@ -568,23 +755,10 @@ export function Community() {
                         <MessageMenu
                           disabled={busy}
                           items={[
-                            ...(m.receiver_id === user.id && !m.read_at
-                              ? [
-                                  {
-                                    label: "Marcar como lida",
-                                    icon: <Check size={14} />,
-                                    onClick: () =>
-                                      void action(
-                                        () =>
-                                          remote(`/messages/${m.id}/read`, {
-                                            method: "PATCH",
-                                          }),
-                                        "Mensagem marcada como lida.",
-                                      ),
-                                  },
-                                ]
-                              : []),
-                            ...(m.sender_id === user.id && !m.read_at && canSend
+                            ...(m.sender_id === user.id &&
+                            !m.read_at &&
+                            canSend &&
+                            m.content !== "Mensagem excluída"
                               ? [
                                   {
                                     label: "Editar",
@@ -596,7 +770,8 @@ export function Community() {
                                   },
                                 ]
                               : []),
-                            ...(m.sender_id === user.id
+                            ...(m.sender_id === user.id &&
+                            m.content !== "Mensagem excluída"
                               ? [
                                   {
                                     label: "Excluir",
@@ -623,32 +798,6 @@ export function Community() {
                         />
                       </article>
                     ))}
-                  </div>
-                  <div className="online-row">
-                    <button
-                      disabled={messagePage === 0 || busy}
-                      onClick={() => setMessagePage((p) => p - 1)}
-                    >
-                      Mais recentes
-                    </button>
-                    <button
-                      disabled={!hasMore || busy}
-                      onClick={() => setMessagePage((p) => p + 1)}
-                    >
-                      Mais antigas
-                    </button>
-                    <button
-                      disabled={busy}
-                      onClick={() =>
-                        void action(
-                          () => Promise.resolve(),
-                          "Conversa atualizada.",
-                        )
-                      }
-                    >
-                      <RefreshCw size={15} />
-                      Atualizar
-                    </button>
                   </div>
                   {canSend ? (
                     <form className="online-form" onSubmit={send}>

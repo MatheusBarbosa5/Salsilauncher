@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
 import {
   Profile,
   Group,
@@ -19,6 +19,7 @@ interface Props {
   onChanged: (notice: string) => void;
   onLeft: (notice: string) => void;
   onError: (message: string) => void;
+  onViewed: (latestMessageId: number) => void;
 }
 
 export function GroupChat({
@@ -29,11 +30,15 @@ export function GroupChat({
   onChanged,
   onLeft,
   onError,
+  onViewed,
 }: Props) {
   const [messages, setMessages] = useState<GroupMessage[]>([]);
   const [draft, setDraft] = useState("");
   const [busy, setBusy] = useState(false);
   const [toAdd, setToAdd] = useState("");
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
+  const lastMessageIdRef = useRef<number | null>(null);
+  const pendingAutoScrollRef = useRef(false);
   const isOwner = group.owner_id === meId;
 
   const label = (id: number) => {
@@ -48,18 +53,49 @@ export function GroupChat({
       `/groups/${group.id}/messages?limit=100`,
       { signal },
     );
-    setMessages(rows.reverse());
+    const nextMessages = rows.reverse();
+    const nextLastId = nextMessages[nextMessages.length - 1]?.id ?? null;
+    if (nextLastId !== null) onViewed(nextLastId);
+    const isInitialLoad = lastMessageIdRef.current === null;
+    const hasNewMessage =
+      nextLastId !== null &&
+      lastMessageIdRef.current !== null &&
+      nextLastId > lastMessageIdRef.current;
+    const container = messagesContainerRef.current;
+    const nearBottom =
+      !container ||
+      container.scrollHeight - container.scrollTop - container.clientHeight <
+        140;
+    pendingAutoScrollRef.current =
+      isInitialLoad || (hasNewMessage && nearBottom);
+    lastMessageIdRef.current = nextLastId;
+    setMessages(nextMessages);
   }
+  useLayoutEffect(() => {
+    if (pendingAutoScrollRef.current && messagesContainerRef.current) {
+      messagesContainerRef.current.scrollTop =
+        messagesContainerRef.current.scrollHeight;
+    }
+    pendingAutoScrollRef.current = false;
+  }, [messages]);
 
   useEffect(() => {
     const abort = new AbortController();
+    lastMessageIdRef.current = null;
+    pendingAutoScrollRef.current = false;
     setMessages([]);
-    const run = () =>
+    let loadingMessages = false;
+    const run = () => {
+      if (loadingMessages) return;
+      loadingMessages = true;
       loadMessages(abort.signal).catch((err) => {
         if (!abort.signal.aborted) onError(errorText(err));
+      }).finally(() => {
+        loadingMessages = false;
       });
+    };
     run();
-    const timer = window.setInterval(run, 10000);
+    const timer = window.setInterval(run, 2000);
     return () => {
       abort.abort();
       window.clearInterval(timer);
@@ -202,13 +238,13 @@ export function GroupChat({
         )}
       </div>
 
-      <div className="online-messages">
+      <div className="online-messages" ref={messagesContainerRef}>
         {!messages.length && (
           <p className="online-muted">Nenhuma mensagem no grupo ainda.</p>
         )}
         {messages.map((m) => (
           <article
-            className={`online-message ${m.sender_id === meId ? "mine" : ""}`}
+            className={`online-message ${m.sender_id === meId ? "mine" : ""} ${m.content === "Mensagem excluída" ? "deleted-message" : ""}`}
             key={m.id}
           >
             <strong>{label(m.sender_id)}</strong>
@@ -217,7 +253,8 @@ export function GroupChat({
             <MessageMenu
               disabled={busy}
               items={
-                m.sender_id === meId || isOwner
+                m.content !== "Mensagem excluída" &&
+                (m.sender_id === meId || isOwner)
                   ? [
                       {
                         label: "Excluir",

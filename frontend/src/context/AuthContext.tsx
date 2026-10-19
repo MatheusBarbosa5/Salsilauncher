@@ -13,6 +13,7 @@ import {
   remote,
   errorText,
   ApiError,
+  setLocalProfileId,
 } from "../services/api";
 import { Link, Navigate, Outlet, useLocation } from "react-router-dom";
 
@@ -33,6 +34,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   function logout() {
     generation.current++;
     setToken(null);
+    setLocalProfileId(null);
     setUser(null);
     setError("");
     setLoading(false);
@@ -41,16 +43,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const gen = ++generation.current;
     setError("");
     if (!getToken()) {
+      setLocalProfileId(null);
       setUser(null);
       setLoading(false);
       return;
     }
     try {
       const next = await remote<User>("/auth/me");
-      if (gen === generation.current) setUser(next);
+      if (gen === generation.current) {
+        setUser(next);
+        setLocalProfileId(next.id);
+      }
     } catch (err) {
       if (gen === generation.current) {
         setUser(null);
+        setLocalProfileId(null);
         setError(
           err instanceof ApiError && err.status === 401 ? "" : errorText(err),
         );
@@ -67,7 +74,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     });
     setToken(data.access_token);
     try {
-      setUser(await remote<User>("/auth/me"));
+      const user = await remote<User>("/auth/me");
+      setUser(user);
+      setLocalProfileId(user.id);
     } catch (err) {
       logout();
       throw err;
