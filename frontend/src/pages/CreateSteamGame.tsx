@@ -294,7 +294,7 @@ export function CreateSteamGame() {
               />
             </div>
             <div className="game-info" style={{ padding: "15px" }}>
-              <span className="game-category">GÊNEROS IMPORTADOS DA STEAM</span>
+              <span className="game-category">TAGS IMPORTADAS DA STEAM</span>
               <h3 className="game-title">
                 {selectedGame?.name || "Selecione um jogo"}
               </h3>

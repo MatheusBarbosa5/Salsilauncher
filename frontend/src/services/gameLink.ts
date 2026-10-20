@@ -20,21 +20,50 @@ export function saveLink(userId: number, game: LocalGame, id: number | null) {
   if (id) localStorage.setItem(key, String(id));
   else localStorage.removeItem(key);
 }
+export async function findExistingRemoteGame(
+  game: LocalGame,
+  signal?: AbortSignal,
+): Promise<RemoteGame | null> {
+  const candidates = await remote<RemoteGame[]>(
+    `/games/?q=${encodeURIComponent(game.title)}&limit=100`,
+    { signal },
+  );
+  if (game.steam_appid) {
+    const byAppId = candidates.find((g) => g.steam_appid === game.steam_appid);
+    if (byAppId) return byAppId;
+  }
+  const normalizedTitle = game.title.trim().toLowerCase();
+  return (
+    candidates.find((g) => g.title.trim().toLowerCase() === normalizedTitle) ||
+    null
+  );
+}
 export async function connectGame(
   userId: number,
   game: LocalGame,
 ): Promise<RemoteGame> {
   let result: RemoteGame;
-  if (game.steam_appid)
+  const localGenres = Array.isArray(game.tags)
+    ? game.tags.map((t) => t.name).filter(Boolean)
+    : [];
+  if (game.steam_appid) {
     result = await remote("/games/resolve", {
       method: "POST",
       body: body({ steam_appid: game.steam_appid }),
     });
-  else
-    result = await remote("/games/", {
-      method: "POST",
-      body: body({ title: game.title, description: game.description || null }),
-    });
+  } else {
+    const existing = await findExistingRemoteGame(game);
+    result =
+      existing ||
+      (await remote("/games/", {
+        method: "POST",
+        body: body({
+          title: game.title,
+          description: game.description || null,
+          ...(localGenres.length ? { genres: localGenres } : {}),
+        }),
+      }));
+  }
   saveLink(userId, game, result.id);
   return result;
 }
@@ -87,4 +116,42 @@ export async function syncCompletedSessions(
     if (rows.length < 100) break;
   }
   return count;
+}
+
+export async function syncAllCompletedSessions(userId: number) {
+  try {
+    const res = await fetch(`${LOCAL_API_URL}/games`);
+    if (!res.ok) return;
+    const localGames: LocalGame[] = await res.json();
+    if (!Array.isArray(localGames)) return;
+    for (const game of localGames) {
+      let remoteId = storedLink(userId, game);
+      if (!remoteId) {
+        const existing = await findExistingRemoteGame(game).catch(() => null);
+        if (existing) {
+          saveLink(userId, game, existing.id);
+          remoteId = existing.id;
+        } else {
+          const sessRes = await fetch(
+            `${LOCAL_API_URL}/games/${game.id}/sessions?limit=5&offset=0`,
+          ).catch(() => null);
+          if (sessRes && sessRes.ok) {
+            const rows: LocalSession[] = await sessRes.json().catch(() => []);
+            const hasCompleted = rows.some((r) => !r.ativa && r.encerrada_em);
+            if (hasCompleted) {
+              const connected = await connectGame(userId, game).catch(
+                () => null,
+              );
+              if (connected) remoteId = connected.id;
+            }
+          }
+        }
+      }
+      if (remoteId) {
+        await syncCompletedSessions(userId, game, remoteId).catch(() => 0);
+      }
+    }
+  } catch {
+    // Ignore background sync errors
+  }
 }

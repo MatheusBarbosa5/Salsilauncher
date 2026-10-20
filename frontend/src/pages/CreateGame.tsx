@@ -181,7 +181,7 @@ export function CreateGame() {
           </div>
 
           <div className="input-group">
-            <label>Gêneros (separados por vírgula)</label>
+            <label>Tags (separadas por vírgula)</label>
             <div className="input-wrapper">
               <Tag size={18} className="input-icon" />
               <input
@@ -321,7 +321,7 @@ export function CreateGame() {
               <GameCover src={image} title={title} />
             </div>
             <div className="game-info" style={{ padding: "15px" }}>
-              <span className="game-category">{genres || "GÊNEROS"}</span>
+              <span className="game-category">{genres || "TAGS"}</span>
               <h3 className="game-title">{title || "Título do Jogo"}</h3>
             </div>
           </div>

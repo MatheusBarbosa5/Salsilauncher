@@ -18,6 +18,7 @@ export function Account() {
   const [name, setName] = useState("");
   const [avatar, setAvatar] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
@@ -59,6 +60,11 @@ export function Account() {
   async function save(e: React.FormEvent) {
     e.preventDefault();
     if (!user) return;
+    if ((password || confirmPassword) && password !== confirmPassword) {
+      setError("As senhas não coincidem.");
+      setNotice("");
+      return;
+    }
     setBusy(true);
     setError("");
     setNotice("");
@@ -70,10 +76,11 @@ export function Account() {
           email,
           display_name: name || null,
           avatar_url: avatar.trim() || null,
-          ...(password ? { password } : {}),
+          ...(password && password === confirmPassword ? { password } : {}),
         }),
       });
       setPassword("");
+      setConfirmPassword("");
       await refresh();
       setNotice("Conta atualizada.");
     } catch (err) {
@@ -200,7 +207,7 @@ export function Account() {
           />
         </label>
         <label>
-          Nova senha (opcional)
+          Nova senha
           <input
             type="password"
             autoComplete="new-password"
@@ -208,6 +215,17 @@ export function Account() {
             maxLength={128}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+          />
+        </label>
+        <label>
+          Confirmar nova senha
+          <input
+            type="password"
+            autoComplete="new-password"
+            minLength={8}
+            maxLength={128}
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
           />
         </label>
         <button disabled={busy} type="submit">

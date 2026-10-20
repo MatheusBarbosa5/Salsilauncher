@@ -17,3 +17,8 @@ def login(data: LoginData, session: DB):
 @router.get("/me", response_model=UserRead)
 def me(user: CurrentUser):
     return user
+
+@router.post("/refresh", response_model=TokenResponse)
+def refresh_token(user: CurrentUser):
+    token, seconds = create_token(user)
+    return TokenResponse(access_token=token, expires_in=seconds)

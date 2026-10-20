@@ -45,7 +45,7 @@ def upload_cover_image(request: Request, file: UploadFile = File(...)):
 @router.get("/", response_model=list[dict])
 def get_collections(
     q: str | None = Query(None, description="Search by title"),
-    limit: int = Query(25, ge=1, le=100),
+    limit: int | None = Query(None, ge=1),
     offset: int = Query(0, ge=0),
     session: Session = Depends(get_session)
 ):

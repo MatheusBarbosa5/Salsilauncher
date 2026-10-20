@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { FadingNotice } from "../components/FadingNotice";
+import { useAuth } from "../context/AuthContext";
 import {
   PlaySession,
   RemoteGame,
@@ -8,7 +9,9 @@ import {
   errorText,
   displayDate,
 } from "../services/api";
+import { syncAllCompletedSessions } from "../services/gameLink";
 export function Sessions() {
+  const { user } = useAuth();
   const [sessions, setSessions] = useState<PlaySession[]>([]);
   const [labels, setLabels] = useState<Record<number, string>>({});
   const [page, setPage] = useState(0);
@@ -18,6 +21,9 @@ export function Sessions() {
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   async function load(signal?: AbortSignal) {
+    if (user?.id) {
+      await syncAllCompletedSessions(user.id);
+    }
     const rows = await remote<PlaySession[]>(
       `/play-sessions/?limit=26&offset=${page * 25}`,
       { signal },
@@ -48,8 +54,14 @@ export function Sessions() {
       .finally(() => {
         if (!abort.signal.aborted) setLoading(false);
       });
-    return () => abort.abort();
-  }, [page]);
+    const timer = window.setInterval(() => {
+      void load(abort.signal).catch(() => undefined);
+    }, 10000);
+    return () => {
+      abort.abort();
+      window.clearInterval(timer);
+    };
+  }, [page, user?.id]);
   async function action(fn: () => Promise<unknown>, text: string) {
     setBusy(true);
     setError("");
@@ -67,8 +79,7 @@ export function Sessions() {
     <div className="online-page animate-in">
       <h1>Histórico online</h1>
       <p className="online-muted">
-        Envie suas partidas nos detalhes do jogo, pelo botão “Sincronizar
-        sessões concluídas”.
+        Suas partidas concluídas são sincronizadas e atualizadas automaticamente.
       </p>
       {error && (
         <p role="alert" className="online-error">
@@ -130,28 +141,22 @@ export function Sessions() {
             </article>
           ))
         )}
-        <div className="online-row">
-          <button
-            disabled={!page || busy}
-            onClick={() => setPage((p) => p - 1)}
-          >
-            Anterior
-          </button>
-          <button
-            disabled={!hasMore || busy}
-            onClick={() => setPage((p) => p + 1)}
-          >
-            Próxima
-          </button>
-          <button
-            disabled={busy}
-            onClick={() =>
-              void action(() => Promise.resolve(), "Histórico atualizado.")
-            }
-          >
-            Atualizar
-          </button>
-        </div>
+        {(page > 0 || hasMore) && (
+          <div className="online-row">
+            <button
+              disabled={!page || busy}
+              onClick={() => setPage((p) => p - 1)}
+            >
+              Anterior
+            </button>
+            <button
+              disabled={!hasMore || busy}
+              onClick={() => setPage((p) => p + 1)}
+            >
+              Próxima
+            </button>
+          </div>
+        )}
       </section>
     </div>
   );

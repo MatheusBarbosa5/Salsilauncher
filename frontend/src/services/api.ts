@@ -63,23 +63,37 @@ export function rewriteRemoteAssetUrls<T>(value: T): T {
 
 const localProfileKey = "salsilauncher.localProfileId";
 export function setLocalProfileId(profileId: number | null) {
-  if (profileId === null) sessionStorage.removeItem(localProfileKey);
-  else sessionStorage.setItem(localProfileKey, String(profileId));
+  if (profileId === null) {
+    localStorage.removeItem(localProfileKey);
+    sessionStorage.removeItem(localProfileKey);
+  } else {
+    localStorage.setItem(localProfileKey, String(profileId));
+    sessionStorage.setItem(localProfileKey, String(profileId));
+  }
 }
 export function localFetch(
   input: RequestInfo | URL,
   init: RequestInit = {},
 ): Promise<Response> {
   const headers = new Headers(init.headers);
-  const profileId = sessionStorage.getItem(localProfileKey);
+  const profileId =
+    localStorage.getItem(localProfileKey) ||
+    sessionStorage.getItem(localProfileKey);
   if (profileId) headers.set("X-User-ID", profileId);
   return fetch(input, { ...init, headers });
 }
 const getTokenKey = () => `salsilauncher.token:${getRemoteApiUrl()}`;
-export const getToken = () => sessionStorage.getItem(getTokenKey());
+export const getToken = () =>
+  localStorage.getItem(getTokenKey()) || sessionStorage.getItem(getTokenKey());
 export function setToken(token: string | null) {
-  if (token) sessionStorage.setItem(getTokenKey(), token);
-  else sessionStorage.removeItem(getTokenKey());
+  const key = getTokenKey();
+  if (token) {
+    localStorage.setItem(key, token);
+    sessionStorage.setItem(key, token);
+  } else {
+    localStorage.removeItem(key);
+    sessionStorage.removeItem(key);
+  }
 }
 export class ApiError extends Error {
   constructor(
@@ -170,6 +184,7 @@ export interface RemoteGame {
   steam_appid: number | null;
   cover: string | null;
   description?: string | null;
+  genres?: string[];
 }
 export interface LocalGame {
   id: number;
@@ -179,6 +194,7 @@ export interface LocalGame {
   description?: string | null;
   cover?: string | null;
   background?: string | null;
+  tags?: { id?: number; name: string }[];
 }
 export interface Collection {
   id: number;
@@ -221,6 +237,17 @@ export interface Rating {
   game_id: number;
   score: number;
   review: string | null;
+}
+export interface FriendGameActivity {
+  user_id: number;
+  username: string;
+  display_name: string | null;
+  avatar_url: string | null;
+  score: number | null;
+  review: string | null;
+  rated_at: string | null;
+  playtime_seconds: number;
+  sessions_count: number;
 }
 export interface PlaySession {
   id: number;

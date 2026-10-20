@@ -34,6 +34,28 @@ async def search_games(
         "results": [game.model_dump() for game in games],
     }
 
+
+@router.get("/recommendations/friends", response_model=dict)
+async def get_friends_recommendations(
+    user: CurrentUser,
+    exclude_appids: str | None = Query(None),
+    limit: int = Query(8, ge=1, le=20),
+    session: Session = Depends(get_session),
+):
+    excluded: set[int] = set()
+    if exclude_appids:
+        for part in exclude_appids.split(","):
+            part = part.strip()
+            if part.isdigit():
+                excluded.add(int(part))
+    return await gameService.build_friends_recommendations(
+        session=session,
+        user_id=user.id,
+        exclude_appids=excluded,
+        limit=limit,
+    )
+
+
 # Consulta metadados sem persistir o jogo
 @router.get("/steam/{appid}/metadata")
 async def get_steam_metadata(appid: int):

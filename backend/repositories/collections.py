@@ -9,7 +9,7 @@ from models.games import Game, CollectionGameLink
 def get_collections(
     session: Session,
     q: Optional[str] = None,
-    limit: int = 25,
+    limit: Optional[int] = None,
     offset: int = 0
 ):
     stmt = select(Collection)
@@ -18,7 +18,9 @@ def get_collections(
         q_like = f"%{q.lower()}%"
         stmt = stmt.where(Collection.title.ilike(q_like))
 
-    stmt = stmt.offset(offset).limit(limit)
+    stmt = stmt.offset(offset)
+    if limit is not None:
+        stmt = stmt.limit(limit)
 
     return session.exec(stmt).all()
 

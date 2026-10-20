@@ -9,7 +9,7 @@ def get_games(
     session: Session,
     q: Optional[str] = None,
     tags: Optional[str] = None,
-    limit: int = 25,
+    limit: Optional[int] = None,
     offset: int = 0,
 ) -> List[Game]:
 

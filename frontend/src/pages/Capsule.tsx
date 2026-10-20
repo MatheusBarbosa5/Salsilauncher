@@ -90,7 +90,7 @@ export function Capsule() {
           </span>
           <div>
             <h1>Sua Cápsula Gamer</h1>
-            <p>Seu tempo, seus gêneros e seus jogos favoritos, mês a mês.</p>
+            <p>Seu tempo, suas tags e seus jogos favoritos, mês a mês.</p>
           </div>
         </div>
         <div className="capsule-years" role="group" aria-label="Ano">
@@ -174,9 +174,9 @@ export function Capsule() {
 
             <div className="capsule-card animate-in">
               <Tag size={18} />
-              <span className="capsule-label">Gênero mais jogado</span>
+              <span className="capsule-label">Tag mais jogada</span>
               <strong className="capsule-big">
-                {bestGenre?.name || "Sem gênero"}
+                {bestGenre?.name || "Sem tag"}
               </strong>
               {bestGenre ? (
                 <small>{formatDuration(bestGenre.seconds)}</small>
@@ -192,7 +192,7 @@ export function Capsule() {
                     setOpenTop(openTop === "genres" ? null : "genres")
                   }
                 >
-                  Top 5 gêneros
+                  Top 5 tags
                 </button>
               )}
             </div>

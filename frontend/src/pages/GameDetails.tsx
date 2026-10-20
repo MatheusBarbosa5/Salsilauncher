@@ -438,7 +438,7 @@ export function GameDetails() {
         </div>
         <div className="info-column">
           <h3>
-            <Tag size={18} /> Gêneros
+            <Tag size={18} /> Tags
           </h3>
           <div className="tag-cloud">
             {game.tags && game.tags.length > 0 ? (

@@ -39,9 +39,9 @@ def unauthorized():
 
 def create_token(user):
     now = datetime.now(timezone.utc)
-    minutes = int(os.getenv("ACCESS_TOKEN_MINUTES", "60"))
-    if not 1 <= minutes <= 1440:
-        raise RuntimeError("ACCESS_TOKEN_MINUTES deve estar entre 1 e 1440")
+    minutes = int(os.getenv("ACCESS_TOKEN_MINUTES", "43200"))
+    if not 1 <= minutes <= 525600:
+        raise RuntimeError("ACCESS_TOKEN_MINUTES deve estar entre 1 e 525600")
     token = jwt.encode({"sub": str(user.id), "iat": now, "exp": now + timedelta(minutes=minutes), "iss": "salsilauncher", "aud": "launcher"}, get_secret(), algorithm="HS256")
     return token, minutes * 60
 

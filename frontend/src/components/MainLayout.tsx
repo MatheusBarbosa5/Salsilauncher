@@ -1,5 +1,6 @@
 // frontend/src/components/MainLayout.tsx
 import { LOCAL_API_URL, localFetch as fetch } from "../services/api";
+import { syncAllCompletedSessions } from "../services/gameLink";
 import React, { useState, useEffect } from "react";
 import {
   Outlet,
@@ -86,6 +87,14 @@ export function MainLayout() {
     fetchFavorites();
   }, [location.pathname]);
 
+  useEffect(() => {
+    if (!user?.id) return;
+    void syncAllCompletedSessions(user.id);
+    const timer = window.setInterval(() => {
+      void syncAllCompletedSessions(user.id);
+    }, 15000);
+    return () => window.clearInterval(timer);
+  }, [user?.id]);
 
   useEffect(() => {
     setIsUserMenuOpen(false);

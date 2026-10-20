@@ -96,7 +96,7 @@ export function YearRetrospective({
             </div>
             <div className="capsule-card">
               <Trophy size={18} />
-              <span className="capsule-label">Gênero do ano</span>
+              <span className="capsule-label">Tag do ano</span>
               <strong className="capsule-big">{bestGenre?.name || "—"}</strong>
               {bestGenre && <small>{formatDuration(bestGenre.seconds)}</small>}
             </div>
@@ -124,7 +124,7 @@ export function YearRetrospective({
               </ol>
             </div>
             <div>
-              <h4>Top 5 gêneros</h4>
+              <h4>Top 5 tags</h4>
               <ol className="capsule-rank">
                 {total.top_genres.map((g, i) => (
                   <li key={g.name}>

@@ -130,7 +130,7 @@ export function Library() {
                 cursor: "pointer",
               }}
             >
-              <option value="all">Todos os Gêneros</option>
+              <option value="all">Todas as Tags</option>
               {uniqueTags.map((tag: any) => (
                 <option key={tag} value={tag}>
                   {tag}

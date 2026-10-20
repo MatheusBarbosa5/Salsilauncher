@@ -80,7 +80,7 @@ def upload_cover_image(request: Request, file: UploadFile = File(...)):
 def get_games(
     q: str | None = Query(None),
     tags: str | None = Query(None),
-    limit: int = Query(25, ge=1, le=100),
+    limit: int | None = Query(None, ge=1),
     offset: int = Query(0, ge=0),
     session: Session = Depends(get_session)
 ):
@@ -120,6 +120,21 @@ async def get_recommendations(
     session: Session = Depends(get_session),
 ):
     return await recommendationService.build_recommendations(session, limit)
+
+
+@router.post("/recommendations/friends", response_model=dict)
+async def get_friends_recommendations_local(
+    payload: dict = Body(...),
+    limit: int = Query(8, ge=1, le=20),
+    session: Session = Depends(get_session),
+):
+    friend_games = payload.get("games") or []
+    return await recommendationService.build_friends_recommendations_from_games(
+        session=session,
+        friend_games=friend_games,
+        limit=limit,
+    )
+
 
 @router.get("/{game_id}", response_model=dict)
 def get_game_by_id(

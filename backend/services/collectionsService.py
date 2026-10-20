@@ -9,7 +9,7 @@ from models.games import Game, CollectionGameLink
 def get_collections(
     session: Session,
     q: Optional[str] = None,
-    limit: int = 25,
+    limit: Optional[int] = None,
     offset: int = 0
 ) -> List[Collection]:
 

@@ -7,12 +7,18 @@ STEAM_STORE_SEARCH_URL = "https://store.steampowered.com/search/"
 STEAM_APP_DETAILS_URL = "https://store.steampowered.com/api/appdetails"
 
 # Pesquisa candidatos na Steam sem persistir nenhum deles
-async def search_steam_store(query: str, limit: int = 20) -> list[dict[str, Any]]:
+async def search_steam_store(
+    query: str = "",
+    limit: int = 20,
+    tag_ids: list[int] | None = None,
+) -> list[dict[str, Any]]:
     query = query.strip()
-    if not query:
+    if not query and not tag_ids:
         return []
 
-    params = {"term": query, "cc": "br", "l": "portuguese"}
+    params: dict[str, Any] = {"term": query, "cc": "br", "l": "portuguese"}
+    if tag_ids:
+        params["tags"] = ",".join(str(tag_id) for tag_id in tag_ids)
     headers = {
         "User-Agent": (
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
