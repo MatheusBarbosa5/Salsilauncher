@@ -1,5 +1,17 @@
-const { app, BrowserWindow, shell } = require('electron');
+const { app, BrowserWindow, shell, ipcMain, dialog } = require('electron');
 const path = require('node:path');
+
+ipcMain.handle('dialog:openDirectory', async (event) => {
+  const win = BrowserWindow.fromWebContents(event.sender);
+  const result = await dialog.showOpenDialog(win || undefined, {
+    title: 'Selecione a pasta para escanear',
+    properties: ['openDirectory'],
+  });
+  if (result.canceled || !result.filePaths.length) {
+    return null;
+  }
+  return result.filePaths[0];
+});
 
 function createWindow() {
   const window = new BrowserWindow({
@@ -10,6 +22,7 @@ function createWindow() {
     backgroundColor: '#0b0b0f',
     autoHideMenuBar: true,
     webPreferences: {
+      preload: path.join(__dirname, 'preload.cjs'),
       contextIsolation: true,
       nodeIntegration: false,
       sandbox: true,

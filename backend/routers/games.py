@@ -60,6 +60,24 @@ def browse_file():
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+@router.get("/browse-folder")
+def browse_folder():
+    import tkinter as tk
+    from tkinter import filedialog
+
+    try:
+        root = tk.Tk()
+        root.withdraw()
+        root.wm_attributes('-topmost', 1)
+        folder_path = filedialog.askdirectory(
+            title="Selecione a pasta para escanear"
+        )
+        root.destroy()
+
+        return {"path": folder_path}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 @router.post("/upload-cover")
 def upload_cover_image(request: Request, file: UploadFile = File(...)):
     try:
@@ -267,12 +285,52 @@ async def escanear_pasta_por_games(
             if os.path.isdir(pasta) and pasta_norm not in pastas_existentes:
                 yield pasta
 
+    def _eh_executavel_desinstalacao(nome_arquivo: str) -> bool:
+        nome_lower = nome_arquivo.lower()
+        return (
+            "uninstall" in nome_lower
+            or "unninstall" in nome_lower
+            or "unins0" in nome_lower
+            or nome_lower.startswith("unins")
+            or "desinstalar" in nome_lower
+        )
+
+    def _eh_executavel_auxiliar(nome_arquivo: str) -> bool:
+        nome_lower = nome_arquivo.lower()
+        return any(
+            termo in nome_lower
+            for termo in (
+                "unitycrashhandler",
+                "crashreport",
+                "crashhandler",
+                "vcredist",
+                "dxsetup",
+                "ue4prereq",
+            )
+        )
+
     def encontrar_executavel(pasta):
+        nome_pasta_norm = "".join(
+            c for c in os.path.basename(pasta).lower() if c.isalnum()
+        )
+        candidatos = []
         for root, _, files in os.walk(pasta):
-            for f in files:
-                if f.lower().endswith(".exe"):
+            exes = [f for f in files if f.lower().endswith(".exe")]
+            if not exes:
+                continue
+            validos = [f for f in exes if not _eh_executavel_desinstalacao(f)]
+            if not validos:
+                continue
+            principais = [f for f in validos if not _eh_executavel_auxiliar(f)] or validos
+            for f in principais:
+                stem_norm = "".join(
+                    c for c in os.path.splitext(f)[0].lower() if c.isalnum()
+                )
+                if nome_pasta_norm and stem_norm == nome_pasta_norm:
                     return os.path.join(root, f)
-        return None
+            for f in principais:
+                candidatos.append(os.path.join(root, f))
+        return candidatos[0] if candidatos else None
 
     async def criar_game_para_pasta(pasta, executavel):
         nome = os.path.basename(pasta)
